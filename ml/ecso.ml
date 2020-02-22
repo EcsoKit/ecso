@@ -859,30 +859,6 @@ class plugin =
 
 		val mutable need_init = (true)
 
-		(* Macro-Time *)
-
-		val mutable registered_components = ( [] : (string * pos) list )
-
-		method for_registered_c_tdef t list f =
-			List.iter 
-				(fun (name, pos) ->
-					if name = string_of_path t.t_path then
-						f t pos
-					else 
-						()
-				)
-				list
-
-		(* Typing-Time *)
-
-		val mutable processed_components = ( [] : (Type.tdef * pos) list )
-
-		method process_component_tdef c_tdef c_pos =
-			print_endline ("PROCESS COMPONENT" ^ (string_of_path c_tdef.t_path));
-			(* TODO: declare the type `cdata`, and process the component to create a `cdata` object*)
-			processed_components <- (c_tdef, c_pos) :: processed_components;
-			()
-
 		(* Analyse *)
 
 		val mutable ecso_entity_group = (None : tclass option)
@@ -1060,26 +1036,10 @@ class plugin =
 				need_init <- false;
 				print_endline "Init Ecso plugin";
 				let compiler = (EvalContext.get_ctx()).curapi in
-				(* let is_registered_component (name, pos) =  *)
-				
-				compiler.after_typing
-					self#on_after_typing;
-
-				compiler.after_typing (fun haxe_types ->
-					List.iter
-						(fun hx_type ->
-							match hx_type with
-								| TTypeDecl t ->
-									self#for_registered_c_tdef
-										t
-										registered_components
-										self#process_component_tdef
-								
-								| _ -> ()
-						)
-						haxe_types
-				);
-			end
+					compiler.after_typing
+						self#on_after_typing
+			end;
+			vnull
 		
 		method on_after_typing haxe_types =
 			self#analyze_types haxe_types;
@@ -1211,27 +1171,6 @@ class plugin =
 			(* system_to_set_link = rset * tsystem *)
 			
 			()
-
-		method register_component (name : value) (pos : value) : value = 
-			self#init ();
-			let name = EvalDecode.decode_string name in
-			let pos = EvalDecode.decode_pos pos in
-			registered_components <- (name, pos) :: registered_components;
-			print_endline ("Registered component " ^ name);
-			vnull
-
-
-		(**
-			Prints greeting to stdout.
-			Takes no arguments, returns Void.
-		*)
-		method hello () : value =
-			print_endline "Hello from plugin";
-			(*
-				Plugin architecture requires to return something even for methods typed Void on Haxe side.
-				Return `null`
-			*)
-			vnull
 		(**
 			Takes `haxe.macro.Position` and returns a string of that position in the same format used for
 			compiler errors
@@ -1240,38 +1179,7 @@ class plugin =
 			let pos = EvalDecode.decode_pos pos in
 			let str = Lexer.get_error_pos (Printf.sprintf "%s:%d:") pos in
 			EvalEncode.encode_string str
-		(**
-			Change all static methods named "test" to throw "Hello from plugin".
-			This is an example how to modify typed syntax tree.
-		*)
-		method hijack_static_test () : value =
-			let compiler = (EvalContext.get_ctx()).curapi in
-			(**
-				Add a callback like `haxe.macro.Context.onAfterTyping`
-			*)
-			compiler.after_typing (fun haxe_types ->
-				List.iter
-					(fun hx_type ->
-						match hx_type with
-							| TClassDecl cls ->
-								List.iter
-									(fun field ->
-										match field.cf_name, field.cf_expr with
-											| "test", Some e ->
-												let hello = {
-													eexpr = TConst (TString "Hello from plugin");
-													etype = (compiler.get_com()).basic.tstring;
-													epos = Globals.null_pos;
-												} in
-												field.cf_expr <- Some { e with eexpr = TThrow hello }
-											| _ -> ()
-									)
-									cls.cl_ordered_statics
-							| _ -> ()
-					)
-					haxe_types
-			);
-			vnull
+
 	end
 ;;
 
@@ -1282,5 +1190,5 @@ let api = new plugin in
 	This code is executed upon `eval.vm.Context.loadPlugin` call.
 *)
 EvalStdLib.StdContext.register [
-	("registerComponent", EvalEncode.vfun2 api#register_component);
+	("init", EvalEncode.vfun0 api#init);
 ]
