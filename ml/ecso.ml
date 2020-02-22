@@ -457,7 +457,8 @@ let setup_extern_field cl cf_name arg_name arg_count =
 					tf_type = TFun (List.map type_arg args,api.tvoid);
 					tf_expr = mk (TBlock[]) api.tvoid cf.cf_pos;
 				} in
-				cf.cf_expr <- Some (mk (TFunction process_impl) cf.cf_type cf.cf_pos)
+				cf.cf_expr <- Some (mk (TFunction process_impl) process_impl.tf_type cf.cf_pos);
+				cf.cf_type <- process_impl.tf_type
 			| Some e -> ()
 		)
 	end else ()
