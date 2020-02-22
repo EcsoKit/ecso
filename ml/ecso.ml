@@ -439,9 +439,6 @@ let setup_extern_field cl cf_name arg_name arg_count =
 					let var = arg_var arg in
 					(var.v_name,false,var.v_type)
 				in
-				let ident_arg i args =
-					mk (TLocal (arg_var (List.nth i args))) api.tstring cf.cf_pos
-				in
 				let args = 
 					if arg_count = 1 then
 						[mk_arg arg_name]
@@ -450,7 +447,6 @@ let setup_extern_field cl cf_name arg_name arg_count =
 				in
 				let process_impl = {
 					tf_args = args;
-					(* tf_type = TFun ([(system_arg.v_name,false,api.tstring)],api.tvoid); *)
 					tf_type = TFun (List.map type_arg args,api.tvoid);
 					tf_expr = mk (TBlock[]) api.tvoid cf.cf_pos;
 				} in
@@ -458,43 +454,6 @@ let setup_extern_field cl cf_name arg_name arg_count =
 				cf.cf_type <- process_impl.tf_type
 			| Some e -> ()
 		)
-	end else ()
-
-let setup_process into_cl = 
-	let compiler = (EvalContext.get_ctx()).curapi in
-	let api = (compiler.get_com()).basic in
-	let process_cf = PMap.find "process" into_cl.cl_fields in
-	if (has_class_field_flag process_cf CfExtern) then begin
-		remove_class_field_flag process_cf CfExtern;
-		process_cf.cf_kind <- Method MethInline;
-		(match process_cf.cf_expr with
-			| None ->
-				let rec mk_args count arg_list =
-					if (count > 0) then
-						let system_arg = alloc_var VGenerated ("s"^string_of_int count) api.tstring process_cf.cf_pos in
-						mk_args (count - 1) ((system_arg,Some (mk (TConst TNull) system_arg.v_type system_arg.v_pos)) :: arg_list )
-					else
-						arg_list
-				in
-				let arg_var arg = match arg with | (v,_) -> v in
-				let type_arg arg = 
-					let var = arg_var arg in
-					(var.v_name,false,var.v_type)
-				in
-				let ident_arg i args =
-					mk (TLocal (arg_var (List.nth i args))) api.tstring process_cf.cf_pos
-				in
-				let args = mk_args 65535 [] in
-				let process_impl = {
-					tf_args = args;
-					(* tf_type = TFun ([(system_arg.v_name,false,api.tstring)],api.tvoid); *)
-					tf_type = TFun (List.map type_arg args,api.tvoid);
-					tf_expr = mk (TBlock[]) api.tvoid process_cf.cf_pos;
-				} in
-				process_cf.cf_expr <- Some (mk (TFunction process_impl) process_cf.cf_type process_cf.cf_pos)
-			| Some e -> ()
-		);
-		print_endline "setup g.process"
 	end else ()
 
 let implement_uexpr (eorigin : tclass_field) (expr : texpr) (impl : texpr) =
