@@ -429,13 +429,10 @@ let setup_extern_field cl cf_name arg_name arg_count =
 					let system_varg = alloc_var VGenerated name api.tstring cf.cf_pos in
 					(system_varg, Some (mk (TConst TNull) system_varg.v_type system_varg.v_pos))
 				in
-				let rec mk_args name count arg_list =
-					if (count > 0) then
-						let system_varg = alloc_var VGenerated (name^string_of_int count) api.tstring cf.cf_pos in
-						let system_arg = (system_varg,Some (mk (TConst TNull) system_varg.v_type system_varg.v_pos)) in
-						mk_args name (count - 1) ((mk_arg (name^string_of_int count)) :: arg_list)
-					else
-						arg_list
+				let mk_args name count =
+					List.init
+						count 
+						(fun i -> mk_arg (name ^ string_of_int i))
 				in
 				let arg_var arg = match arg with | (v,_) -> v in
 				let type_arg arg = 
@@ -446,10 +443,10 @@ let setup_extern_field cl cf_name arg_name arg_count =
 					mk (TLocal (arg_var (List.nth i args))) api.tstring cf.cf_pos
 				in
 				let args = 
-					if arg_count = 0 then
+					if arg_count = 1 then
 						[mk_arg arg_name]
 					else
-						mk_args arg_name arg_count [] 
+						mk_args arg_name arg_count
 				in
 				let process_impl = {
 					tf_args = args;
@@ -1140,8 +1137,8 @@ class plugin =
 			
 			(* setup_process ecso_entity_group; *)
 			setup_extern_field ecso_entity_group "process" "s" 32;
-			setup_extern_field ecso_entity_group "createEntity" "e" 0;
-			setup_extern_field ecso_entity_group "deleteEntity" "e" 0;
+			setup_extern_field ecso_entity_group "createEntity" "e" 1;
+			setup_extern_field ecso_entity_group "deleteEntity" "e" 1;
 									
 			(* List.iter
 				(fun (rset,uexpr) ->
