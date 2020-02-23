@@ -914,7 +914,7 @@ class plugin =
 								match texpr.eexpr with
 									| TCast (texpr, _) -> analyse_arg texpr
 									| _ -> 
-										print_endline "[ECSO] Wrong process parsing";
+										print_endline ("[ECSO] Wrong process parsing " ^ (s_expr s_type_kind texpr));
 										raise Unexpected_expr
 							)
 						| _ -> raise Unhandled_meta
@@ -926,65 +926,31 @@ class plugin =
 			List.iter analyse_arg process_args
 		
 		method extract_ecreate (eorigin : tclass_field) (entity_group : texpr) (edef : texpr) =
-				let extract (inits : ((string * pos * quote_status) * texpr) list) (def : tanon) = 
-					Hashtbl.add ecreates (hash_tanon def) {
-						expr = edef;
-						eorigin = eorigin;
-						group = entity_group;
-						e_inits = inits;
-						e_def = def;
-					}
-				in
-				let rec analyse_arg e =
-					match e.eexpr with
-						| TMeta (metadata_entry, e) ->
-							(match metadata_entry with
-								| (Meta.ImplicitCast, [], pos) -> (
-										match e.eexpr with
-											| TCast (e, _) -> analyse_arg e
-											| _ -> 
-												print_endline "[ECSO] Wrong process parsing";
-												raise Unexpected_expr
-									)
-								| _ -> raise Unhandled_meta
-							)
-						| TObjectDecl fields ->
-							let def : tanon = (match e.etype with | TAnon tanon -> tanon | _ -> raise Unhandled_component_type) in
-							extract fields def
-						| _ ->
-							print_endline ("ANALYSE S-Args " ^ (s_expr s_type_kind e));
-							()
-				in
-				analyse_arg edef
+			match edef.etype with
+			| TAnon def ->
+				Hashtbl.add ecreates (hash_tanon def) {
+					expr = edef;
+					eorigin = eorigin;
+					group = entity_group;
+					e_inits = [](* inits *);
+					e_def = def;
+				}
+			| _ ->
+				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type edef.etype));
+				raise Unhandled_component_type
 		
 		method extract_edelete (eorigin : tclass_field) (entity_group : texpr) (einstance : texpr) =
-				let extract (def : tanon) = 
-					Hashtbl.add edeletes (hash_tanon def) {
-						expr = einstance;
-						eorigin = eorigin;
-						group = entity_group;
-						e_def = def;
-					}
-				in
-				let rec analyse_arg e =
-					match e.eexpr, fetch_type e.etype with
-					| _, TAnon def ->
-						extract def
-					| TMeta (metadata_entry, e), _ ->
-						(match metadata_entry with
-							| (Meta.ImplicitCast, [], pos) -> (
-									match e.eexpr with
-										| TCast (e, _) -> analyse_arg e
-										| _ -> 
-											print_endline "[ECSO] Wrong process parsing";
-											raise Unexpected_expr
-								)
-							| _ -> raise Unhandled_meta
-						)
-					| _ ->
-						raise Unhandled_component_type
-				in
-				analyse_arg einstance
+			match einstance.etype with
+			| TAnon def ->
+				Hashtbl.add edeletes (hash_tanon def) {
+					expr = einstance;
+					eorigin = eorigin;
+					group = entity_group;
+					e_def = def;
+				}
+			| _ ->
+				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type einstance.etype));
+				raise Unhandled_component_type
 
 		(* Process *)
 

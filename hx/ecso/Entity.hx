@@ -18,9 +18,9 @@ final class EntityGroup {
 
     public inline function new () { }
 
-    public extern function createEntity (def:Any):Void;
+    public extern function createEntity <T> (def:T):Void;
 
-    public extern function deleteEntity (def:Any):Void;
+    public extern function deleteEntity <T> (def:T):Void;
 
     public extern function process (systems:Rest<Any>):Void;
 
