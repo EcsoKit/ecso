@@ -459,7 +459,7 @@ let setup_extern_field cl cf_name arg_name arg_count =
 let implement_uexpr (eorigin : tclass_field) (expr : texpr) (impl : texpr) =
 	
 		let rec check_expr (e : texpr) : texpr = 
-			if (e.epos.pmin = expr.epos.pmin && e.epos.pmax = expr.epos.pmax && e.epos.pfile = expr.epos.pfile) then
+			if (s_expr s_type_kind e = s_expr s_type_kind expr && e.epos.pmin = expr.epos.pmin && e.epos.pmax = expr.epos.pmax && e.epos.pfile = expr.epos.pfile) then
 				impl
 			else
 				map_expr
