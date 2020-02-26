@@ -1,38 +1,36 @@
 package tests.systems;
 
-import ecso.System;
+import ecso.Entity;
 import tests.components.PositionComponent;
 import tests.components.VelocityComponent;
 
-// TODO optional @systemGroup(4) `4` can be enum value, string, int, or type (typedef, enum, abstract, class etc...)
-// to later on in the user side call Ecso.runSystems() to run all systems 
-// or Ecso.runSystems(4) to run a specific list of system that are annotated with @systemGroup(4)
-// by default a system is @systemGroup(0) 
-class MovementSystem implements System {
-    
-    /*
-    
-    FOR: function run (b:B, a:A):Void
-    
-    1. safly sort args: (a:A, b:B)
-    2. store MovementSystem: list_of_`(A, B)`.push( MovementSystem.run )
-    
-    RUNTIME: if (entity.has(A) && entity.get(B)) for (system in list_of_`(A, B)`) f.run(entity.get(A), entity.get(B));
-    
-    
-    FOR: function run (b:B, a:A, ?c:C):Void // todo
-    
-    1. safly sort args: (a:A, b:B, ?c:C)
-    2. store MovementSystem: list_of_`(a:A, b:B, ?c:C)`.push( MovementSystem.run )
-    
-    RUNTIME: if (entity.has(A) && entity.get(B)) for (system in list_of_`(A, B)`) f.run(entity.get(A), entity.get(B), entity.tryGet(C));
-    
-    */
-    
-    public static function compute (position:PositionComponent, velocity:VelocityComponent):Void {
-        
-        position.x += velocity.x;
-        position.y += velocity.y;
+class MovementSystem {
+
+    public static function move (e:PositionComponent & VelocityComponent):Void {
+        e.x += e.vx;
+        e.y += e.vy;
+    }
+
+    public static function decelerate (e:VelocityComponent):Void {
+
+        e.vx -= 1;
+        e.vy -= 1;
+    }
+
+    public static function moveAndStop (e:PositionComponent & VelocityComponent & { spy:PositionComponent }, g:EntityGroup):Void {
+
+        move(e);
+        e.spy.x = e.x;
+        e.spy.y = e.y;
+        g.deleteEntity( e );
+    }
+
+    public static function spy (e:PositionComponent & VelocityComponent & { spy:PositionComponent&VelocityComponent }):Void {
+
+        e.spy.x = e.x;
+        e.spy.y = e.y;
+        e.spy.vy = e.vy;
+        e.spy.vx = e.vx;
     }
     
 }

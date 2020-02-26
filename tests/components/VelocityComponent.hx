@@ -1,11 +1,8 @@
 package tests.components;
 
-import ecso.Component;
+typedef VelocityComponent = {
 
-class VelocityComponent implements Component {
-
-    public var x:Int;
-    public var y:Int;
-    public var once:Bool;
+    var vx:Int;
+    var vy:Int;
     
 }

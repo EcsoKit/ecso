@@ -3,29 +3,9 @@
 -lib buddy
 # -lib utest
 -lib ecso
--lib bits
-# -D ecso-bitmask-matching
-# -D ecso-logs
 -main tests.Main
-# -dce full
-# -dce no
-# --interp
--js bin/Tests.js
--lib hxnodejs
+-dce full
+--interp
 
-# -neko bin/Tests.n
-
-# -lib hlsdl 
-# -hl bin/Tests.hl
-
--D dump=pretty
+# -D dump=pretty
 # --no-inline 
-
-### Ecso Defines ###
-
-# -D ecso-reuse-component-id
-
-# --each
-# --no-output
-# --next
-# -D ecso-build-phase
