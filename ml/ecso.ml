@@ -16,6 +16,7 @@ exception Invalid_rlist_type
 exception Invalid_rlist_optimization
 exception Not_used
 exception Found
+exception Incompatible
 
 let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
 
@@ -287,24 +288,19 @@ let has_tanon_field (name : string) (cf : tclass_field) (an : tanon) : bool =
 	with Found -> true
 
 let is_compatible_def (def : tanon) (with_def : tanon) : bool =
-	let compatible = ref true in
-	print_endline ("CHECK SYSTEM COMPATIBILITY");
-	PMap.iter
-		(fun name cf ->
-			if (has_tanon_field name cf def) then
-				()
-			else 
-				compatible := false;
-			()
-		)
-		with_def.a_fields;
+	let compatible =
+		try
+			PMap.iter (fun name cf -> if (has_tanon_field name cf def = false) then raise Incompatible) with_def.a_fields; true
+		with
+			| Incompatible -> false
+	in
 	print_endline ("--- type " ^ (s_type (TAnon def)));
-	if !compatible then
+	if compatible then
 		print_endline ("--- is FULLY compatible")
 	else 
 		print_endline ("--- is NOT compatible");
 	print_endline ("--- with " ^ (s_type (TAnon with_def)));
-	!compatible
+	compatible
 
 let contains_compatible_defs from_list (with_def : tanon) : bool =
 	try begin (Hashtbl.iter (fun def_hash def -> if is_compatible_def def with_def then raise Found) from_list); false end
