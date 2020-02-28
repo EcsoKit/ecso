@@ -922,7 +922,7 @@ class plugin =
 			List.iter analyse_arg process_args
 		
 		method extract_ecreate (eorigin : tclass_field) (entity_group : texpr) (edef : texpr) =
-			match edef.etype with
+			match follow edef.etype with
 			| TAnon def ->
 				Hashtbl.add ecreates (hash_tanon def) {
 					expr = edef;
@@ -936,7 +936,7 @@ class plugin =
 				raise Unhandled_component_type
 		
 		method extract_edelete (eorigin : tclass_field) (entity_group : texpr) (einstance : texpr) =
-			match einstance.etype with
+			match follow einstance.etype with
 			| TAnon def ->
 				Hashtbl.add edeletes (hash_tanon def) {
 					expr = einstance;
