@@ -126,7 +126,7 @@ let rec edef_of_followed t =
 	| TType (tdef, tparams) -> edef_of_followed tdef.t_type
 	| TAnon tanon -> tanon
 	| _ -> 
-		print_endline ("Unhandled_component_type" ^ (s_type_kind t));
+		print_endline ("Unhandled component type: " ^ (s_type_kind t));
 		raise Unhandled_component_type
 
 (* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
@@ -932,7 +932,7 @@ class plugin =
 					e_def = def;
 				}
 			| _ ->
-				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type edef.etype));
+				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type_kind edef.etype));
 				raise Unhandled_component_type
 		
 		method extract_edelete (eorigin : tclass_field) (entity_group : texpr) (einstance : texpr) =
@@ -945,7 +945,7 @@ class plugin =
 					e_def = def;
 				}
 			| _ ->
-				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type einstance.etype));
+				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type_kind einstance.etype));
 				raise Unhandled_component_type
 
 		(* Process *)
