@@ -16,7 +16,6 @@ exception Invalid_rlist_type
 exception Invalid_rlist_optimization
 exception Not_used
 exception Found
-exception Incompatible
 
 let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
 
@@ -280,26 +279,13 @@ let get_field_access t name =
 		print_endline ("Unhandled get_field_access type for " ^ (s_type_kind t));
 		raise Unhandled_component_type
 
-
-let has_tanon_field (name : string) (cf : tclass_field) (an : tanon) : bool =
-	let s_tanon_field name cf = s_type (mk_anon (PMap.add name cf PMap.empty)) in
-	let sid = s_tanon_field name cf in
-	try begin (PMap.iter (fun name2 cf2 -> if sid = (s_tanon_field name2 cf2) then raise Found) an.a_fields); false end
-	with Found -> true
-
 let is_compatible_def (def : tanon) (with_def : tanon) : bool =
-	let compatible =
-		try
-			PMap.iter (fun name cf -> if (has_tanon_field name cf def = false) then raise Incompatible) with_def.a_fields; true
-		with
-			| Incompatible -> false
-	in
-	print_endline ("--- type " ^ (s_type (TAnon def)));
+	let compatible = try unify_anons (TAnon def) (TAnon with_def) def with_def; true with Unify_error _ -> false in
+	print_endline ("Entity Type " ^ (s_type (TAnon def)));
 	if compatible then
-		print_endline ("--- is FULLY compatible")
+		print_endline ("------pass> " ^ (s_type (TAnon with_def)))
 	else 
-		print_endline ("--- is NOT compatible");
-	print_endline ("--- with " ^ (s_type (TAnon with_def)));
+		print_endline ("------fail> " ^ (s_type (TAnon with_def)));
 	compatible
 
 let contains_compatible_defs from_list (with_def : tanon) : bool =
