@@ -688,7 +688,6 @@ let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) =
 	let block = ref [mk (TConst (TString ("DeleteEntity " ^ (s_type (TAnon ed.e_def))))) api.tstring p] in
 	let einstance_var = alloc_var VGenerated "e" (TAnon ed.e_def) p in
 	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
-	print_endline "edelete";
 	foreach_dependent_system sprocesses
 		(fun sdef -> 
 			print_endline "---- ---- edelete";
