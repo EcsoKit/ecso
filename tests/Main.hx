@@ -110,31 +110,6 @@ private class CoreSpecification extends BuddySuite {
                 spy.y.should.be(spy.vy);
 
             });
-            
-            // it('should have a method foreach', {
-            //     entities.forEach<PositionComponent, VelocityComponent>(function (e:Entity, p:PositionComponent, v:VelocityComponent) {
-            //         // do somthing with e, p et v
-            //     });
-            // });
-            
-            // it('should have a method geteach', {
-            //     var allMatchedEntities:Array<Entity> = entities.getEach<PositionComponent, VelocityComponent>();
-            //     var allMatchedEntities:Array<Entity<PositionComponent, VelocityComponent>> = entities.getEach<PositionComponent, VelocityComponent>();
-                
-            //     var allMatchedAndFilteredEntities:Array<Entity> = entities.getEach<PositionComponent, VelocityComponent>(function (e:Entity, p:PositionComponent, v:VelocityComponent) {
-            //         // filter e
-            //         return Math.random() > 0.5 ? true : false;
-            //     });
-                
-            //     var allMatchedAndFilteredEntities:Array<Entity<PositionComponent, VelocityComponent>> = entities.getEach<PositionComponent, VelocityComponent>(function (e:Entity, p:PositionComponent, v:VelocityComponent) {
-            //         // filter e
-            //         return Math.random() > 0.5 ? true : false;
-            //     });
-
-                // for (entity => components in entities.getEach<PositionComponent, VelocityComponent>) {
-                    // components.positionComponent.x += 3;
-                // }
-            // });
 
         });
         
