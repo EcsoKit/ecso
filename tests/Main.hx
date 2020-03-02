@@ -16,103 +16,146 @@ private class CoreSpecification extends BuddySuite {
     static var FLOAT_DEFAULT_VALUE:Float;
     static var BOOL_DEFAULT_VALUE:Bool;
 
+    public static function movingY (e:PositionComponent & VelocityComponent):Void {
+        e.y += e.vy;
+    }
+
     public function new () {
 
         super();
+        
+        var entities:EntityGroup;
+
+        var spy;
+
+        function spying (e:PositionComponent & VelocityComponent) {
+            spy.x = e.x;
+            spy.y = e.y;
+            spy.vx = e.vx;
+            spy.vy = e.vy;
+        }
 
         describe('EntityGroup', {
 
-            var entities:EntityGroup;
+            beforeEach({
+                entities = new EntityGroup();
+                spy = { x: -1, y: -1, vx: -1, vy: -1 }
+            });
 
-            it('should have a constructor', {
-                new EntityGroup();
+            describe('should create entities', {
+                it('with anon structures', {
+                    entities.createEntity({
+                        foo: 0
+                    });
+                });
+                it('with multiple components', {
+                    entities.createEntity({
+                        foo: "ecso",
+                        bar: new StringBuf()
+                    });
+                });
+                it('with type constraints', {
+                    entities.createEntity(({
+                        foo: 0
+                    } : { foo:Int }));
+                });
+                it('with down-casting constraints', {
+                    entities.createEntity(({
+                        foo: 2020,
+                        bar: "ecso"
+                    } : { foo:Float, bar:String }));
+                });
             });
 
             beforeEach({
-                entities = new EntityGroup();
-            });
-            
-            it('should create entities', {
-
-                // with anon structures
                 entities.createEntity({
-                    foo: 0
-                });
-
-                // with anon structures, two components
-                entities.createEntity({
-                    foo: "ecso",
-                    bar: new StringBuf()
-                });
-
-                // with type constraints
-                entities.createEntity(({
-                    foo: 0
-                } : { foo:Int }));
-
-                // with type constraints, down-cast
-                entities.createEntity(({
-                    foo: 2020,
-                    bar: "ecso"
-                } : { foo:Float, bar:String }));
-            });
-            
-            it('should process systems', {
-
-                entities.process( MovementSystem.decelerate );
-
-                entities.process( MovementSystem.move, MovementSystem.decelerate );
-
-                var spy = { x: 0, y: 0, vx: 0, vy: 0 };
-                
-                entities.createEntity({
-                    x: 2,
+                    x: 4,
                     y: 4,
                     vx: 10,
                     vy: 20,
                     spy: spy
                 });
-
-                // test spy
-                entities.process( MovementSystem.spy );
-                spy.x.should.be(2);
-                spy.y.should.be(4);
-                spy.vx.should.be(10);
-                spy.vy.should.be(20);
-
-                // processed in order
-                entities.process( MovementSystem.decelerate, MovementSystem.spy );
-                spy.vx.should.be(9);
-                spy.vy.should.be(19);
-
-                // processed in order (with trailing)
-                entities.process( MovementSystem.move, MovementSystem.spy, MovementSystem.move );
-                spy.x.should.be(2 + 9);
-                spy.y.should.be(4 + 19);
-                entities.process( MovementSystem.spy );
-                spy.x.should.be(2 + 9 * 2);
-                spy.y.should.be(4 + 19 * 2);
-
-                // anon system, processed once
-                entities.process((e:PositionComponent) -> {
-                    e.x -= spy.x;
-                    e.y -= spy.y;
-                }, MovementSystem.spy);
-                spy.x.should.be(0);
-                spy.y.should.be(0);
-
-                // binded system, entity deletion, component down-cast (see `spy:PositionComponent`)
-                entities.process( MovementSystem.moveAndStop.bind(_,entities) );
-                spy.x.should.be(spy.vx);
-                spy.y.should.be(spy.vy);
-                entities.process( MovementSystem.move, MovementSystem.spy );
-                spy.x.should.be(spy.vx);
-                spy.y.should.be(spy.vy);
-
             });
 
-        });
-        
-    }
+            describe('should process entities', {
+                it('with anon systems', {
+                    entities.process((e:PositionComponent) -> {
+                        e.x += 2;
+                    });
+                    spy.x.should.be(-1);
+                    entities.process((e:{ x:Int, spy:{ x:Int } }) -> {
+                        e.spy.x = e.x;
+                    });
+                    spy.x.should.be(6);
+                });
+                it('with local systems', {
+                    function movingX (e:PositionComponent) {
+                        e.x += 4;
+                    }
+                    entities.process(movingX);
+                    entities.process(spying);
+                    spy.x.should.be(8);
+                });
+                it('with static systems', {
+                    entities.process(movingY);
+                    entities.process(spying);
+                    spy.y.should.be(4 + spy.vy);
+                });
+                it('with module-level systems', {
+                    pending("coming soon");
+                });
+                it('with matching systems only', {
+                    entities.process((e:{ foo:Int }) -> {
+                        fail('Entity $e should not match with { foo : Int }');
+                    });
+                });
+                it('with system binding', {
+                    entities.process((function (e:{ x:Int, spy:{x:Int} }, shift:Int) {
+                        e.x += shift;
+                    }).bind(_, 50));
+                    entities.process(spying);
+                    spy.x.should.be(54);
+                });
+                it('with multiple systems', {
+                    entities.process(movingY, spying);
+                    spy.y.should.be(4 + spy.vy);
+                });
+                it('with optional components', {
+                    var count = 0;
+                    entities.process((e:PositionComponent & { ?z:Int }) -> {
+                        e.z.should.be(null);
+                        e.z = 5;
+                        count++;
+                    });
+                    entities.process((e:{ z:Int }) -> {
+                        e.z.should.be(5);
+                        count++;
+                    });
+                    count.should.be(2);
+                });
+                it('with siblings', {
+                    entities.process((e:PositionComponent, sibling:PositionComponent) -> {
+                        e.x.should.be(sibling.x);
+                    });
+                    entities.createEntity({ z: 2 });
+                    var totalz = 0;
+                    entities.process((e:PositionComponent, sibling:{ z:Int }) -> {
+                        totalz += sibling.z;
+                    });
+                    totalz.should.be(2);
+                });
+            });
 
+            describe('should delete entities', {
+                it('within systems', {
+                    function stoping (e:{ y:Int }, group:EntityGroup)
+                        group.deleteEntity(e);
+                    entities.process( movingY, spying, stoping.bind(_,entities) );
+                    spy.y.should.be(4 + spy.vy);
+                    entities.process( movingY, spying );
+                    spy.y.should.be(4 + spy.vy);
+                });
+            });
+        });        
+    }
 }
