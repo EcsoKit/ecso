@@ -280,7 +280,24 @@ let get_field_access t name =
 		raise Unhandled_component_type
 
 let is_compatible_def (def : tanon) (with_def : tanon) : bool =
+	let original_fields = PMap.map (fun f -> f) with_def.a_fields in
+	let non_opt_fields = 
+		let fields = ref PMap.empty in
+		PMap.iter
+			(fun name cf ->
+				if Meta.has Meta.Optional cf.cf_meta = false then
+					fields := PMap.add name cf !fields
+			)
+			original_fields;
+		!fields
+	in
+	
+	with_def.a_status := Const;
+	with_def.a_fields <- non_opt_fields;
 	let compatible = try unify_anons (TAnon def) (TAnon with_def) def with_def; true with Unify_error _ -> false in
+	with_def.a_status := Closed;
+	with_def.a_fields <- original_fields;
+
 	print_endline ("Entity Type " ^ (s_type (TAnon def)));
 	if compatible then
 		print_endline ("------pass> " ^ (s_type (TAnon with_def)))
