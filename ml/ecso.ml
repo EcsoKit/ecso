@@ -690,7 +690,6 @@ let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) =
 	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
 	foreach_dependent_system sprocesses
 		(fun sdef -> 
-			print_endline "---- ---- edelete";
 			match retrieve_rset RMonolist into_cl sdef with
 			| Retrieved rset -> block := (rset.gen_remove ed.group einstance p) :: !block
 			| Missing _ -> ()
