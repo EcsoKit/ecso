@@ -300,7 +300,7 @@ let is_compatible_def (def : tanon) (with_def : tanon) : bool =
 			original_fields;
 		!fields
 	in
-	
+
 	with_def.a_status := Const;
 	with_def.a_fields <- non_opt_fields;
 	let compatible = try unify_anons (TAnon def) (TAnon with_def) def with_def; true with Unify_error _ -> false in
@@ -325,9 +325,9 @@ let foreach_compatible_system sprocesses f (def : tanon) =
 			List.iter
 				(fun r -> 
 					match r with
-					| REntity (sdef,opt,t) ->
-						let h = hash_tanon sdef in
-						if (PMap.exists h !processed) = false && is_compatible_def def sdef then f sdef;
+					| REntity (edef,opt,t) ->
+						let h = hash_tanon edef in
+						if (PMap.exists h !processed) = false && is_compatible_def def edef then f edef;
 						processed := PMap.add h h !processed;
 						()
 				)
@@ -738,27 +738,25 @@ let gen_sprocess (into_cl : tclass) possible_edefs (shash : int) (sp : sprocess)
 			gen_system_call (List.rev system_args)
 		else match List.hd r_list with
 		| REntity (def,opt,t) -> 
-			if contains_compatible_defs possible_edefs def then
-				begin
+			if contains_compatible_defs possible_edefs def then begin
 				let rset = retrieve_or_gen_rset RMonolist into_cl def in
 				let gen_block (entity : texpr) =
 					(gen_next_requirement (List.tl r_list) (entity :: system_args))
 				in
 				rset.gen_iter sp.group p gen_block t
-				end
-			else
-				begin
+			end else begin
 				used := false;
 				mk (TConst TNull) t p
-				end
+			end
 	in
 	let impl = gen_next_requirement sp.s_requirement [] in
-	if !used then
+	if !used then begin
+		let ir = analyze_system_requirements sp in
 		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
 			impl;
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field)))) api.tstring p); (* report *)
 		]) api.tstring p)
-	else
+	end else
 		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field) ^ " (skipped)"))) api.tstring p);
 		]) api.tstring p);
@@ -919,7 +917,7 @@ class plugin =
 					group = entity_group;
 					s_field = saccess;
 					s_requirement = r_list;
-				}				
+				}
 			in
 			let rec analyse_arg e =
 				match e.eexpr, fetch_type e.etype with
