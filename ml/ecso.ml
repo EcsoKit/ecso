@@ -17,8 +17,6 @@ exception Invalid_rlist_optimization
 exception Not_used
 exception Found
 
-let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
-
 let decode_module_type v =
 	match EvalDecode.decode_enum v with
 	| 0, [c] -> TClassDecl (EvalDecode.decode_ref c)
@@ -61,7 +59,8 @@ and rcomponent = {
 
 type saccess =
 	| SField of tfield_access
-	| SAnon of texpr
+	| SAnon of tfunc
+	| SLocal of tvar
 
 type uexpr = 
 	| EProcessSystem of sprocess
@@ -117,8 +116,9 @@ let rec fetch_type t =
 
 let s_saccess v = 
 	match v with
-		| SField tfield_access -> s_field_access s_type_kind tfield_access
-		| SAnon efun -> s_expr s_type_kind efun
+		| SField faccess -> "SField-" ^ (s_field_access s_type_kind faccess)
+		| SAnon func -> "SAnon-" ^ (s_expr s_type_kind func.tf_expr)
+		| SLocal var -> "SLocal-" ^ var.v_name
 
 let rec edef_of_followed t =
 	match fetch_type t with
@@ -127,6 +127,15 @@ let rec edef_of_followed t =
 	| _ -> 
 		print_endline ("Unhandled component type: " ^ (s_type_kind t));
 		raise Unhandled_component_type
+
+let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
+let hash_saccess v =
+	Hashtbl.hash begin
+		match v with
+		| SField faccess -> "f" ^ (s_field_access s_type_kind faccess)
+		| SAnon func -> "a" ^ (s_expr s_type_kind { eexpr = TFunction func; etype = func.tf_type; epos = func.tf_expr.epos; })
+		| SLocal var -> "l" ^ (string_of_int var.v_id)
+	end
 
 (* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
 let make_srequirement (name, is_opt, t) : r =
@@ -312,7 +321,7 @@ let contains_compatible_defs from_list (with_def : tanon) : bool =
 let foreach_compatible_system sprocesses f (def : tanon) =
 	let processed = ref PMap.empty in
 	Hashtbl.iter
-		(fun def_hash sp ->
+		(fun shash sp ->
 			List.iter
 				(fun r -> 
 					match r with
@@ -716,7 +725,7 @@ let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) =
 	implement_uexpr ed.eorigin ed.expr (mk (TBlock !block) api.tstring p);
 	()
 
-let gen_sprocess (into_cl : tclass) possible_edefs (def_hash : int) (sp : sprocess) = 
+let gen_sprocess (into_cl : tclass) possible_edefs (shash : int) (sp : sprocess) = 
 	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 	let api = gcon.basic in
 	let p = sp.expr.epos in
@@ -882,17 +891,29 @@ class plugin =
 
 		method extract_sprocess (eorigin : tclass_field) (entity_group : texpr) (process_args : texpr list) =
 			(* let extract ((e, tfield_access) : texpr * tfield_access) =  *)
-			let extract_system args ret saccess e = 
-				let r_list = List.map make_srequirement args in
-				let first_r = 
-					if (List.length r_list) = 0 then
-						{ a_fields = PMap.empty; a_status = ref Closed }
-					else
-						(match (List.nth r_list 0) with
-						| REntity (tanon,opt,t) -> tanon
-						)
+			let extract_system args ret e = 
+				let rec extract_access e =
+					match (skip e).eexpr with
+					| TFunction tfunc -> SAnon tfunc
+					| TField (f, faccess) -> SField faccess
+					| TLocal tvar ->
+						if not tvar.v_final then begin
+							print_endline ("Cannot process non-final system " ^ tvar.v_name);
+							raise Invalid_expr
+							end
+						else
+							SLocal tvar
+					| TBlock [] ->
+						print_endline ("Cannot process Void system");
+						raise Invalid_expr
+					| TBlock el -> extract_access (List.nth el (List.length el - 1))
+					| _ -> 
+						print_endline ("Fail extract system access from " ^ s_expr_kind e);
+						raise Invalid_expr
 				in
-				Hashtbl.add sprocesses (hash_tanon first_r) {
+				let r_list = List.map make_srequirement args in
+				let saccess = extract_access e in
+				Hashtbl.add sprocesses (hash_saccess saccess) {
 					expr = e;
 					eorigin = eorigin;
 					group = entity_group;
@@ -903,8 +924,7 @@ class plugin =
 			let rec analyse_arg e =
 				match e.eexpr, fetch_type e.etype with
 				| _, TFun (args, ret) ->
-					extract_system args ret (SAnon e) e;
-					()
+					extract_system args ret e
 				| TMeta (metadata_entry, texpr), _ -> 
 					(match metadata_entry with
 						| (Meta.ImplicitCast, [], pos) -> (
