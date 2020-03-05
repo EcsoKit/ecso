@@ -73,7 +73,6 @@ and sprocess = {
 	expr : texpr;
 	eorigin : tclass_field;
 	group : texpr;
-	s_field : saccess;
 	s_requirement : r list;
 }
 and ecreate = {
@@ -117,8 +116,8 @@ let rec fetch_type t =
 let s_saccess v = 
 	match v with
 		| SField faccess -> "SField-" ^ (s_field_access s_type_kind faccess)
-		| SAnon func -> "SAnon-" ^ (s_expr s_type_kind func.tf_expr)
-		| SLocal var -> "SLocal-" ^ var.v_name
+		| SAnon func -> "SAnon" ^ (s_expr_pretty func.tf_expr)
+		| SLocal var -> "SLocal(" ^ var.v_name ^ ")"
 
 let rec edef_of_followed t =
 	match fetch_type t with
@@ -725,7 +724,7 @@ let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) =
 	implement_uexpr ed.eorigin ed.expr (mk (TBlock !block) api.tstring p);
 	()
 
-let gen_sprocess (into_cl : tclass) possible_edefs (shash : int) (sp : sprocess) = 
+let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : sprocess) = 
 	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 	let api = gcon.basic in
 	let p = sp.expr.epos in
@@ -754,11 +753,11 @@ let gen_sprocess (into_cl : tclass) possible_edefs (shash : int) (sp : sprocess)
 		let ir = analyze_system_requirements sp in
 		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
 			impl;
-			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field)))) api.tstring p); (* report *)
+			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ ""))) api.tstring p); (* report *)
 		]) api.tstring p)
 	end else
 		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
-			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field) ^ " (skipped)"))) api.tstring p);
+			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ " (skipped)"))) api.tstring p);
 		]) api.tstring p);
 	()
 	(* let rsets_for_iteration =
@@ -886,6 +885,7 @@ class plugin =
 		val mutable ecreates = Hashtbl.create 0 ~random:false
 		val mutable edeletes = Hashtbl.create 0 ~random:false
 		val mutable sprocesses = Hashtbl.create 0 ~random:false
+		val mutable systems = Hashtbl.create 0 ~random:false
 
 		method extract_sprocess (eorigin : tclass_field) (entity_group : texpr) (process_args : texpr list) =
 			(* let extract ((e, tfield_access) : texpr * tfield_access) =  *)
@@ -911,11 +911,13 @@ class plugin =
 				in
 				let r_list = List.map make_srequirement args in
 				let saccess = extract_access e in
-				Hashtbl.add sprocesses (hash_saccess saccess) {
+				let shash = hash_saccess saccess in
+				if not (Hashtbl.mem systems shash) then
+					Hashtbl.add systems shash saccess;
+				Hashtbl.add sprocesses shash {
 					expr = e;
 					eorigin = eorigin;
 					group = entity_group;
-					s_field = saccess;
 					s_requirement = r_list;
 				}
 			in
@@ -1044,10 +1046,17 @@ class plugin =
 				print_endline ("Create Entity " ^ (s_type (TAnon ec.e_def)) )
 			in
 
+			print_endline "System list:";
+			Hashtbl.iter
+				(fun shash system -> print_endline (s_saccess system))
+				systems;
+			
+			print_endline "Process calls:";
 			Hashtbl.iter
 				print_sprocess
 				sprocesses;
 
+			print_endline ("Entities created: " ^ (string_of_int (Hashtbl.length ecreates)));
 			Hashtbl.iter
 				print_ecreate
 				ecreates;
@@ -1060,11 +1069,16 @@ class plugin =
 				list
 			in
 
-			print_endline ("List ecreates " ^ (string_of_int (Hashtbl.length ecreates)));
 			print_endline ("List possible_edefs " ^ (string_of_int (Hashtbl.length possible_edefs)));
 
 			Hashtbl.iter
-				(gen_sprocess ecso_entity_group possible_edefs)
+				(fun shash sp -> 
+					gen_sprocess 
+						ecso_entity_group
+						possible_edefs
+						(Hashtbl.find systems shash)
+						sp
+				)
 				sprocesses;
 			
 			Hashtbl.iter
