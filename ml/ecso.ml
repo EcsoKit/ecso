@@ -60,7 +60,7 @@ and rcomponent = {
 type saccess =
 	| SField of tfield_access
 	| SAnon of tfunc
-	| SLocal of tvar
+	| SLocal of tvar * texpr
 
 type uexpr = 
 	| EProcessSystem of sprocess
@@ -117,7 +117,13 @@ let s_saccess v =
 	match v with
 		| SField faccess -> "SField-" ^ (s_field_access s_type_kind faccess)
 		| SAnon func -> "SAnon" ^ (s_expr_pretty func.tf_expr)
-		| SLocal var -> "SLocal(" ^ var.v_name ^ ")"
+		| SLocal (svar,sexpr) -> "SLocal(" ^ svar.v_name ^ ")"
+
+let s_saccess_kind v = 
+	match v with
+		| SField faccess -> "SField"
+		| SAnon func -> "SAnon"
+		| SLocal (svar,sexpr) -> "SLocal"
 
 let rec edef_of_followed t =
 	match fetch_type t with
@@ -133,7 +139,7 @@ let hash_saccess v =
 		match v with
 		| SField faccess -> "f" ^ (s_field_access s_type_kind faccess)
 		| SAnon func -> "a" ^ (s_expr s_type_kind { eexpr = TFunction func; etype = func.tf_type; epos = func.tf_expr.epos; })
-		| SLocal var -> "l" ^ (string_of_int var.v_id)
+		| SLocal (svar,sexpr) -> "l" ^ (string_of_int svar.v_id)
 	end
 
 (* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
@@ -350,6 +356,36 @@ let foreach_dependent_system sprocesses f (def : tanon) =
 				sp.s_requirement
 		)
 		sprocesses
+
+let iter_with_locals f vars e =
+	match e.eexpr with
+	| TBlock el -> begin
+		let local_cache = Hashtbl.create 0 in
+		let add_value vid e =
+			Hashtbl.add vars vid e;
+			Hashtbl.add local_cache vid ()
+		in
+		List.iter
+			(fun e ->
+				match e.eexpr with
+				| TVar(v,eo) -> 
+					(match eo with | Some ve -> f vars ve | _ -> ());
+					add_value v.v_id eo;
+				| TBinop(OpAssign,{ eexpr = TLocal(v) },e2) when Hashtbl.mem vars v.v_id ->
+					f vars e2;
+					add_value v.v_id (Some e2);
+				| _ ->
+					f vars e
+			)
+			el;
+		Hashtbl.iter
+			(fun vid () ->
+				Hashtbl.remove vars vid
+			)
+			local_cache
+	end
+	| _ ->
+		iter (f vars) e
 
 (* Transform *)
 
@@ -750,7 +786,6 @@ let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : spro
 	in
 	let impl = gen_next_requirement sp.s_requirement [] in
 	if !used then begin
-		let ir = analyze_system_requirements sp in
 		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
 			impl;
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ ""))) api.tstring p); (* report *)
@@ -861,23 +896,21 @@ class plugin =
 			)
 		
 		method analyse_texpr (eorigin : tclass_field) texpr =
-			(match texpr.eexpr with
-				| TCall ({ eexpr = TField (e, access) }, targs) ->
-					(match access with
-						| FInstance (cl, _, field) ->
-							if field.cf_name = "process" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
-								self#extract_sprocess eorigin e targs
-							else if field.cf_name = "createEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
-								self#extract_ecreate eorigin e (match targs with | [arg] -> arg | _ -> raise Unexpected_expr)
-							else if field.cf_name = "deleteEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
-								self#extract_edelete eorigin e (match targs with | [arg] -> arg | _ -> raise Unexpected_expr)
-							else
-								()
-						| _ -> ()
-					)
-				| _ -> ()
-			);
-			iter (self#analyse_texpr eorigin) texpr
+			let rec loop vars e =
+				match e.eexpr with
+				| TCall ({ eexpr = TField (e1, FInstance(cl, _, field)) }, args) ->
+					if field.cf_name = "process" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+						self#extract_sprocess eorigin e1 vars args
+					else if field.cf_name = "createEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+						self#extract_ecreate eorigin e1 (match args with | [arg] -> arg | _ -> raise Unexpected_expr)
+					else if field.cf_name = "deleteEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+						self#extract_edelete eorigin e1 (match args with | [arg] -> arg | _ -> raise Unexpected_expr)
+					else
+						List.iter (iter_with_locals loop vars) args
+				| _ -> iter_with_locals loop vars e
+			in
+			loop (Hashtbl.create 0) texpr
+			(* iter (self#analyse_texpr eorigin) texpr *)
 
 		(* Extract *)
 
@@ -887,24 +920,57 @@ class plugin =
 		val mutable sprocesses = Hashtbl.create 0 ~random:false
 		val mutable systems = Hashtbl.create 0 ~random:false
 
-		method extract_sprocess (eorigin : tclass_field) (entity_group : texpr) (process_args : texpr list) =
+		method extract_sprocess (eorigin : tclass_field) (entity_group : texpr) vars (process_args : texpr list) =
 			(* let extract ((e, tfield_access) : texpr * tfield_access) =  *)
 			let extract_system args ret e = 
 				let rec extract_access e =
-					match (skip e).eexpr with
+					match e.eexpr with
+					| TParenthesis e1 | TBlock [e1] | TCast(e1,None) -> extract_access e1
+					| TMeta (m,e1) ->
+						begin match m with
+						| _ -> extract_access e1
+						end
 					| TFunction tfunc -> SAnon tfunc
 					| TField (f, faccess) -> SField faccess
 					| TLocal tvar ->
 						if not tvar.v_final then begin
 							print_endline ("Cannot process non-final system " ^ tvar.v_name);
 							raise Invalid_expr
-							end
-						else
-							SLocal tvar
-					| TBlock [] ->
-						print_endline ("Cannot process Void system");
-						raise Invalid_expr
-					| TBlock el -> extract_access (List.nth el (List.length el - 1))
+						end else if Hashtbl.mem vars tvar.v_id then begin
+							match Hashtbl.find vars tvar.v_id with
+							| Some sexpr ->
+								SLocal (tvar, sexpr)
+							| None -> 
+								print_endline ("Cannot process non-initialized system " ^ tvar.v_name);
+								raise Invalid_expr
+						end else begin
+							print_endline ("Cannot process unknown system " ^ tvar.v_name);
+							raise Invalid_expr
+						end
+					| TBlock el when List.length el > 0 -> begin (* happens with function binding *)
+						let block_vars = Hashtbl.create 1 in (* at least 1 for the binded value *)
+						List.iter
+							(fun e ->
+								match e.eexpr with
+								| TVar(v,Some e) -> Hashtbl.add block_vars v.v_id e
+								| _ -> ()
+							)
+							el;
+						begin match List.nth el (List.length el - 1) with
+							| { eexpr = TFunction f } ->
+								begin match f.tf_expr.eexpr with
+									| TBlock([{ eexpr = TCall({ eexpr = TLocal v},args) }])
+									| TCall({ eexpr = TLocal v},args)
+									when Hashtbl.mem block_vars v.v_id ->
+										print_endline ("Extract System from Block: " ^ s_expr_pretty e);
+										SLocal (v, Hashtbl.find block_vars v.v_id)
+									| _ ->
+										SAnon f
+								end
+							| e1 ->
+								extract_access e1
+						end
+					end	
 					| _ -> 
 						print_endline ("Fail extract system access from " ^ s_expr_kind e);
 						raise Invalid_expr
