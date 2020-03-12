@@ -72,25 +72,24 @@ type uexpr =
 	| EDeleteComponent of cdelete
 	| EGetComponent of cget
 
+and uft = tclass_field * string
+
 and sprocess = {
-	eorigin : tclass_field;
-	uft : string;
+	uft : uft;
 	group : texpr;
 	s_requirement : r list;
 	pos : pos;
 }
 and ecreate = {
 	expr : texpr;
-	eorigin : tclass_field;
-	uft : string;
+	uft : uft;
 	group : texpr;
 	e_inits : ((string * pos * quote_status) * texpr) list;
 	e_def : tanon;
 }
 and edelete = {
 	expr : texpr;
-	eorigin : tclass_field;
-	uft : string;
+	uft : uft;
 	group : texpr;
 	e_def : tanon;
 }
@@ -520,9 +519,9 @@ let remove_uft e : texpr =
 	match e.eexpr with
 	| TMeta ((Meta.Custom "$ecso.uft",_,_), e1) -> e1
 	| _ -> e
-let get_uft e = match e.eexpr with
-	| TMeta ((Meta.Custom "$ecso.uft",[EConst(Int uft),_],_), _) ->
-		uft
+let get_uft cf e = match e.eexpr with
+	| TMeta ((Meta.Custom "$ecso.uft",[EConst(Int v),_],_), _) ->
+		(cf,v)
 	| _ -> 
 		print_endline ("missing uft from: " ^ s_expr s_type_kind e);
 		raise Invalid_ecso_analyse
@@ -534,7 +533,8 @@ let rec append_expr e into : texpr =
 	| TBlock el -> { into with eexpr = TBlock(el@[e]) }
 	| _ -> { into with eexpr = TBlock(into :: [e]) }
 
-let implement_uexpr (eorigin : tclass_field) (uft : string) (impl : texpr) (replace : bool) =
+let implement_uexpr (uft : uft) (impl : texpr) (replace : bool) =
+	let eorigin,uft = match uft with | (cf,meta) -> (cf,meta) in
 	let implemented = ref false in
 	let rec check_expr (e : texpr) : texpr = 
 		if is_expr_with_uft uft e then begin
@@ -795,7 +795,7 @@ let gen_ecreate (into_cl : tclass) sprocesses (def_hash : int) (ec : ecreate) =
 		)
 		ec.e_def;
 	block := (mk (TVar (einstance_var, Some ec.expr)) api.tvoid p) :: !block;
-	implement_uexpr ec.eorigin ec.uft (mk (TBlock !block) api.tstring p) true;
+	implement_uexpr ec.uft (mk (TBlock !block) api.tstring p) true;
 	()
 
 let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) = 
@@ -813,7 +813,7 @@ let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) =
 		)
 		ed.e_def;
 	block := (mk (TVar (einstance_var, Some ed.expr)) api.tvoid p) :: !block;
-	implement_uexpr ed.eorigin ed.uft (mk (TBlock !block) api.tstring p) true;
+	implement_uexpr ed.uft (mk (TBlock !block) api.tstring p) true;
 	()
 
 let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : sprocess) = 
@@ -843,12 +843,12 @@ let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : spro
 	in
 	let impl = gen_next_requirement sp.s_requirement [] in
 	if !used then begin
-		implement_uexpr sp.eorigin sp.uft (mk (TBlock[
+		implement_uexpr sp.uft (mk (TBlock[
 			impl;
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ ""))) api.tstring p); (* report *)
 		]) api.tstring p) false
 	end else
-		implement_uexpr sp.eorigin sp.uft (mk (TBlock[
+		implement_uexpr sp.uft (mk (TBlock[
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ " (skipped)"))) api.tstring p);
 		]) api.tstring p) false;
 	()
@@ -1041,10 +1041,12 @@ class plugin =
 						begin match cf.cf_name with
 						| "createEntity" -> 
 							let arg1 = match args with | [arg] -> arg | _ -> raise Unexpected_expr in
-							self#extract_ecreate eorigin (get_uft arg1) entity_group arg1
+							let uft = (get_uft eorigin arg1) in
+							self#extract_ecreate uft entity_group arg1
 						| "deleteEntity" ->
 							let arg1 = match args with | [arg] -> arg | _ -> raise Unexpected_expr in
-							self#extract_edelete eorigin (get_uft arg1) entity_group arg1
+							let uft = (get_uft eorigin arg1) in
+							self#extract_edelete uft entity_group arg1
 						| _ -> ()
 						end
 					| _ -> ()
@@ -1062,14 +1064,13 @@ class plugin =
 		val mutable sprocesses = Hashtbl.create 0 ~random:false
 		val mutable systems = Hashtbl.create 0 ~random:false
 		
-		method register_system (eorigin : tclass_field) (uft : string) (entity_group : texpr) (saccess : saccess) pos args ret =
+		method register_system (uft : uft) (entity_group : texpr) (saccess : saccess) pos args ret =
 				let shash = hash_saccess saccess in
 				if not (Hashtbl.mem systems shash) then
 					Hashtbl.add systems shash saccess;
 				let r_list = List.map make_srequirement args in
 				
 				Hashtbl.add sprocesses shash {
-					eorigin = eorigin;
 					uft = uft;
 					group = entity_group;
 					s_requirement = r_list;
@@ -1077,11 +1078,11 @@ class plugin =
 				}
 
 		method extract_sprocess_from_bb (eorigin : tclass_field) (entity_group : texpr) (process_field : tclass_field) actx bb (process_args : texpr list) =
-			let rec analyse_arg (uft : string option) (e : texpr) =
+			let rec analyse_arg (uft : uft option) (e : texpr) =
 
 				let uft = match uft with
 				| Some v -> v
-				| _ -> get_uft e
+				| _ -> get_uft eorigin e
 				in
 				
 				let e = (skip e) in
@@ -1091,7 +1092,7 @@ class plugin =
 					let sbb,t,pos,sf = Hashtbl.find actx.graph.g_functions (Int32.to_int i32) in
 					begin match (* fetch_type *) t with
 					| TFun (args, ret) ->
-						self#register_system eorigin uft entity_group (SAnon sf) p args ret (* FIXME: will always be SAnon *)
+						self#register_system uft entity_group (SAnon sf) p args ret (* FIXME: will always be SAnon *)
 					| _ ->
 						print_endline ("[ECSO] Wrong system parsing for " ^ (s_type_kind t));
 						raise Unexpected_expr
@@ -1121,8 +1122,8 @@ class plugin =
 					begin match eo with
 					| Some e -> 
 						begin match e.eexpr with
-						| TFunction tf -> 
-							self#register_system eorigin uft entity_group (SLocal (v,tf)) p args ret
+						| TFunction tf ->
+							self#register_system uft entity_group (SLocal (v,tf)) p args ret
 						| _ -> 
 							analyse_arg (Some uft) e
 						end
@@ -1140,13 +1141,13 @@ class plugin =
 					begin match faccess with
 					| FInstance (tclass, tparams, cf) ->
 						if has_class_field_flag cf CfFinal then
-							self#register_system eorigin uft entity_group (SField (faccess,get_func (get_cf_expr cf), fe)) p args ret
+							self#register_system uft entity_group (SField (faccess,get_func (get_cf_expr cf), fe)) p args ret
 						else begin
 							print_endline ("Non-final instance systems are not supported yet : " ^ cf.cf_name);
 							raise Unhandled_system_type
 						end
 					| FStatic (cl, cf) ->
-						self#register_system eorigin uft entity_group (SField (faccess,get_func (get_cf_expr cf),fe)) p args ret
+						self#register_system uft entity_group (SField (faccess,get_func (get_cf_expr cf),fe)) p args ret
 					| FAnon cf ->
 						print_endline ("Anonymous systems are not supported : " ^ cf.cf_name);
 						raise Unhandled_system_type
@@ -1166,12 +1167,11 @@ class plugin =
 			in
 			List.iter (analyse_arg None) process_args
 
-		method extract_ecreate (eorigin : tclass_field) (uft : string) (entity_group : texpr) (edef : texpr) =
+		method extract_ecreate (uft : uft) (entity_group : texpr) (edef : texpr) =
 			match follow edef.etype with
 			| TAnon def ->
 				Hashtbl.add ecreates (hash_tanon def) {
 					expr = edef;
-					eorigin = eorigin;
 					uft = uft;
 					group = entity_group;
 					e_inits = [](* inits *);
@@ -1181,12 +1181,11 @@ class plugin =
 				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type_kind edef.etype));
 				raise Unhandled_component_type
 		
-		method extract_edelete (eorigin : tclass_field) (uft : string) (entity_group : texpr) (einstance : texpr) =
+		method extract_edelete (uft : uft) (entity_group : texpr) (einstance : texpr) =
 			match follow einstance.etype with
 			| TAnon def ->
 				Hashtbl.add edeletes (hash_tanon def) {
 					expr = einstance;
-					eorigin = eorigin;
 					uft = uft;
 					group = entity_group;
 					e_def = def;
