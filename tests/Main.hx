@@ -147,7 +147,15 @@ private class CoreSpecification extends BuddySuite {
             });
 
             describe('should delete entities', {
-                it('within systems', {
+                it('with closure', {
+                    function stoping (e:{ y:Int })
+                        entities.deleteEntity(e);
+                    entities.process( movingY, spying, stoping );
+                    spy.y.should.be(4 + spy.vy);
+                    entities.process( movingY, spying );
+                    spy.y.should.be(4 + spy.vy);
+                });
+                it('with binding', {
                     function stoping (e:{ y:Int }, group:EntityGroup)
                         group.deleteEntity(e);
                     entities.process( movingY, spying, stoping.bind(_,entities) );
