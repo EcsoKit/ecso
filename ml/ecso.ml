@@ -852,40 +852,6 @@ let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : spro
 			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ " (skipped)"))) api.tstring p);
 		]) api.tstring p) false;
 	()
-	(* let rsets_for_iteration =
-		try
-			List.filter_map
-				(fun r ->
-					match r with
-					| REntity (def,opt,t) -> 
-						if contains_compatible_defs possible_edefs def then
-							begin
-							Some (retrieve_or_gen_rset RMonolist into_cl def)
-							end
-						else
-							raise Not_used
-				)
-				sp.s_requirement
-		with Not_used -> 
-			used := false;
-			[]
-	in
-	if !used then
-		begin
-		let impl = ref None in
-		List.iter 
-			(fun rset -> (
-				let block (entity : texpr) : texpr =
-					(* iter the next until calling the system *)
-					call sp.s_field [entity]
-				in
-				let impl = rset_impl.gen_iter sp.group sp sp.expr.epos block in
-			))
-			rsets_for_iteration
-		implement_uexpr sp.eorigin sp.expr impl;
-		end
-	else
-		() *)
 
 type c = {
 	def : t;
