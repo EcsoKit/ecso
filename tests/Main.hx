@@ -78,12 +78,22 @@ private class CoreSpecification extends BuddySuite {
             });
 
             describe('should process entities', {
-                it('with anon systems', {
-                    entities.process((e:PositionComponent) -> {
+                it('with arraw systems', {
+                    entities.process(e -> {
                         e.x += 2;
                     });
                     spy.x.should.be(-1);
-                    entities.process((e:{ x:Int, spy:{ x:Int } }) -> {
+                    entities.process(e -> {
+                        e.spy.x = e.x;
+                    });
+                    spy.x.should.be(6);
+                });
+                it('with anon systems', {
+                    entities.process(function (e:PositionComponent) {
+                        e.x += 2;
+                    });
+                    spy.x.should.be(-1);
+                    entities.process(function (e:{ x:Int, spy:{ x:Int } }) {
                         e.spy.x = e.x;
                     });
                     spy.x.should.be(6);
