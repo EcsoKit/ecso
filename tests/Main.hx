@@ -143,6 +143,28 @@ private class CoreSpecification extends BuddySuite {
                     });
                     count.should.be(2);
                 });
+                it('with homonymous components', {
+                    var count = 0;
+                    entities.process((e:PositionComponent & { ?z:Int }) -> {
+                        e.z.should.be(null);
+                        e.z = 3;
+                        count++;
+                    });
+                    entities.process((e:PositionComponent & { ?z:String }) -> {
+                        e.z.should.be(null);
+                        e.z = "bar";
+                        count++;
+                    });
+                    entities.process((e:{ z:Int }) -> {
+                        e.z.should.be(3);
+                        count++;
+                    });
+                    entities.process((e:{ z:String }) -> {
+                        e.z.should.be("bar");
+                        count++;
+                    });
+                    count.should.be(4);
+                });
                 it('with siblings', {
                     entities.process((e:PositionComponent, sibling:PositionComponent) -> {
                         e.x.should.be(sibling.x);
