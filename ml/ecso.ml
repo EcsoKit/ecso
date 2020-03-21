@@ -62,26 +62,6 @@ let rec edef_of_followed t =
 		print_endline ("Unhandled component type: " ^ (s_type_kind t));
 		raise Unhandled_component_type
 
-(* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
-let make_srequirement (name, is_opt, t) : r =
-	let def : tanon = edef_of_followed t in
-	REntity (def, is_opt, t)
-
-let sort_requirements (r_list : r list) : r list = 
-	r_list
-	(* let r_sorting (a : r) (b : r) : int =
-		match a, b with 
-			| REntity c1, REntity c2 -> (
-				match c1.rc_opt, c2.rc_opt with
-					| true, false -> 1
-					| false, true -> -1
-					| _ ->
-						if (EvalHash.path_hash c1.rc_path) < (EvalHash.path_hash c2.rc_path) then
-							-1
-						else
-							1
-			)
-	in List.sort r_sorting r_list *)
 (* Extract *)
 
 type uft = field_tag * string
@@ -117,19 +97,6 @@ type saccess =
 	| SAnon of tfunc * AnalyzerTypes.analyzer_context * AnalyzerTypes.BasicBlock.t
 	| SLocal of tvar * tfunc
 
-(* let make_rset (srequirements : r list) : rset =
-	let sorted_requirements = sort_requirements srequirements in
-	let named = ref "" in
-		List.iter
-			(fun r -> (named := !named ^ "#" ^ (string_of_requirement r)))
-			sorted_requirements;
-	let hash = EvalHash.hash !named in
-	let kind = make_rset_kind hash sorted_requirements in
-	{
-		r_name = !named;
-		r_hash = hash;
-		r_kind = kind;
-	} *)
 let make_srequirement (name, is_opt, t) : r =
 	let def : tanon = edef_of_followed t in
 	REntity (def, is_opt, t)
@@ -146,8 +113,6 @@ let s_saccess v = match v with
 	| SAnon (tf,ctx,bb) -> "SAnon" ^ s_expr_pretty tf.tf_expr
 	| SLocal (svar,tf) -> "SLocal(" ^ svar.v_name ^ ")" ^ s_expr_pretty tf.tf_expr
 
-(* let rset_eq a b : bool =
-	a.r_hash = b.r_hash *)
 let s_saccess_kind v = match v with
 	| SField _ -> "SField"
 	| SAnon _ -> "SAnon"
@@ -495,92 +460,6 @@ let implement_uexpr (uft : uft) (impl : texpr) (replace : bool) =
 	if not !implemented then
 		raise Not_implemented
 
-(* let make_process (g : tclass) (rset : rset) (sp : sprocess) : texpr = 
-	print_endline "make process _ _ _";
-	(* rewrite `g.process(s)` into `for (i in g.iterator<RSET-HASH>()) s(g.get_<RSET-HASH>_r0_at(i))` *)
-	(* var i:Int = g.<RSET-HASH>_length;
-	while( --i >= 0 )
-		s( g.get_<RSET-HASH>_r0_at(i) ); *)
-	let compiler = (EvalContext.get_ctx()).curapi in
-	let api = (compiler.get_com()).basic in
-	let mk_block exprs = {
-		eexpr = TBlock exprs;
-		etype = (List.nth exprs (List.length exprs - 1)).etype;
-		epos = sp.expr.epos;
-	} in
-	let mk_texpr = function
-		| TClassDecl c -> TAnon { a_fields = PMap.empty; a_status = ref (Statics c) }
-		| TEnumDecl e -> TAnon { a_fields = PMap.empty; a_status = ref (EnumStatics e) }
-		| TAbstractDecl a -> TAnon { a_fields = PMap.empty; a_status = ref (AbstractStatics a) }
-		| TTypeDecl _ -> assert false
-	in
-
-	let p = sp.expr.epos in
-	let gmodule = TClassDecl g in
-	let gexpr = mk (TTypeExpr gmodule) (mk_texpr gmodule) p in	
-	let smodule = match sp.s_field with 
-		| FStatic (cl,cf) -> TClassDecl cl
-		| _ -> raise Unhandled_system_type
-	in
-	let sexpr = mk (TTypeExpr smodule) (mk_texpr smodule) p in
-	
-	let flength = mk (TField (gexpr,retrieve_or_gen_rset_range g rset)) api.tint p in (* g.<RSET-HASH>_length *)
-	let var_length = alloc_var VGenerated "rlength" flength.etype flength.epos in
-	let decl_length = mk (TVar (var_length,Some flength)) api.tvoid p in (* var i = $e{flength} *)
-	let ident_length = mk (TLocal var_length) flength.etype p in
-	let decrement_length = mk (TUnop (Decrement,Prefix,ident_length)) flength.etype p in
-
-	let rlist_accesses = retrieve_or_gen_rset_lists g rset in
-	let args = List.map
-		(fun rla ->
-			let rltype = match rla with
-				| FInstance (_,_,cf) -> cf.cf_type
-				| _ -> raise Unexpected_expr
-			in
-			let rtype = match rltype with
-				| TAbstract (_,[rtype]) | TInst (_,[rtype]) | TType (_,[rtype]) ->
-					rtype
-				| _ ->
-					raise Unhandled_component_type
-			in
-			let flist = mk 
-				(TField (gexpr,rla))
-				rltype
-				p
-			in
-			mk (TArray (flist,ident_length)) rtype p
-		)
-		rlist_accesses
-	in
-	let fsystem = 
-		mk 
-		(TField (sexpr,sp.s_field)) 
-		(match sp.s_field with
-			| FStatic (cl,cf) -> cf.cf_type
-			| _ -> raise Unhandled_system_type
-		)
-		p
-	in
-	let call = mk (TCall (fsystem, args)) api.tvoid p in
-	let zero = mk (TConst (TInt 0l)) api.tint p in
-	let call_all_condition = mk (TBinop (OpGte,decrement_length,zero)) api.tbool p in
-	let call_all = mk (TWhile (call_all_condition, call, NormalWhile)) api.tvoid p in
-	
-	mk_block [
-		decl_length;
-		call_all;
-		ident_length
-	] *)
-
-let get_func e = match e.eexpr with
-	| TFunction f -> f
-	| _ ->
-		print_endline ("Function expected but have " ^ (s_expr_kind e));
-		raise Invalid_expr
-
-let get_cf_expr cf = match cf.cf_expr, cf.cf_expr_unoptimized with
-	| _, Some _ -> raise Invalid_ecso_analyse
-	| Some e, _ -> e
 (* Generate *)
 
 type rset_kind =
@@ -914,108 +793,6 @@ class plugin =
 		val mutable edeletes = Hashtbl.create 0 ~random:false
 		val mutable eprocesses = DynArray.create()
 		
-		method register_system (uft : uft) (entity_group : texpr) (saccess : saccess) pos args ret =
-				let shash = hash_saccess saccess in
-				if not (Hashtbl.mem systems shash) then
-					Hashtbl.add systems shash saccess;
-				let r_list = List.map make_srequirement args in
-				
-				Hashtbl.add sprocesses shash {
-					uft = uft;
-					group = entity_group;
-					s_requirement = r_list;
-					pos = pos;
-				}
-
-		method extract_sprocess_from_bb (eorigin : tclass_field) (entity_group : texpr) (process_field : tclass_field) actx bb (process_args : texpr list) =
-			let rec analyse_arg (uft : uft option) (e : texpr) =
-
-				let uft = match uft with
-				| Some v -> v
-				| _ -> get_uft eorigin e
-				in
-				
-				let e = (skip e) in
-				let p = e.epos in
-				match e.eexpr, fetch_type e.etype with
-				| TCall ({ eexpr = TConst(TString "fun") }, [{ eexpr = TConst(TInt i32) }]), _ ->
-					let sbb,t,pos,sf = Hashtbl.find actx.graph.g_functions (Int32.to_int i32) in
-					begin match (* fetch_type *) t with
-					| TFun (args, ret) ->
-						self#register_system uft entity_group (SAnon sf) p args ret (* FIXME: will always be SAnon *)
-					| _ ->
-						print_endline ("[ECSO] Wrong system parsing for " ^ (s_type_kind t));
-						raise Unexpected_expr
-					end
-				| TLocal v, vtype ->
-					let args,ret = match fetch_type v.v_type with
-						| TFun (args, ret) -> (args,ret)
-						| _ -> 
-							print_endline ("[ECSO] Wrong local system parsing for " ^ (s_expr s_type_kind (skip e)));
-							raise Unexpected_expr
-					in
-					let get_var_expr (bb : AnalyzerTypes.BasicBlock.t) (v : tvar) : texpr option =
-						try begin
-							DynArray.iter
-								(fun e ->
-									match e.eexpr with
-									| TVar (v',eo') when v'.v_id = v.v_id -> raise (Found_opt_expr eo')
-									| _ -> ()
-								)
-								bb.bb_el;
-							None
-						end with
-						| Found_opt_expr eo -> eo
-					in
-					let vi = AnalyzerTypes.Graph.get_var_info actx.graph v in
-					let eo = get_var_expr vi.vi_bb_declare v in
-					begin match eo with
-					| Some e -> 
-						begin match e.eexpr with
-						| TFunction tf ->
-							self#register_system uft entity_group (SLocal (v,tf)) p args ret
-						| _ -> 
-							analyse_arg (Some uft) e
-						end
-					| None ->
-						print_endline ("[ECSO] Local " ^ v.v_name ^ " is expected to be initialized when declared " ^ s_expr_pretty e);
-						raise Unhandled_system_type
-					end
-				| TField (fe, faccess), t ->
-					let args,ret = match t with
-						| TFun (args, ret) -> (args,ret)
-						| _ -> 
-							print_endline ("[ECSO] Wrong field system parsing for " ^ (s_type_kind t));
-							raise Unexpected_expr
-					in
-					begin match faccess with
-					| FInstance (tclass, tparams, cf) ->
-						if has_class_field_flag cf CfFinal then
-							self#register_system uft entity_group (SField (faccess,get_func (get_cf_expr cf), fe)) p args ret
-						else begin
-							print_endline ("Non-final instance systems are not supported yet : " ^ cf.cf_name);
-							raise Unhandled_system_type
-						end
-					| FStatic (cl, cf) ->
-						self#register_system uft entity_group (SField (faccess,get_func (get_cf_expr cf),fe)) p args ret
-					| FAnon cf ->
-						print_endline ("Anonymous systems are not supported : " ^ cf.cf_name);
-						raise Unhandled_system_type
-					| FDynamic s -> 
-						print_endline ("Dynamic systems are not supported yet : " ^ s);
-						raise Unhandled_system_type
-					| FClosure (cl_with_params, cf) -> (* None class = TAnon *)
-						print_endline ("Closure systems are not supported yet : " ^ cf.cf_name);
-						raise Unhandled_system_type
-					| FEnum (enum, ef) ->
-						print_endline ("Invalid system type : " ^ ef.ef_name);
-						raise Unhandled_system_type
-					end
-				| _ ->
-					print_endline ("[ECSO] Wrong anonymous system parsing for " ^ (s_expr_kind (skip e)));
-					raise Unexpected_expr
-			in
-			List.iter (analyse_arg None) process_args
 
 		method extract_ecreate (uft : uft) (entity_group : texpr) (edef : texpr) =
 			match follow edef.etype with
@@ -1133,35 +910,8 @@ class plugin =
 			setup_extern_field ecso_entity_group "process" "s" 32;
 			setup_extern_field ecso_entity_group "createEntity" "e" 1;
 			setup_extern_field ecso_entity_group "deleteEntity" "e" 1;
-									
-			(* List.iter
-				(fun (rset,uexpr) ->
-					match uexpr with
-						| EProcessSystem sp ->
-							(* let rset = List.find (rset_eq (make_rset sp.s_requirement)) rsets_uniq in *)
-							print_endline "implement sp";
-							let impl = make_process ecso_entity_group rset sp in
-							(match sp.eorigin.cf_expr with
-								| Some e ->
-									sp.eorigin.cf_expr <- Some { e with eexpr = (implement_uexpr sp impl).eexpr }
-								| None ->
-									sp.eorigin.cf_expr <- Some (implement_uexpr sp impl)
-							)
-							
-							(* let implemented_cf_expr = change_expr ps.expr impl (match ps.eorigin.cf_expr with | Some e -> e | None -> raise Invalid_ecso_analyse) in
-							ps.eorigin.cf_expr <- Some implemented_cf_expr *)
-						| _ -> ()
-				)
-				rsets_usages; *)
 
-			(*
-				// uexpr: g.process( Sys.move )
-				for (i in 0...g.rsetCompsAB_length)
-					Sys.move(g.rsetCompsAB_A[i], g.rsetCompsAB_B[i])
-			 *)
 
-			(* system_to_set_link = rset * tsystem *)
-			
 			()
 		(**
 			Takes `haxe.macro.Position` and returns a string of that position in the same format used for
