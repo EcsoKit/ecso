@@ -41,70 +41,6 @@ let string_of_path (path : Globals.path) : string =
 
 let identifier_of_path (p,s) = match p with [] -> s | _ -> String.concat "_" p ^ "_" ^ s
 
-(* Extract *)
-
-type r =
-	| REntity of tanon * bool * t
-
-and rcomponent = {
-	(* rc_path : path;
-	rc_type : t;
-	rc_ident : string;
-	rc_opt : bool;
-	rc_pos : pos; *)
-	rc_name : string;
-	rc_def : tclass_field;
-}
-
-(* let r_type_eq a b : bool =
-	match a, b with
-		| REntity rc_a, REntity rc_b -> rc_a.rc_ident = rc_b.rc_ident *)
-
-type saccess =
-	| SField of tfield_access * tfunc * texpr
-	| SAnon of tfunc
-	| SLocal of tvar * tfunc
-
-type uexpr = 
-	| EProcessSystem of sprocess
-	| ECreateEntity of ecreate
-	| ECreateComponent of ccreate
-	| EDeleteComponent of cdelete
-	| EGetComponent of cget
-
-and uft = tclass_field * string
-
-and sprocess = {
-	uft : uft;
-	group : texpr;
-	s_requirement : r list;
-	pos : pos;
-}
-and ecreate = {
-	expr : texpr;
-	uft : uft;
-	group : texpr;
-	e_inits : ((string * pos * quote_status) * texpr) list;
-	e_def : tanon;
-}
-and edelete = {
-	expr : texpr;
-	uft : uft;
-	group : texpr;
-	e_def : tanon;
-}
-and ccreate = {
-	c_expr : texpr;
-	to_group : texpr;
-}
-and cdelete = {
-	d_expr : texpr;
-	from_group : texpr;
-}
-and cget = {
-	g_expr : texpr;
-}
-
 let rec fetch_type t =
 	match t with
 	| TLazy tlazy ->
@@ -118,23 +54,6 @@ let rec fetch_type t =
 		| None -> t)
 	| _ -> t
 
-let resolve_saccess v = match v with
-	| SField (fa,tf,fe) -> mk (TField (fe,fa)) fe.etype fe.epos
-	| SAnon tf -> mk (TFunction tf) (TFun (List.map (fun (v,eo) ->  (v.v_name,(match eo with | Some _ -> true | _ -> false), v.v_type)  ) tf.tf_args,tf.tf_expr.etype)) tf.tf_expr.epos
-	| SLocal (v,tf) -> mk (TLocal v) v.v_type v.v_pos
-
-let s_saccess v = 
-	match v with
-		| SField (faccess,tf,_) -> "SField-" ^ s_field_access s_type_kind faccess ^ "()" ^ s_expr_pretty tf.tf_expr
-		| SAnon tf -> "SAnon" ^ s_expr_pretty tf.tf_expr
-		| SLocal (svar,tf) -> "SLocal(" ^ svar.v_name ^ ")" ^ s_expr_pretty tf.tf_expr
-
-let s_saccess_kind v = 
-	match v with
-		| SField _ -> "SField"
-		| SAnon _ -> "SAnon"
-		| SLocal _ -> "SLocal"
-
 let rec edef_of_followed t =
 	match fetch_type t with
 	| TType (tdef, tparams) -> edef_of_followed tdef.t_type
@@ -142,15 +61,6 @@ let rec edef_of_followed t =
 	| _ -> 
 		print_endline ("Unhandled component type: " ^ (s_type_kind t));
 		raise Unhandled_component_type
-
-let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
-let hash_saccess v =
-	Hashtbl.hash begin
-		match v with
-		| SField (faccess,_,_) -> "f" ^ (s_field_access s_type_kind faccess)
-		| SAnon func -> "a" ^ (s_expr s_type_kind { eexpr = TFunction func; etype = func.tf_type; epos = func.tf_expr.epos; })
-		| SLocal (svar,_) -> "l" ^ (string_of_int svar.v_id)
-	end
 
 (* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
 let make_srequirement (name, is_opt, t) : r =
@@ -172,46 +82,40 @@ let sort_requirements (r_list : r list) : r list =
 							1
 			)
 	in List.sort r_sorting r_list *)
+(* Extract *)
 
-(* let string_of_requirement r : string =
-	match r with
-		| REntity (def,opt,t) -> 
-			(if opt then "?" else "") ^ (Globals.s_type_path rc.rc_path) *)
+type uft = field_tag * string
 
-(* Process *)
+and field_tag =
+	| FTField of tclass_field
+	| FTClassInit of tclass
 
-(* type rlist =
-	| LImpl of rlist_kind * rlist_length
-	| LShare of typed_rlist
-and rlist_length = {
-	len_ident : string
+type ecreate = {
+	expr : texpr;
+	uft : uft;
+	group : texpr;
+	e_inits : ((string * pos * quote_status) * texpr) list;
+	ec_def : tanon;
 }
-and rlist_kind =
-	| KArray of string
-	(* | RVector of string * int *)
-and typed_rlist = {
-	(* l_requirement : r; *)
-	mutable l_impl : rlist;
+type edelete = {
+	expr : texpr;
+	uft : uft;
+	group : texpr;
+	ed_def : tanon;
 }
-
-type rset = {
-	r_name : string;
-	r_hash : int;
-	r_kind : rset_kind;
+type eprocess = {
+	ep_requirement : r list;
+	ep_group : texpr;
+	ep_uft : uft;
+	ep_system : texpr;
 }
-and rset_kind = typed_rlist list
+and r =
+	| REntity of tanon * bool * Type.t
 
-let make_rset_kind rset_hash (sorted_requirements : r list) : rset_kind =
-	let make_typed_rlist rset_hash r : typed_rlist =
-		let list_name = match r with
-			| REntity rc -> "clist_" ^ (string_of_int rset_hash) ^ "_" ^ rc.rc_ident
-		in
-		{
-			l_requirement = r;
-			l_impl = LImpl(KArray list_name, { len_ident = list_name ^ "_length"; })
-		}
-	in
-	List.map (make_typed_rlist rset_hash) sorted_requirements *)
+type saccess =
+	| SField of tfield_access * tfunc * texpr
+	| SAnon of tfunc * AnalyzerTypes.analyzer_context * AnalyzerTypes.BasicBlock.t
+	| SLocal of tvar * tfunc
 
 (* let make_rset (srequirements : r list) : rset =
 	let sorted_requirements = sort_requirements srequirements in
@@ -226,9 +130,30 @@ let make_rset_kind rset_hash (sorted_requirements : r list) : rset_kind =
 		r_hash = hash;
 		r_kind = kind;
 	} *)
+let make_srequirement (name, is_opt, t) : r =
+	let def : tanon = edef_of_followed t in
+	REntity (def, is_opt, t)
+
+let hash_saccess v = Hashtbl.hash begin
+	match v with
+	| SField (faccess,_,_) -> "f" ^ (s_field_access s_type_kind faccess)
+	| SAnon (func,ctx,bb) -> "a" ^ (s_expr s_type_kind { eexpr = TFunction func; etype = func.tf_type; epos = func.tf_expr.epos; })
+	| SLocal (svar,_) -> "l" ^ (string_of_int svar.v_id)
+end
+
+let s_saccess v = match v with
+	| SField (faccess,tf,_) -> "SField-" ^ s_field_access s_type_kind faccess ^ "()" ^ s_expr_pretty tf.tf_expr
+	| SAnon (tf,ctx,bb) -> "SAnon" ^ s_expr_pretty tf.tf_expr
+	| SLocal (svar,tf) -> "SLocal(" ^ svar.v_name ^ ")" ^ s_expr_pretty tf.tf_expr
 
 (* let rset_eq a b : bool =
 	a.r_hash = b.r_hash *)
+let s_saccess_kind v = match v with
+	| SField _ -> "SField"
+	| SAnon _ -> "SAnon"
+	| SLocal _ -> "SLocal"
+
+let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
 
 let remove_dupplicate (f : 'a -> 'b -> bool) list =
 	let new_list = ref [] in
@@ -322,7 +247,6 @@ let is_compatible_def (def : tanon) (with_def : tanon) : bool =
 	with_def.a_status := Closed;
 	with_def.a_fields <- original_fields;
 
-	print_endline ("Entity Type " ^ (s_type (TAnon def)));
 	if compatible then
 		print_endline ("------pass> " ^ (s_type (TAnon with_def)))
 	else 
@@ -330,42 +254,49 @@ let is_compatible_def (def : tanon) (with_def : tanon) : bool =
 	compatible
 
 let contains_compatible_defs from_list (with_def : tanon) : bool =
-	try begin (Hashtbl.iter (fun def_hash def -> if is_compatible_def def with_def then raise Found) from_list); false end
+	try begin (Hashtbl.iter 
+		(fun def_hash def -> 
+			print_endline ("Entity Type " ^ (s_type (TAnon def))); (* FIXME: improve debuging *)
+			if is_compatible_def def with_def then raise Found
+		) from_list); false end
 	with | Found -> true
 
-let foreach_compatible_system sprocesses f (def : tanon) =
+let foreach_compatible_system eprocesses f (def : tanon) =
+	print_endline ("Entity Type " ^ (s_type (TAnon def)));
 	let processed = ref PMap.empty in
-	Hashtbl.iter
-		(fun shash sp ->
-			List.iter
-				(fun r -> 
-					match r with
-					| REntity (edef,opt,t) ->
-						let h = hash_tanon edef in
-						if (PMap.exists h !processed) = false && is_compatible_def def edef then f edef;
-						processed := PMap.add h h !processed;
-						()
-				)
-				sp.s_requirement
-		)
-		sprocesses
+	let check_ep (ep : eprocess) =
+		let check_r (r : r) = match r with
+			| REntity (edef,opt,t) ->
+				let h = hash_tanon edef in
+				if (PMap.exists h !processed) = false && is_compatible_def def edef then f edef;
+				processed := PMap.add h h !processed;
+				()
+		in
+		List.iter
+			check_r
+			ep.ep_requirement
+	in
+	DynArray.iter
+		check_ep
+		eprocesses
 
-let foreach_dependent_system sprocesses f (def : tanon) =
+let foreach_dependent_system eprocesses f (def : tanon) =
 	let processed = ref PMap.empty in
-	Hashtbl.iter
-		(fun def_hash sp ->
-			List.iter
-				(fun r -> 
-					match r with
-					| REntity (sdef,opt,t) -> 
-						let h = hash_tanon sdef in
-						if (PMap.exists h !processed) = false && (is_compatible_def def sdef || is_compatible_def sdef def) then f sdef;
-						processed := PMap.add h h !processed;
-						()
-				)
-				sp.s_requirement
-		)
-		sprocesses
+	let check_ep (ep : eprocess) =
+		let check_r (r : r) = match r with
+			| REntity (sdef,opt,t) -> 
+				let h = hash_tanon sdef in
+				if (PMap.exists h !processed) = false && (is_compatible_def def sdef || is_compatible_def sdef def) then f sdef;
+				processed := PMap.add h h !processed;
+				()
+		in
+		List.iter
+			check_r
+			ep.ep_requirement
+	in
+	DynArray.iter
+		check_ep
+		eprocesses
 
 let iter_with_locals f vars e =
 	match e.eexpr with
@@ -519,9 +450,9 @@ let remove_uft e : texpr =
 	match e.eexpr with
 	| TMeta ((Meta.Custom "$ecso.uft",_,_), e1) -> e1
 	| _ -> e
-let get_uft cf e = match e.eexpr with
+let get_uft cft e = match e.eexpr with
 	| TMeta ((Meta.Custom "$ecso.uft",[EConst(Int v),_],_), _) ->
-		(cf,v)
+		(cft,v)
 	| _ -> 
 		print_endline ("missing uft from: " ^ s_expr s_type_kind e);
 		raise Invalid_ecso_analyse
@@ -534,7 +465,7 @@ let rec append_expr e into : texpr =
 	| _ -> { into with eexpr = TBlock(into :: [e]) }
 
 let implement_uexpr (uft : uft) (impl : texpr) (replace : bool) =
-	let eorigin,uft = match uft with | (cf,meta) -> (cf,meta) in
+	let ft,uft = match uft with | (ft,meta) -> (ft,meta) in
 	let implemented = ref false in
 	let rec check_expr (e : texpr) : texpr = 
 		if is_expr_with_uft uft e then begin
@@ -545,24 +476,22 @@ let implement_uexpr (uft : uft) (impl : texpr) (replace : bool) =
 				else
 					append_expr impl e
 			in
-			(* match e.eexpr with
-			| TBlock el -> { e with eexpr = TBlock(el@[impl]) }
-			| _ -> { e with eexpr = TBlock(e :: [impl]) }
-			in *)
-			print_endline ("");
-			print_endline ("");
-			let e = write_expr_with_uft uft impl in
-			print_endline ("Gen: " ^ s_expr_pretty e);
-			print_endline ("");
-			print_endline ("");
-			e
+			write_expr_with_uft uft impl
 		end else
 			map_expr check_expr e
 	in
-	eorigin.cf_expr <- Some (match eorigin.cf_expr with
-		| Some field_expr -> check_expr field_expr
-		| None -> impl
-	);
+	begin match ft with
+		| FTField cf ->
+			cf.cf_expr <- Some (match cf.cf_expr with
+				| Some e -> check_expr e
+				| None -> impl
+			)
+		| FTClassInit cl ->
+			cl.cl_init <- Some (match cl.cl_init with
+				| Some e -> check_expr e
+				| None -> impl
+			)
+	end;
 	if not !implemented then
 		raise Not_implemented
 
@@ -667,7 +596,7 @@ and rset_build_data =
 and rset_impl = {
 	gen_add : texpr -> texpr -> pos -> texpr;
 	gen_remove : texpr -> texpr -> pos -> texpr;
-	gen_iter : texpr -> pos -> (texpr -> texpr) -> t -> texpr;
+	gen_iter : eprocess -> pos -> (texpr -> texpr) -> t -> texpr;
 }
 
 let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_impl_accessor) : rset_impl =
@@ -697,7 +626,8 @@ let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_imp
 			)) api.tvoid p);
 		]) api.tvoid p)
 	in
-	let gen_iter_func (g : texpr) (p : pos) (f : texpr -> texpr) (iterated_t : t) : texpr =
+	let gen_iter_func (ep : eprocess) (p : pos) (f : texpr -> texpr) (iterated_t : t) : texpr =
+		let g = ep.ep_group in
 		let ivar = alloc_var VGenerated "i" api.tint p in
 		let i = mk (TLocal ivar) ivar.v_type p in
 		let decrease_i = mk (TUnop (Decrement,Prefix,i)) api.tint p in
@@ -778,52 +708,51 @@ let retrieve_or_gen_rset (kind : rset_kind) (into_cl : tclass) (def : tanon) : r
 	| Missing build_data ->
 		gen_rset build_data into_cl def
 
-let gen_ecreate (into_cl : tclass) sprocesses (def_hash : int) (ec : ecreate) = 
+let gen_ecreate (into_cl : tclass) eprocesses (def_hash : int) (ec : ecreate) = 
 	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 	let api = gcon.basic in
 	let p = ec.expr.epos in
-	let block = ref [mk (TConst (TString ("CreateEntity " ^ (s_type (TAnon ec.e_def))))) api.tstring p] in
-	let einstance_var = alloc_var VGenerated "e" (TAnon ec.e_def) p in
+	let block = ref [mk (TConst (TString ("CreateEntity " ^ (s_type (TAnon ec.ec_def))))) api.tstring p] in
+	let einstance_var = alloc_var VGenerated "e" (TAnon ec.ec_def) p in
 	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
-	print_endline ("gen_ecreate" ^ (s_type (TAnon ec.e_def)));
-	foreach_compatible_system sprocesses
+	print_endline ("gen_ecreate" ^ (s_type (TAnon ec.ec_def)));
+	foreach_compatible_system eprocesses
 		(fun sdef -> 
 			match retrieve_rset RMonolist into_cl sdef with
 			| Retrieved rset -> block := (rset.gen_add ec.group einstance p) :: !block;
 				print_endline ("--- gen add into " ^ (s_type (TAnon sdef)))
 			| Missing _ -> ()
 		)
-		ec.e_def;
+		ec.ec_def;
 	block := (mk (TVar (einstance_var, Some ec.expr)) api.tvoid p) :: !block;
 	implement_uexpr ec.uft (mk (TBlock !block) api.tstring p) true;
 	()
 
-let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) = 
+let gen_edelete (into_cl : tclass) eprocesses (def_hash : int) (ed : edelete) = 
 	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 	let api = gcon.basic in
 	let p = ed.expr.epos in
-	let block = ref [mk (TConst (TString ("DeleteEntity " ^ (s_type (TAnon ed.e_def))))) api.tstring p] in
-	let einstance_var = alloc_var VGenerated "e" (TAnon ed.e_def) p in
+	let block = ref [mk (TConst (TString ("DeleteEntity " ^ (s_type (TAnon ed.ed_def))))) api.tstring p] in
+	let einstance_var = alloc_var VGenerated "e" (TAnon ed.ed_def) p in
 	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
-	foreach_dependent_system sprocesses
+	foreach_dependent_system eprocesses
 		(fun sdef -> 
 			match retrieve_rset RMonolist into_cl sdef with
 			| Retrieved rset -> block := (rset.gen_remove ed.group einstance p) :: !block
 			| Missing _ -> ()
 		)
-		ed.e_def;
+		ed.ed_def;
 	block := (mk (TVar (einstance_var, Some ed.expr)) api.tvoid p) :: !block;
 	implement_uexpr ed.uft (mk (TBlock !block) api.tstring p) true;
 	()
 
-let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : sprocess) = 
+let gen_eprocess (into_cl : tclass) possible_edefs (ep : eprocess) =
 	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 	let api = gcon.basic in
-	let p = sp.pos in
+	let p = ep.ep_system.epos in
 	let used = ref true in
 	let gen_system_call args : texpr =
-		let system_ident = resolve_saccess system in
-		(mk (TCall (system_ident, args)) api.tvoid p)
+		EcsoSystemAnalyzer.make_sbb api ep.ep_system args
 	in
 	let rec gen_next_requirement (r_list : r list) (system_args : texpr list) : texpr =
 		if List.length r_list = 0 then
@@ -832,45 +761,41 @@ let gen_sprocess (into_cl : tclass) possible_edefs (system : saccess) (sp : spro
 		| REntity (def,opt,t) -> 
 			if contains_compatible_defs possible_edefs def then begin
 				let rset = retrieve_or_gen_rset RMonolist into_cl def in
-				let gen_block (entity : texpr) =
-					(gen_next_requirement (List.tl r_list) (entity :: system_args))
+				let gen_system_block (entity : texpr) =
+					gen_next_requirement (List.tl r_list) (entity :: system_args)
 				in
-				rset.gen_iter sp.group p gen_block t
+				rset.gen_iter ep p gen_system_block t
 			end else begin
 				used := false;
 				mk (TConst TNull) t p
 			end
 	in
-	let impl = gen_next_requirement sp.s_requirement [] in
-	if !used then begin
-		implement_uexpr sp.uft (mk (TBlock[
-			impl;
-			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ ""))) api.tstring p); (* report *)
-		]) api.tstring p) false
-	end else
-		implement_uexpr sp.uft (mk (TBlock[
-			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess system) ^ " (skipped)"))) api.tstring p);
-		]) api.tstring p) false;
-	()
+	let impl = gen_next_requirement ep.ep_requirement [] in
+	let impl =
+		let impl = { impl with eexpr = TMeta((Meta.Custom("$ecso.sbb2"), [], impl.epos), impl) } in
+		if !used then
+			mk
+				(TBlock[
+					impl;
+					Builder.make_string api "ProcessSystem" p;
+				])
+				api.tstring
+				p
+		else
+			Builder.make_string api ("ProcessSystem (skipped)") p
+	in
+	implement_uexpr ep.ep_uft impl false
 
-type c = {
-	def : t;
-}
-and caccess_expr =
-	| CCreate of (texpr * c)
-	| CDelete of (texpr * c)
-	| CGet of (texpr * c)
-
-type p =
-	| PSystem of psystem
-
-and psystem = {
-	spath : string;
-	sprocess : pexecution;
+type global_analyze_info = {
+	gi_sbb_fields : tclass_field DynArray.t; (* Fields containing system blocks *)
+	gi_sbb_class_inits : tclass DynArray.t; (* Class inits containing system blocks *)
 }
 
-and pexecution =
-	| PExpr of texpr
+let create_global_analyze_info () = 
+	{
+		gi_sbb_fields = DynArray.create();
+		gi_sbb_class_inits = DynArray.create();
+	}
 
 class plugin =
 	object (self)
@@ -880,21 +805,24 @@ class plugin =
 		(* Analyse *)
 
 		val mutable ecso_entity_group = (None : tclass option)
+		method analyze_types gi com types =
+			List.iter (self#analyse_type gi) types
 
-		method analyze_types types =
-			List.iter self#analyse_type types
-
-		method analyse_type t =
+		method analyse_type gi t =
 			match t with
 				| TClassDecl cl -> 
 					let s_cl_path  = Globals.s_type_path cl.cl_path in
 					(match s_cl_path with
 						| "ecso.EntityGroup" -> (ecso_entity_group <- Some cl)
 						| _ ->
-							List.iter (fun cf -> self#analyse_field cl cf true) cl.cl_ordered_statics;
-							List.iter (fun cf -> self#analyse_field cl cf false) cl.cl_ordered_fields;
-							List.iter (fun cf -> self#analyse_field cl cf false) cl.cl_overrides;
-							self#analyse_field_opt cl cl.cl_constructor false
+							let analyze_cf = self#analyse_field gi cl in
+							List.iter (fun cf -> analyze_cf cf true) cl.cl_ordered_statics;
+							List.iter (fun cf -> analyze_cf cf false) cl.cl_ordered_fields;
+							List.iter (fun cf -> analyze_cf cf false) cl.cl_overrides;
+							begin match cl.cl_constructor with
+								| Some cf -> analyze_cf cf false
+								| None -> ()
+							end;
 					);
 					()
 				| TAbstractDecl a ->
@@ -904,12 +832,7 @@ class plugin =
 					)
 				| _ -> ()
 
-		method analyse_field_opt cl field is_static = 
-			match field with
-				| Some field -> self#analyse_field cl field is_static
-				| _ -> ()
-
-		method analyse_field cl cf is_static = 
+		method analyse_field gi cl cf is_static =
 			let unique_arg_counter = ref 0 in
 			(* 
 				Add tags to resolve in a reliable way all system processing after the analyze.
@@ -925,7 +848,7 @@ class plugin =
 					(fun e -> match e.eexpr with
 						| TCall(fident,args) ->
 							begin match fident.eexpr with
-							| TField (_, FInstance(cl, _, _(* { cf_name = "process"} *))) when (string_of_path cl.cl_path) = "ecso.EntityGroup" ->
+							| TField (_, FInstance(cl, _, _)) when (string_of_path cl.cl_path) = "ecso.EntityGroup" ->
 								has_sp := true;
 								transformed := true;
 								{ e with eexpr = TCall(pre_transform fident, List.mapi pre_transform_arg args) }
@@ -944,60 +867,14 @@ class plugin =
 				let e = pre_transform e changed has_sp in
 				if !changed then
 					cf.cf_expr <- Some e;
-
-				let compiler = (EvalContext.get_ctx()).curapi in
-				let com = compiler.get_com() in
-				let api = com.basic in
-				let config = AnalyzerConfig.get_base_config com in
-				let actx = Analyzer.Run.create_analyzer_context com config e in
-				let debug() =
-					print_endline (Printf.sprintf "While analyzing %s.%s" (s_type_path cl.cl_path) cf.cf_name);
-					List.iter (fun (s,e) ->
-						print_endline (Printf.sprintf "<%s>" s);
-						print_endline (Type.s_expr_pretty true "" false s_type e);
-						print_endline (Printf.sprintf "</%s>" s);
-					) (List.rev actx.debug_exprs);
-					Analyzer.Debug.dot_debug actx cl cf;
-					print_endline (Printf.sprintf "dot graph written to %s" (String.concat "/" (Analyzer.Debug.get_dump_path actx cl cf)));
-				in
-				let analyze_expr actx e =
-					try begin
-						Analyzer.Run.there actx e;
-						AnalyzerTypes.Graph.infer_immediate_dominators actx.graph;
-						AnalyzerTypes.Graph.infer_scopes actx.graph;
-						AnalyzerTypes.Graph.infer_var_writes actx.graph;
-						if actx.com.debug then
-							AnalyzerTypes.Graph.check_integrity actx.graph;
-						AnalyzerTypes.Graph.iter_dom_tree actx.graph (fun bb ->
-							DynArray.iter (fun e -> 
-								self#analyse_texpr_from_bb cf actx bb e
-							) bb.bb_el
-						);
-						self#analyse_texpr cf e;
-					end with
-					| _ -> ()
-					| Error.Error _ | Common.Abort _ | Sys.Break as exc ->
-						raise exc
-					| exc ->
-						debug();
-						raise exc
-				in
-				analyze_expr actx e
+				let has_sbb = self#analyse_texpr gi (get_uft (FTField cf)) e in
+				if has_sbb then
+					DynArray.add gi.gi_sbb_fields cf
 			| _ ->
 				()
 		
-		method analyse_texpr_from_bb (eorigin : tclass_field) actx bb e =
-			match e.eexpr with
-			| TCall ({ eexpr = TField (e1, FInstance(cl, _, cf)) }, args) ->
-				if cf.cf_name = "process" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
-					begin
-					self#extract_sprocess_from_bb eorigin e1 cf actx bb args
-					end
-			| _ -> 
-				()
-
-		
-		method analyse_texpr (eorigin : tclass_field) texpr =
+		method analyse_texpr gi get_uft texpr =
+			let has_sbb = ref false in
 			let rec loop e = match e.eexpr with
 				| TCall(fident,args) ->
 					List.iter loop args;
@@ -1007,12 +884,20 @@ class plugin =
 						begin match cf.cf_name with
 						| "createEntity" -> 
 							let arg1 = match args with | [arg] -> arg | _ -> raise Unexpected_expr in
-							let uft = (get_uft eorigin arg1) in
+							let uft = (get_uft arg1) in
 							self#extract_ecreate uft entity_group arg1
 						| "deleteEntity" ->
 							let arg1 = match args with | [arg] -> arg | _ -> raise Unexpected_expr in
-							let uft = (get_uft eorigin arg1) in
+							let uft = (get_uft arg1) in
 							self#extract_edelete uft entity_group arg1
+						| "process" ->
+							List.iter
+								(fun arg ->
+									let uft = (get_uft arg) in
+									self#extract_eprocess uft entity_group arg
+								)
+								args;
+							has_sbb := true
 						| _ -> ()
 						end
 					| _ -> ()
@@ -1020,15 +905,14 @@ class plugin =
 				| _ ->
 					iter loop e
 			in
-			loop texpr
+			loop texpr;
+			!has_sbb
 
 		(* Extract *)
 
-		val mutable ecso_extracts = ([] : uexpr list)
 		val mutable ecreates = Hashtbl.create 0 ~random:false
 		val mutable edeletes = Hashtbl.create 0 ~random:false
-		val mutable sprocesses = Hashtbl.create 0 ~random:false
-		val mutable systems = Hashtbl.create 0 ~random:false
+		val mutable eprocesses = DynArray.create()
 		
 		method register_system (uft : uft) (entity_group : texpr) (saccess : saccess) pos args ret =
 				let shash = hash_saccess saccess in
@@ -1141,7 +1025,7 @@ class plugin =
 					uft = uft;
 					group = entity_group;
 					e_inits = [](* inits *);
-					e_def = def;
+					ec_def = def;
 				}
 			| _ ->
 				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type_kind edef.etype));
@@ -1154,10 +1038,34 @@ class plugin =
 					expr = einstance;
 					uft = uft;
 					group = entity_group;
-					e_def = def;
+					ed_def = def;
 				}
 			| _ ->
 				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type_kind einstance.etype));
+				raise Unhandled_component_type
+
+		method extract_eprocess (uft : uft) (entity_group : texpr) (system : texpr) =
+			let rec skip e =
+				match e.eexpr with
+				| TParenthesis e1 | TMeta(_,e1) | TCast(e1,None) -> skip e1
+				| TBlock el ->
+					let len = List.length el in
+					if len > 0 then
+						skip (List.nth el (len - 1))
+					else
+						e
+				| _ -> e
+			in
+			match follow (skip system).etype with
+			| TFun (args, ret) ->
+				DynArray.add eprocesses {
+					ep_group = entity_group;
+					ep_requirement = List.map make_srequirement args;
+					ep_uft = uft;
+					ep_system = system;
+				}
+			| t ->
+				print_endline ("[ECSO] Wrong process parsing of " ^ s_type_kind t);
 				raise Unhandled_component_type
 
 		(* Process *)
@@ -1173,119 +1081,52 @@ class plugin =
 			vnull
 		
 		method on_after_typing haxe_types =
-			self#analyze_types haxe_types;
 
-			(* List.iter
-				(fun uexpr ->
-					match uexpr with
-						| EProcessSystem sp -> print_endline ("SysUexpr: " ^ (string_of_system sp.s_field)); ()
-						| _ -> ()
-				)
-				ecso_extracts; *)
-
-			(* let raw_rsets : rset list = 
-				List.filter_map 
-					(fun uexpr ->
-						match uexpr with
-							| EProcessSystem sp -> Some (make_rset sp.s_requirement)
-							| _ -> None
-					)
-					ecso_extracts
-			in *)
 
 			(* let rsets_uniq = remove_dupplicate rset_eq raw_rsets in
 			optimize_rlists rsets_uniq; *)
+			let ctx = EvalContext.get_ctx() in
+			let compiler = ctx.curapi in
+			let com = compiler.get_com() in
+			let gi = create_global_analyze_info() in
+
+			(*
+				Extract ecreate, edelete and sprocess.
+			*)
 			
-			(* let get_uniq_rset sp = 
-				List.find
-					(fun rs -> rset_eq rs (make_rset sp.s_requirement))
-					rsets_uniq
-			in *)
-
-			(* let rsets_usages : (rset * uexpr) list =
-				List.filter_map
-					(fun uexpr ->
-						match uexpr with
-							| EProcessSystem sp ->
-								Some (List.find (rset_eq (make_rset sp.s_requirement)) rsets_uniq, uexpr)
-							| _ -> None
-					)
-					ecso_extracts
-			in *)
-
-			(* List.iter
-				(fun (r,u) ->
-					print_endline ("RSy-u: " ^ r.r_name)
-				)
-				rsets_usages; *)
+			self#analyze_types gi com haxe_types;
 
 			let ecso_entity_group = (match ecso_entity_group with
 				| Some cl -> cl
-				| None -> raise Missing_ecso_library) in (* TODO: print nice error message *)
-
-			let print_sprocess k sp = 
-				List.iter
-					(fun r -> 
-						(match r with
-						| REntity (def,opt,t) -> print_endline ("Process System" ^ (s_type (TAnon def)) )
-						)
-					)
-					sp.s_requirement
+				| None -> raise Missing_ecso_library)
 			in
 
-			let print_ecreate k (ec : ecreate) = 
-				print_endline ("---Create Entity " ^ (s_type (TAnon ec.e_def)) )
-			in
-			let print_edelete k (ed : edelete) = 
-				print_endline ("---Delete Entity " ^ (s_type (TAnon ed.e_def)) )
-			in
-
-			print_endline "System list:";
-			Hashtbl.iter
-				(fun shash system -> print_endline (s_saccess system))
-				systems;
-			
-			print_endline "Process calls:";
-			Hashtbl.iter
-				print_sprocess
-				sprocesses;
-
-			print_endline ("Entities created: " ^ (string_of_int (Hashtbl.length ecreates)));
-			Hashtbl.iter
-				print_ecreate
-				ecreates;
-
-			print_endline ("Entities deleted: " ^ (string_of_int (Hashtbl.length edeletes)));
-			Hashtbl.iter
-				print_edelete
-				edeletes;
-			
 			let possible_edefs = (* TODO: find a better structure for this *)
 				let list = Hashtbl.create (1 + (Hashtbl.length ecreates) / 4) in
 				Hashtbl.iter
-					(fun def_hash ec -> if (Hashtbl.mem list def_hash) = false then Hashtbl.add list def_hash ec.e_def)
+					(fun def_hash ec -> if not (Hashtbl.mem list def_hash) then Hashtbl.add list def_hash ec.ec_def)
 					ecreates;
 				list
 			in
-
-			print_endline ("List possible_edefs " ^ (string_of_int (Hashtbl.length possible_edefs)));
-
-			Hashtbl.iter
-				(fun shash sp -> 
-					gen_sprocess 
-						ecso_entity_group
-						possible_edefs
-						(Hashtbl.find systems shash)
-						sp
-				)
-				sprocesses;
 			
+			(*
+				Generate eprocess, this will generate used rsets (see retrieve_or_gen_rset call).
+			*)
+			
+			DynArray.iter
+				(gen_eprocess ecso_entity_group possible_edefs)
+				eprocesses;
+			
+			(*
+				Generate ecreate and edelete AFTER eprocess as they depends on it (see retrieve_rset call).
+			*)
+
 			Hashtbl.iter
-				(gen_ecreate ecso_entity_group sprocesses)
+				(gen_ecreate ecso_entity_group eprocesses)
 				ecreates;
 			
 			Hashtbl.iter
-				(gen_edelete ecso_entity_group sprocesses)
+				(gen_edelete ecso_entity_group eprocesses)
 				edeletes;
 			
 			(* setup_process ecso_entity_group; *)
