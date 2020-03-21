@@ -512,7 +512,7 @@ let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_imp
 		let decrease_i = mk (TUnop (Decrement,Prefix,i)) api.tint p in
 		let entity_at_i = mk (TArray (list g p,i)) iterated_t p in
 		(mk (TBlock[
-			mk (TVar (ivar, Some (length g p))) api.tint p;
+			mk (TVar (ivar, Some (length g p))) api.tvoid p;
 			mk (TWhile (
 				mk (TBinop (OpGte,decrease_i, mk (TConst (TInt 0l)) api.tint p)) api.tbool p,
 				f entity_at_i,
