@@ -483,23 +483,23 @@ let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_imp
 	let api = gcon.basic in
 	let list g p = mk (TField (g, list_impl.cf_access)) list_impl.cf_type p in
 	let length g p = mk (TField (g, length_impl.cf_access)) length_impl.cf_type p in
-	let gen_add_func (g : texpr) (einstance : texpr) (p : pos) : texpr =
+	let gen_add_func (g : texpr) (model : texpr) (p : pos) : texpr =
 		let list_push_info = get_field_access list_impl.cf_type "push" in
 		let list_push = mk (TField (list g p, list_push_info.cf_access)) list_push_info.cf_type p in
 
 		(mk (TBlock[
-			(mk (TCall (list_push, [einstance])) api.tint p); (* rset.push( _ ) TODO: ensure to not push a reference! *)
+			(mk (TCall (list_push, [model])) api.tint p); (* rset.push( _ ) TODO: ensure to not push a reference! *)
 			(mk (TBinop (OpAdd,length g p, mk (TConst (TInt 1l)) api.tint p)) api.tint p); (* ++rset_length *)
 			(mk (TUnop (Increment,Prefix,length g p)) api.tint p); (* ++rset_length *)
 		]) api.tint p)
 	in
-	let gen_remove_func (g : texpr) (einstance : texpr) (p : pos) : texpr =
+	let gen_remove_func (g : texpr) (instance : texpr) (p : pos) : texpr =
 		let list_remove_info = get_field_access list_impl.cf_type "remove" in
 		let list_remove = mk (TField (list g p, list_remove_info.cf_access)) list_remove_info.cf_type p in
 
 		(mk (TBlock[
 			(mk (TIf (
-				(mk (TCall (list_remove, [einstance])) api.tbool p), (* rset.remove( _ ) *)
+				(mk (TCall (list_remove, [instance])) api.tbool p), (* rset.remove( _ ) *)
 				(mk (TUnop (Decrement,Prefix,length g p)) api.tint p), (* --rset_length *)
 				None
 			)) api.tvoid p);
@@ -517,7 +517,7 @@ let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_imp
 				mk (TBinop (OpGte,decrease_i, mk (TConst (TInt 0l)) api.tint p)) api.tbool p,
 				f entity_at_i,
 				NormalWhile
-			)) api.tvoid p;
+			)) api.tvoid p
 		]) api.tvoid p)
 	in
 	{
@@ -793,32 +793,31 @@ class plugin =
 		val mutable edeletes = Hashtbl.create 0 ~random:false
 		val mutable eprocesses = DynArray.create()
 		
-
-		method extract_ecreate (uft : uft) (entity_group : texpr) (edef : texpr) =
-			match follow edef.etype with
+		method extract_ecreate (uft : uft) (entity_group : texpr) (model : texpr) =
+			match follow model.etype with
 			| TAnon def ->
 				Hashtbl.add ecreates (hash_tanon def) {
-					expr = edef;
+					expr = model;
 					uft = uft;
 					group = entity_group;
 					e_inits = [](* inits *);
 					ec_def = def;
 				}
 			| _ ->
-				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type_kind edef.etype));
+				print_endline ("[ECSO] Wrong create parsing of " ^ (s_type_kind model.etype));
 				raise Unhandled_component_type
 		
-		method extract_edelete (uft : uft) (entity_group : texpr) (einstance : texpr) =
-			match follow einstance.etype with
+		method extract_edelete (uft : uft) (entity_group : texpr) (instance : texpr) =
+			match follow instance.etype with
 			| TAnon def ->
 				Hashtbl.add edeletes (hash_tanon def) {
-					expr = einstance;
+					expr = instance;
 					uft = uft;
 					group = entity_group;
 					ed_def = def;
 				}
 			| _ ->
-				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type_kind einstance.etype));
+				print_endline ("[ECSO] Wrong deletion parsing of " ^ (s_type_kind instance.etype));
 				raise Unhandled_component_type
 
 		method extract_eprocess (uft : uft) (entity_group : texpr) (system : texpr) =
