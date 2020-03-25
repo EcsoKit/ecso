@@ -702,6 +702,13 @@ class plugin =
 								| Some cf -> analyze_cf cf false
 								| None -> ()
 							end;
+							begin match cl.cl_init with
+								| Some e ->
+									let has_sbb = self#analyse_texpr gi (get_uft (FTClassInit cl)) e in
+									if has_sbb then
+										DynArray.add gi.gi_sbb_class_inits cl
+								| None -> ()
+							end
 					);
 					()
 				| TAbstractDecl a ->
