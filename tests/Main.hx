@@ -278,6 +278,48 @@ private class CoreSpecification extends BuddySuite {
                 });
             });
 
+            describe('should add components', {
+                it('with systems', {
+                    var added = false;
+                    entities.foreachEntity( function (e:{ addition:String }) {
+                        added = true;
+                    });
+                    added.should.be(false);
+                    entities.foreachEntity( function (e:{ x:Int, ?addition:String }) {
+                        e.addition = "foobar";
+                    });
+                    entities.foreachEntity( function (e:{ x:Int, addition:String }) {
+                        e.addition.should.be("foobar");
+                        added = true;
+                    });
+                    added.should.be(true);
+                });
+            });
+
+            describe('should remove components', {
+                it('with explicit null', {
+                    function remove (e:{ ?y:Int })
+                        e.y = null;
+                    entities.foreachEntity( spying, remove, movingY, spying );
+                    spy.y.should.be(4);
+                });
+                #if !static
+                it('with implicit null', {
+                    function remove (e:{ y:Int })
+                        e.y = null;
+                    entities.foreachEntity( spying, remove, movingY, spying );
+                    spy.y.should.be(4);
+                });
+                it('with nullable value', {
+                    var n:Int = @:analyzer(no) (() -> null)();
+                    function remove (e:{ y:Int })
+                        e.y = n;
+                    entities.foreachEntity( spying, remove, movingY, spying );
+                    spy.y.should.be(4);
+                });
+                #end
+            });
+
             describe('should delete entities', {
                 it('using closures', {
                     function stoping (e:{ y:Int })
