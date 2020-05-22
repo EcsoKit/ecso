@@ -15,29 +15,25 @@ typedef EcsoPluginApi = {
 
 class Plugin {
 
-	static var _plugin:EcsoPluginApi;
-	static var plugin (get, null):EcsoPluginApi;
-	static function get_plugin ():EcsoPluginApi {
-		if(_plugin == null) {
+	@:persistent static var plugin:EcsoPluginApi;
+
+	public static function init ():Void {
+		if( plugin == null ) {
 			try {
-				_plugin = eval.vm.Context.loadPlugin(getPluginPath());
-			} catch(e:Dynamic) {
-				throw '[ECSO] Failed to load plugin: $e';
+				plugin = eval.vm.Context.loadPlugin(getPluginPath());
+				if( plugin != null )
+					plugin.init();
+			} catch (e:String) {
+				if( e == null || e.indexOf("is already loaded") < 0 )
+					throw '[ECSO] Failed to load plugin: $e';
 			}
 		}
-		return _plugin;
 	}
 
 	static function getPluginPath ():String {
-		var currentFile = (function(?p:PosInfos) return p.fileName)();
-		var srcDir = currentFile.directory().directory().directory().directory();
-		var p = Path.join([srcDir, 'cmxs', Sys.systemName(), 'plugin.cmxs']);
-		return p;
-	}
-
-	public static function init ():Void {
-		ecso._core.RComponent;
-		plugin.init();
+		final currentFile = (function(?p:PosInfos) return p.fileName)();
+		final srcDir = currentFile.directory().directory().directory().directory();
+		return Path.join([srcDir, 'cmxs', Sys.systemName(), 'plugin.cmxs']);
 	}
 
 }
