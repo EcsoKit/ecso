@@ -33,12 +33,12 @@ private class CoreSpecification extends BuddySuite {
             spy.vy = e.vy;
         }
 
-        describe('EntityGroup', {
+        beforeEach({
+            entities = new EntityGroup();
+            spy = { x: -1, y: -1, vx: -1, vy: -1 }
+        });
 
-            beforeEach({
-                entities = new EntityGroup();
-                spy = { x: -1, y: -1, vx: -1, vy: -1 }
-            });
+        describe('ecso', {
 
             describe('should create entities', {
                 it('with anon structures', {
@@ -90,8 +90,8 @@ private class CoreSpecification extends BuddySuite {
                 });
             });
 
-            describe('should process entities', {
-                it('with arraw systems', {
+            describe('should process systems', {
+                it('from arraw functions', {
                     entities.foreachEntity(e -> {
                         e.x += 2;
                     });
@@ -101,7 +101,7 @@ private class CoreSpecification extends BuddySuite {
                     });
                     spy.x.should.be(6);
                 });
-                it('with anon systems', {
+                it('from anon functions', {
                     entities.foreachEntity(function (e:PositionComponent) {
                         e.x += 2;
                     });
@@ -111,7 +111,7 @@ private class CoreSpecification extends BuddySuite {
                     });
                     spy.x.should.be(6);
                 });
-                it('with local systems', {
+                it('from local functions', {
                     function movingX (e:PositionComponent) {
                         e.x += 4;
                     }
@@ -119,7 +119,7 @@ private class CoreSpecification extends BuddySuite {
                     entities.foreachEntity(spying);
                     spy.x.should.be(8);
                 });
-                it('with hijacked systems', {
+                it('from hijacked functions', {
                     var movingX = null;
                     entities.foreachEntity(movingX = function (e:PositionComponent) {
                         e.x += 4;
@@ -130,27 +130,27 @@ private class CoreSpecification extends BuddySuite {
                     spy.x.should.be(8);
                     e2.x.should.be(4);
                 });
-                it('with static systems', {
+                it('from static functions', {
                     entities.foreachEntity(movingY);
                     entities.foreachEntity(spying);
                     spy.y.should.be(4 + spy.vy);
                 });
-                it('with module-level systems', {
+                it('from module functions', {
                     pending("coming soon");
                 });
-                it('with matching systems only', {
+                it('with correct matches only', {
                     entities.foreachEntity((e:{ foo:String }) -> {
                         fail('Entity $e should not match with { foo : String }');
                     });
                 });
-                it('with system binding', {
+                it('with binding', {
                     entities.foreachEntity((function (e:{ x:Int, spy:{x:Int} }, shift:Int) {
                         e.x += shift;
                     }).bind(_, 50));
                     entities.foreachEntity(spying);
                     spy.x.should.be(54);
                 });
-                it('with multiple systems', {
+                it('with multiple entries', {
                     entities.foreachEntity(movingY, spying);
                     spy.y.should.be(4 + spy.vy);
                 });
@@ -255,31 +255,31 @@ private class CoreSpecification extends BuddySuite {
                     });
                     totalz.should.be(4);
                 });
-                it('with undirect system values', {
+                it('with undirect function value', {
                     var positive = Math.random() > .5;
                     var sideEffect = false;
-                    var toto = if (positive) (e:PositionComponent) -> {
+                    var system = if (positive) (e:PositionComponent) -> {
                         e.x = 12;
                         sideEffect = true;
                     } else (e:PositionComponent) -> {
                         e.x = -12;
                         sideEffect = true;
                     };
-                    entities.foreachEntity(toto, spying);
+                    entities.foreachEntity(system, spying);
                     spy.x.should.be(positive ? 12 : -12);
                     if (sideEffect) {
-                        toto = function (e:PositionComponent) {
+                        system = function (e:PositionComponent) {
                             e.x = 42;
                             return false;
                         };
                     }
-                    entities.foreachEntity(toto, spying);
+                    entities.foreachEntity(system, spying);
                     spy.x.should.be(42);
                 });
             });
 
             describe('should delete entities', {
-                it('with closure', {
+                it('using closures', {
                     function stoping (e:{ y:Int })
                         entities.deleteEntity(e);
                     entities.foreachEntity( movingY, spying, stoping );
@@ -287,7 +287,7 @@ private class CoreSpecification extends BuddySuite {
                     entities.foreachEntity( movingY, spying );
                     spy.y.should.be(4 + spy.vy);
                 });
-                it('with binding', {
+                it('using function binding', {
                     function stoping (e:{ y:Int }, group:EntityGroup)
                         group.deleteEntity(e);
                     entities.foreachEntity( movingY, spying, stoping.bind(_,entities) );
