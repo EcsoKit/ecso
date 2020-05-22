@@ -384,12 +384,12 @@ module EcsoArchetypeAnalyzer = struct
 					if not (already_muted cf) && match_mutation_base base then
 						apply_mutations a mutl (cons_if_uniq { a with a_components = PMap.add cf.cf_name cf a.a_components } al) cache
 					else
-						al
+						apply_mutations a mutl al cache
 				| MutRem(base,i) ->
 					if match_mutation_base base then
 						apply_mutations a mutl (cons_if_uniq { a with a_components = PMap.remove (List.nth base i).cf_name a.a_components } al) cache
 					else
-						al
+						apply_mutations a mutl al cache
 				end
 		in
 		let rec loop al mutl al2 cache = 
