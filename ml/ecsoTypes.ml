@@ -155,7 +155,7 @@ let s_mutation mut =
 	let s_base fl = TPrinting.Printer.s_type (TAnon { a_fields = pmap_of_fl fl; a_status = ref Closed; }) in
 	match mut with
 	| MutAdd (base,cf) -> "MutAdd(" ^ s_base base ^ " + " ^ cf.cf_name ^ " : " ^ s_component_type cf ^ ")"
-	| MutRem (base,i) -> "MutAdd(" ^ s_base base ^ " - " ^ (List.nth base i).cf_name ^ ")"
+	| MutRem (base,i) -> "MutRem(" ^ s_base base ^ " - " ^ (List.nth base i).cf_name ^ ")"
 
 type mutation_accuracy =
 	| MPresumed (* Mutations will be systematically presumed, giving bad performances for mutable entities *)
