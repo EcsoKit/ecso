@@ -1,0 +1,4 @@
+-L ecso
+-m Main
+--js bin/main.js
+-D analyzer-optimize
