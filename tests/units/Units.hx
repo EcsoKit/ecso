@@ -21,7 +21,7 @@ class Units extends buddy.SingleSuite {
                 });
             });
 
-            it('anonymous systems', {
+            it('anonymous functions', {
                 var count = 0;
                 entities.foreachEntity((e:{ x:Int, ?z:Int }) -> {
                     Assert.isNull(e.z);
@@ -35,7 +35,7 @@ class Units extends buddy.SingleSuite {
                 Assert.equals(2, count);
             });
 
-            it('local systems', {
+            it('local functions', {
                 var count = 0;
                 function pre (e:{ x:Int, ?z:Int }) {
                     Assert.isNull(e.z);
@@ -51,14 +51,14 @@ class Units extends buddy.SingleSuite {
                 Assert.equals(2, count);
             });
 
-            it('field systems', {
+            it('member functions', {
                 fieldCount = 0;
                 entities.foreachEntity(fieldPre);
                 entities.foreachEntity(fieldPost);
                 Assert.equals(2, fieldCount);
             });
 
-            it('static systems', {
+            it('static functions', {
                 staticCount = 0;
                 entities.foreachEntity(staticPre);
                 entities.foreachEntity(staticPost);
@@ -67,7 +67,7 @@ class Units extends buddy.SingleSuite {
         });
     }
 
-    // fields
+    // members
 
     var fieldCount:Int;
     function fieldPre (e:{ x:Int, ?z:Int }) {
