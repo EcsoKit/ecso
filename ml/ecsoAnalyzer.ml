@@ -366,38 +366,40 @@ module EcsoArchetypeAnalyzer = struct
 		loop g
 	
 	let apply_mutations (actx : EcsoAnalyzer.t) user_archetypes mutations : archetype list =
-		let rec apply_mutations a mutl al cache =
-			let match_mutation_base base =
-				List.for_all (fun cf -> PMap.mem cf.cf_name a.a_components && eq_component_type (PMap.find cf.cf_name a.a_components) cf) base
+		let mutate a mut =
+			let has_component a cf = PMap.mem cf.cf_name a.a_components in
+			let match_mutation_base a base =
+				(List.length base = 0) ||
+				List.for_all (fun cf -> PMap.mem cf.cf_name a.a_components (* && eq_component_type (PMap.find cf.cf_name a.a_components) cf *)) base
 			in
-			let already_muted cf =
-				PMap.mem cf.cf_name a.a_components
-			in
-			let cons_if_uniq a al =
-				if List.exists (eq_archetype a) cache then al
-				else a :: al
-			in
-			match mutl with
-			| [] -> al
-			| mut :: mutl -> begin match mut with
-				| MutAdd(base,cf) ->
-					if not (already_muted cf) && match_mutation_base base then
-						apply_mutations a mutl (cons_if_uniq { a with a_components = PMap.add cf.cf_name cf a.a_components } al) cache
-					else
-						apply_mutations a mutl al cache
-				| MutRem(base,i) ->
-					if match_mutation_base base then
-						apply_mutations a mutl (cons_if_uniq { a with a_components = PMap.remove (List.nth base i).cf_name a.a_components } al) cache
-					else
-						apply_mutations a mutl al cache
-				end
+			match mut with
+			| MutAdd(base,cf) ->
+				if not (has_component a cf) && match_mutation_base a base then
+					Some { a with a_components = PMap.add cf.cf_name cf a.a_components }
+				else
+					None
+			| MutRem(base,i) ->
+				if match_mutation_base a base then
+					Some { a with a_components = PMap.remove (List.nth base i).cf_name a.a_components }
+				else
+					None
 		in
-		let rec loop al mutl al2 cache = 
-			match al with
-			| [] -> al2
-			| a :: al ->
-				let al2 = apply_mutations a mutl al2 cache in
-				loop al mutl al2 (cache@al2) (* HERE something is wrong *)
+		let pass al al2 =
+			let additions = List.filter (fun mut -> match mut with | MutAdd _ -> true | _ -> false) mutations in
+			let removals = List.filter (fun mut -> match mut with | MutRem _ -> true | _ -> false) mutations in
+			let mutated_arr = DynArray.of_list al in
+			let pass_mutations al mutl = 
+				List.iter (fun a ->
+					List.iter (fun mut ->
+						match (mutate a mut) with
+						| Some a' -> DynArray.add mutated_arr a'
+						| None -> ()
+					) mutl
+				) al
+			in
+			pass_mutations al additions;
+			pass_mutations al removals;
+			DynArray.to_list (dynarray_filter_dupplicates mutated_arr eq_archetype)
 		in
 		if actx.a_global.gl_debug_mutations then begin
 			print_endline "{ECSO} | Mutation Repport";
@@ -406,20 +408,6 @@ module EcsoArchetypeAnalyzer = struct
 			print_endline "       | Initial archetypes:";
 			print_list_br "              | " s_archetype user_archetypes ~cache:true;
 		end;
-		let rec pass archetypes cache =
-			match loop archetypes mutations [] cache with
-			| [] ->
-				if actx.a_global.gl_debug_mutations then begin
-					print_endline "       | Mutated archetypes: None";
-				end;
-				archetypes
-			| mutateds ->
-				if actx.a_global.gl_debug_mutations then begin
-					print_endline "       | Mutated archetypes:";
-					print_list_br "              | " s_archetype mutateds ~cache:true;
-				end;
-				archetypes @ pass mutateds (archetypes@cache)
-		in
 		let archetypes = pass user_archetypes [] in
 		if actx.a_global.gl_debug_mutations then begin
 			print_endline "       | Final archetypes:";

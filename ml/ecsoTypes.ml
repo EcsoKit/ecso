@@ -64,6 +64,20 @@ let rec fetch_type t =
 		| None -> t)
 	| _ -> t
 
+let dynarray_exists f darr = 
+	try
+		DynArray.index_of f darr; true
+	with
+		| Not_found -> false
+
+let dynarray_filter_dupplicates darr f =
+	let filtered = DynArray.create() in
+	DynArray.iter (fun v ->
+		if not (dynarray_exists (f v) filtered) then
+			DynArray.add filtered v
+	) darr;
+	filtered
+
 (* Types *)
 
 let s_component_type ?(skip_null=false) cf =
