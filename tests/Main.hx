@@ -9,7 +9,8 @@ using buddy.Should;
 
 class Main implements Buddy<[
     new CoreSpecification(),
-    new Units()
+    new Units(),
+    new Groups()
 ]> {}
 
 private class CoreSpecification extends BuddySuite {

@@ -8,10 +8,10 @@ final class EntityGroup {
 
     public inline function new () {}
 
-    public extern function createEntity <T> (def:T):Void;
+    @:ecso.create public extern function createEntity <T> (def:T):Void;
 
-    public extern function deleteEntity <T> (def:T):Void;
+    @:ecso.delete public extern function deleteEntity <T> (def:T):Void;
 
-    public extern function foreachEntity (systems:Rest<Any>):Void;
+    @:ecso.foreach public extern function foreachEntity (systems:Rest<Any>):Void;
 
 }

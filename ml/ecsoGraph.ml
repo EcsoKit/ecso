@@ -603,7 +603,7 @@ module EcsoGraph = struct
 				in
 
 				if ctx.ctx_debug_gen >= EcsoContext.simple_debugging then begin
-					Hashtbl.add debug_buffer "createEntity" (s_archetype a);
+					Hashtbl.add debug_buffer "create-entity" (s_archetype a);
 				end;
 
 				let p = e1.greal.epos in
@@ -692,7 +692,7 @@ module EcsoGraph = struct
 						begin foreach_compatible_archetype ctx.ctx_debug_archetype_eq ctx.ctx_archetypes
 							(fun archetype ->
 								if ctx.ctx_debug_gen >= EcsoContext.simple_debugging then begin
-									Hashtbl.add debug_buffer "foreachEntity" (s_archetype archetype);
+									Hashtbl.add debug_buffer "foreach-entity" (s_archetype archetype);
 								end;
 								let entity_type = TAnon { a_fields = archetype.a_components; a_status = ref Closed } in
 								let rset = RsetGenerator.retrieve_or_gen_rset RMonolist into_cl archetype in
@@ -796,7 +796,7 @@ module EcsoGraph = struct
 		locals : ((gexpr list) ref * gexpr option * gexpr_value) LocalFlow.t;
 	}
 
-	let run com (e : texpr) : graph_info =
+	let run (ctx : EcsoContext.t) com (e : texpr) : graph_info =
 		let e = TexprFilter.apply com e in
 		let extra = DynArray.create() in
 		let same_branch f acc (e : texpr) = 
@@ -1019,7 +1019,7 @@ module EcsoGraph = struct
 				in
 				let e = { greal = e; gexpr = GObjectDecl el } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl, _, { cf_name = "createEntity" })) },[e1]) when (Globals.s_type_path cl.cl_path) = "ecso.EntityGroup" ->
+			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_create cf ctx ->
 				let acc,e1,_ = f acc e1 in
 				let archetype = match (skip e1).gexpr with
 					| GObjectDecl fl ->
@@ -1046,11 +1046,11 @@ module EcsoGraph = struct
 				in
 				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,make_context_id false cl) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl, _, { cf_name = "deleteEntity" })) },[e1]) when (Globals.s_type_path cl.cl_path) = "ecso.EntityGroup" ->
+			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_delete cf ctx ->
 				let acc,e1,_ = f acc e1 in
 				let e = { greal = e; gexpr = GEcsoDelete (group,e1,make_context_id false cl) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl, _, { cf_name = "foreachEntity" })) },el) when (Globals.s_type_path cl.cl_path) = "ecso.EntityGroup" ->
+			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },el) when EcsoContext.does_match_api ctx.ctx_group.eg_foreach cf ctx ->
 				let context_id = make_context_id false cl in
 				let rec parse_system (e : texpr) : gexpr =
 

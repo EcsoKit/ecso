@@ -220,9 +220,10 @@ module EcsoContext = struct
 
 	and egroup = {
 		eg_t : Type.t;
+		eg_context_id : int;
 		eg_create : tclass_field option;
 		eg_delete : tclass_field option;
-		eg_process : tclass_field option;
+		eg_foreach : tclass_field option;
 	}
 
 	let no_debugging = 0
@@ -241,5 +242,16 @@ module EcsoContext = struct
 		ctx_debug_archetype_eq = false;
 		ctx_debug_gen = simple_debugging;
 	}
+
+	let in_context (cf : tclass_field) (ctx : t) =
+		Meta.has EcsoMeta.context cf.cf_meta
+		&& match Meta.get EcsoMeta.context cf.cf_meta with
+		| (_,[Ast.EConst (Int (id)),_],p) when id = string_of_int ctx.ctx_id -> true
+		| _ -> false
+	
+	let does_match_api (gfield : tclass_field option) (cf : tclass_field) (ctx : t) =
+		in_context cf ctx && match gfield with
+		| Some gfield -> cf.cf_name = gfield.cf_name
+		| None -> false
 
 end

@@ -143,8 +143,8 @@ class plugin =
 					let t = TPrinting.s_type_kind actx.a_ctx.ctx_group.eg_t in
 					let ec = match actx.a_ctx.ctx_group.eg_create with | Some cf -> " ec(" ^ cf.cf_name ^ ")" | None -> "" in
 					let ed = match actx.a_ctx.ctx_group.eg_delete with | Some cf -> " ed(" ^ cf.cf_name ^ ")" | None -> "" in
-					let ep = match actx.a_ctx.ctx_group.eg_process with | Some cf -> " ep(" ^ cf.cf_name ^ ")" | None -> "" in
-					t ^ ec ^ ed ^ ep;
+					let ef = match actx.a_ctx.ctx_group.eg_foreach with | Some cf -> " ef(" ^ cf.cf_name ^ ")" | None -> "" in
+					t ^ ec ^ ed ^ ef;
 				in
 				print_endline "{ECSO} | Contexts:";
 				print_list_br "              | " s_ctx ctxl ~cache:true;

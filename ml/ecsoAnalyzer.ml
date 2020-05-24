@@ -8,6 +8,8 @@ open EcsoFilters
 
 module EcsoAnalyzer = struct
 
+	open Ast
+	open Error
 	open EcsoContext
 
 	type analyze = {
@@ -27,20 +29,134 @@ module EcsoAnalyzer = struct
 	}
 
 	let from_module (gctx : global) (m : module_type) : t list =
+		let find_fields_with meta fl =
+			List.filter (fun cf -> Meta.has meta cf.cf_meta) fl
+		in
+		let make_group cl is_static fl =
+			let api = (gctx.gl_ectx.curapi.get_com()).basic in
+			let tany = { null_abstract with a_path = ([],"Any") } in
+			let trest = { null_abstract with a_path = (["haxe";"extern"],"Rest") } in
+			let tfunc = { null_abstract with a_path = ([],"Any") } in
+			let tparam = { null_class with cl_kind = KTypeParameter [] } in
+
+			let creates = find_fields_with EcsoMeta.api_create fl in
+			let deletes = find_fields_with EcsoMeta.api_delete fl in
+			let foreachs = find_fields_with EcsoMeta.api_foreach fl in
+			print_endline ("CREATES List " ^ string_of_int (List.length creates));
+			print_endline ("DELETES List " ^ string_of_int (List.length deletes));
+			print_endline ("FOREACHS List " ^ string_of_int (List.length foreachs));
+			let hint_or_raise name t want p =
+				match t with
+				| TMono _ ->
+					Error.error ("[ECSO] " ^ name ^ " functions must be explicitely typed " ^ TPrinting.Printer.s_type want) p
+				| _ -> ()
+			in
+			let unify_or_raise a b p =
+				if type_iseq_strict a b then true
+				else raise (Error (Unify [cannot_unify a b], p)) 
+			in
+			let single_param_or_raise name cf = match cf.cf_params with
+				| [n,t] -> n,t
+				| _ -> Error.error ("[ECSO] " ^ name ^ " functions must declare exactly one parameter") cf.cf_pos;
+			in
+			let common_sanity name cf =
+				match cf.cf_type with
+				| _ when not (has_class_field_flag cf CfExtern) ->
+					Error.error ("[ECSO] " ^ name ^ " functions must be extern") cf.cf_pos
+				| TFun (_,r) when not (ExtType.is_mono r) && not (ExtType.is_void r) ->
+					raise (Error (Unify [cannot_unify r api.tvoid], cf.cf_pos))
+				| TFun ([_,true,_],_) ->
+					Error.error ("[ECSO] " ^ name ^ " functions cannot have an optional argument") cf.cf_pos
+				| TFun ([a1],_) ->
+					{ cf with cf_type = TFun([a1],api.tvoid) }
+				| TFun (_,_) ->
+					Error.error ("[ECSO] " ^ name ^ " functions must accept exactly one argument") cf.cf_pos
+				| _ ->
+					Error.error ("[ECSO] " ^ name ^ " fields must be function") cf.cf_pos
+			in
+			let get_arg_name f =
+				match f with | TFun ([n,_,_],_) -> n
+			in
+			let sanitize_ec_ed name cf =
+				let cf = common_sanity name cf in
+				match cf.cf_type with
+				| TFun ([n,opt,t],_) ->
+					let pname,_ = single_param_or_raise name cf in
+					let tparam = match t with
+						| TInst({ cl_kind = KTypeParameter _ }, params) ->
+							t
+						| _ ->
+							TInst({ tparam with cl_kind = KTypeParameter[]; cl_private = cl.cl_private; cl_path = ([],pname) }, [])
+					in
+					let have = TFun([n,opt,t],api.tvoid) in
+					let want = TFun([n,false,tparam], api.tvoid) in
+					hint_or_raise name t want cf.cf_pos;
+					unify_or_raise have want cf.cf_pos;
+					cf
+			in
+			let sanitize_ef name cf =
+				let cf = common_sanity name cf in
+				match cf.cf_type with
+				| TFun ([n,opt,t],_) ->
+					let rest_of_any = match t with
+						| TAbstract({ a_path = (["haxe";"extern"],"Rest") }, [TAbstract ({ a_path = [],"Any" },[])]) -> t
+						| _ -> TAbstract(trest, [TAbstract (tfunc,[])])
+					in
+					let have = TFun([n,opt,t],api.tvoid) in
+					let want = TFun([n,false,rest_of_any], api.tvoid) in
+					hint_or_raise name t want cf.cf_pos;
+					unify_or_raise have want cf.cf_pos;
+					cf
+			in
+			let get_single sanity_check l name =
+				if List.length l = 0 then
+					None
+				else if List.length l = 1 then
+					let ctx_id = make_context_id is_static cl in
+					let cf = List.nth l 0 in begin
+						cf.cf_meta <- (EcsoMeta.context,[EConst (Int (string_of_int ctx_id)),cf.cf_name_pos],cf.cf_name_pos) :: cf.cf_meta;
+						Some (sanity_check name cf)
+					end
+				else
+					Error.error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos
+			in
+			let get_meta_name m = match m with Meta.Custom v -> "@" ^ v in
+			{
+				eg_t = type_of_module_type m;
+				eg_context_id = make_context_id is_static cl;
+				eg_create = get_single sanitize_ec_ed creates (get_meta_name EcsoMeta.api_create);
+				eg_delete = get_single sanitize_ec_ed deletes (get_meta_name EcsoMeta.api_delete);
+				eg_foreach = get_single sanitize_ef foreachs (get_meta_name EcsoMeta.api_foreach);
+			}
+		in
+		let does_define_group cf =
+			let rec loop ml = match ml with
+				| [] -> false
+				| (m,args,p) :: _ when m = EcsoMeta.api_create -> true
+				| (m,args,p) :: _ when m = EcsoMeta.api_delete -> true
+				| (m,args,p) :: _ when m = EcsoMeta.api_foreach -> true
+				| _ :: ml -> loop ml
+			in
+			loop cf.cf_meta
+		in
+		let rec retrive_groups cl is_static fl gl =
+			match fl with
+			| [] -> gl
+			| f :: fl' ->
+				if does_define_group f then
+					(make_group cl is_static fl :: gl)
+				else
+					retrive_groups cl is_static fl' gl
+		in
 		match m with
 		| TClassDecl cl ->
-			if Globals.s_type_path cl.cl_path = "ecso.EntityGroup" then
-				let group = {
-					eg_t = type_of_module_type m;
-					eg_create = Some(PMap.find "createEntity" cl.cl_fields);
-					eg_delete = Some(PMap.find "deleteEntity" cl.cl_fields);
-					eg_process = Some(PMap.find "foreachEntity" cl.cl_fields);
-				} in [{
-					a_global = gctx;
-					a_ctx = EcsoContext.create (make_context_id false cl) group;
-				}]
-			else
-				[]
+			let gl = retrive_groups cl false cl.cl_ordered_fields [] in
+			let gl = retrive_groups cl true cl.cl_ordered_statics gl in
+			List.map (fun g -> {
+					(* a_global = gctx; *)
+					a_global = { gctx with gl_fields = Hashtbl.create 0 ~random:false };
+					a_ctx = EcsoContext.create g.eg_context_id g;
+				}) gl
 		| TEnumDecl en -> []
 		| TTypeDecl td -> []
 		| TAbstractDecl ab -> []
@@ -59,23 +175,27 @@ type uexpr =
 	| UNone
 	| UCreate of texpr
 	| UDelete of texpr
-	| UProcess of texpr list
-
-let u_analyze (e : texpr) : uexpr =
+	| UForeach of texpr list
+	
+let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 	match e.eexpr with
 	| TCall(fident,fargs) ->
 		begin match fident.eexpr with
-			| TField (entity_group, FInstance(cl, _, cf)) when (Globals.s_type_path cl.cl_path) = "ecso.EntityGroup" ->
-				begin match cf.cf_name, fargs with
-					| "createEntity", [a1] -> UCreate a1
-					| "deleteEntity", [a1] -> UDelete a1
-					| "foreachEntity", al -> UProcess al
-					| _ -> UNone
-				end
+			| TField (g, (FInstance(_,_,cf) | FStatic(_,cf))) when EcsoContext.in_context cf ctx ->
+				let rec find_api ml al = match ml with
+					| [] -> UNone
+					| m :: ml ->
+						match m with
+						| (m,_,p) when m = EcsoMeta.api_create -> UCreate (List.nth al 0)
+						| (m,_,p) when m = EcsoMeta.api_delete -> UDelete (List.nth al 0)
+						| (m,_,p) when m = EcsoMeta.api_foreach -> UForeach al
+						| _ -> find_api ml al
+				in
+				find_api cf.cf_meta fargs
 			| _ ->
 				UNone
 		end
-	| TField (entity_group, FInstance(cl, _, cf)) when (Globals.s_type_path cl.cl_path) = "ecso.EntityGroup" ->
+	| TField (entity_group, (FInstance(_,_,cf) | FStatic(_,cf))) when EcsoContext.in_context cf ctx ->
 		Error.error "[ECSO] Cannot use ecso's core functions as value" e.epos
 	| _ ->
 		UNone
@@ -113,7 +233,7 @@ module EcsoFilterFields = struct
 	let rec register (actx : EcsoAnalyzer.t) (id : string) (e : texpr) (commit : EcsoGraph.gexpr->((string,string) Hashtbl.t)->unit) : unit =
 		DynArray.add actx.a_ctx.ctx_field_ids id;
 		if not (registered actx id) then begin
-			let g = EcsoGraph.run (actx.a_global.gl_ectx.curapi.get_com()) e in
+			let g = EcsoGraph.run actx.a_ctx (actx.a_global.gl_ectx.curapi.get_com()) e in
 			Hashtbl.add actx.a_global.gl_fields id {
 				a_graph = g.gr_expr;
 				a_commit = commit;
@@ -139,7 +259,7 @@ module EcsoFilterFields = struct
 		register actx id e (fun e d -> cl.cl_init <- Some(EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e))
 
 	let rec run_expr (actx : EcsoAnalyzer.t) (register : unit->unit) (e : texpr) : unit =
-		match u_analyze e with
+		match u_analyze actx.a_ctx e with
 		| UNone -> iter (run_expr actx register) e
 		| _ -> register()
 
