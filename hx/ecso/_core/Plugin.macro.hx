@@ -15,18 +15,25 @@ typedef EcsoPluginApi = {
 
 class Plugin {
 
-	@:persistent static var plugin:EcsoPluginApi;
+	@:persistent static var plugin (get,default):EcsoPluginApi;
 
 	public static function init ():Void {
-		if( plugin == null ) {
-			try {
-				plugin = eval.vm.Context.loadPlugin(getPluginPath());
-				if( plugin != null )
-					plugin.init();
+
+		if( #if display true || #end Context.defined('display') )
+			return;
+
+		plugin.init();
+	}
+
+	static function get_plugin ():EcsoPluginApi {
+		return if( plugin == null ) {
+			plugin = try {
+				eval.vm.Context.loadPlugin( getPluginPath() );
 			} catch (e:String) {
-				if( e == null || e.indexOf("is already loaded") < 0 )
-					throw '[ECSO] Failed to load plugin: $e';
+				throw '[ECSO] Failed to load plugin: $e';
 			}
+		} else {
+			plugin;
 		}
 	}
 

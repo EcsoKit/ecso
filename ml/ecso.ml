@@ -106,17 +106,20 @@ let setup_extern_field cl cf_name arg_name arg_count =
 class plugin =
 	object (self)
 
-		val mutable need_init = (true)
+		val mutable executed = (true)
 
 		method init () =
-			if need_init then begin
-				need_init <- false;
-				print_endline "Init Ecso plugin";
-				let compiler = (EvalContext.get_ctx()).curapi in
-					compiler.after_typing
-						self#on_after_typing
-			end;
+			executed <- false;
+			print_endline "Init Ecso plugin";
+			let compiler = (EvalContext.get_ctx()).curapi in
+				compiler.after_typing
+					self#on_after_typing;
 			vnull
+
+		method on_after_typing (ml : module_type list) =
+			if not executed then
+				self#run ml;
+			executed <- true
 		
 		(*
 			Before alpha:
@@ -132,7 +135,8 @@ class plugin =
 			- [ ] move to github
 			- [ ] setup haxe ci & unit tests
 		*)
-		method on_after_typing (ml : module_type list) =
+		method run (ml : module_type list) =
+
 			let print_ctxs = true in (* FIXME *)
 
 			let ctx = EvalContext.get_ctx() in
