@@ -1263,8 +1263,7 @@ module EcsoGraph = struct
 				let vl = match eo with | None -> vl1 | Some e2 -> fusion_gexpr_value vl1 e1 vlo e2 in
 				acc,{ greal = e; gexpr = GIf (ec,e1,eo) },vl
 			| TSwitch (e1,cases,def) ->
-				assert false
-				(* let acc,e1,_ = f acc e1 in
+				let acc,e1,_ = f acc e1 in
 				let tvl = ref [] in
 				let acc,cases = List.fold_left (fun (acc,cases) (el,e2) ->
 					let acc,el,_ = foldmap_list f acc el in
@@ -1274,7 +1273,7 @@ module EcsoGraph = struct
 				) (acc,[]) cases in
 				let acc,def,vldef = foldmap_opt sub_branch f acc def in
 				let vl = match def with | None -> VBranch !tvl | Some e -> VBranch (append_gexpr_value !tvl vldef e) in
-				acc,{ greal = e; gexpr = GSwitch (e1, cases, def) },vl *)
+				acc,{ greal = e; gexpr = GSwitch (e1, cases, def) },vl
 			| TTry (e1,catches) ->
 				let acc,e1,vl1 = sub_branch f acc e1 in
 				let acc,catches,tvl2 = foldmap_pairs sub_branch f acc catches (fun acc v -> ()(* LocalFlow.assign acc v [] *)) in (* ignore catch variables *)
