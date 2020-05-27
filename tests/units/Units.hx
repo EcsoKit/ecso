@@ -11,7 +11,7 @@ class Units extends buddy.SingleSuite {
     
     public function new () {
 
-        describe('Process optional components with', {
+        describe('Process optional components', {
             
             beforeEach({
                 entities = new EntityGroup();
@@ -21,7 +21,7 @@ class Units extends buddy.SingleSuite {
                 });
             });
 
-            it('anonymous functions', {
+            it('with anonymous functions', {
                 var count = 0;
                 entities.foreachEntity((e:{ x:Int, ?z:Int }) -> {
                     Assert.isNull(e.z);
@@ -35,7 +35,7 @@ class Units extends buddy.SingleSuite {
                 Assert.equals(2, count);
             });
 
-            it('local functions', {
+            it('with local functions', {
                 var count = 0;
                 function pre (e:{ x:Int, ?z:Int }) {
                     Assert.isNull(e.z);
@@ -51,14 +51,14 @@ class Units extends buddy.SingleSuite {
                 Assert.equals(2, count);
             });
 
-            it('member functions', {
+            it('with member functions', {
                 fieldCount = 0;
                 entities.foreachEntity(fieldPre);
                 entities.foreachEntity(fieldPost);
                 Assert.equals(2, fieldCount);
             });
 
-            it('static functions', {
+            it('with static functions', {
                 staticCount = 0;
                 entities.foreachEntity(staticPre);
                 entities.foreachEntity(staticPost);
