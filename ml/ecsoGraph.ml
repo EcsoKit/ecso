@@ -709,9 +709,10 @@ module EcsoGraph = struct
 												*)
 												let rec fold_checks cf e =
 													if PMap.mem cf.cf_name required_archetype.a_components then begin
+														let null_safety = false in (* FIXME *)
 														let has_component =
 															let optional _ = is_explicit_null (PMap.find cf.cf_name required_archetype.a_components).cf_type in
-															if is_explicit_null cf.cf_type && not (optional()) then
+															if (not null_safety || is_explicit_null cf.cf_type) && not (optional()) then
 																Builder.binop OpNotEq (Builder.field entity cf.cf_name cf.cf_type e.epos) (Builder.make_null cf.cf_type e.epos) api.tbool e.epos
 															else
 																Builder.make_bool api true e.epos

@@ -177,6 +177,15 @@ private class CoreSpecification extends BuddySuite {
                     });
                     count.should.be(3);
                 });
+                it('with nullable components', {
+                    entities.createEntity({ nullable: "string" });
+                    entities.foreachEntity((e:{ nullable:String }) -> {
+                        @:nullSafety(Off) e.nullable = null;
+                    });
+                    entities.foreachEntity((e:{ nullable:String }) -> {
+                        fail();
+                    });
+                });
                 // it('with homonymous components', {
                 //     var count = 0;
                 //     entities.foreachEntity((e:PositionComponent & { ?z:Int }) -> {
