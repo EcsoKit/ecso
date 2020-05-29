@@ -143,7 +143,7 @@ class plugin =
 
 			if print_ctxs then begin
 				let s_ctx (actx : EcsoAnalyzer.t) =
-					let t = TPrinting.s_type_kind actx.a_ctx.ctx_group.eg_t in
+					let t = TPrinting.s_type_kind (type_of_module_type actx.a_ctx.ctx_group.eg_t) in
 					let ec = match actx.a_ctx.ctx_group.eg_create with | Some cf -> " ec(" ^ cf.cf_name ^ ")" | None -> "" in
 					let ed = match actx.a_ctx.ctx_group.eg_delete with | Some cf -> " ed(" ^ cf.cf_name ^ ")" | None -> "" in
 					let ef = match actx.a_ctx.ctx_group.eg_foreach with | Some cf -> " ef(" ^ cf.cf_name ^ ")" | None -> "" in

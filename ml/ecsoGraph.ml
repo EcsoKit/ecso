@@ -151,7 +151,7 @@ module RsetGenerator = struct
 				cf_type = push.cf_type;
 			}
 		| _ -> 
-			print_endline ("[ECSO] Unhandled get_field_access type for " ^ (s_type_kind t) ^ " - please report this");
+			print_endline ("{ECSO} unhandled get_field_access type for " ^ (s_type_kind t) ^ " - please report this at https://github.com/dpomier/ecso/issues/new");
 			assert false
 
 	type rset_kind =
@@ -221,8 +221,16 @@ module RsetGenerator = struct
 			gen_remove = gen_remove_func;
 			gen_iter = gen_iter_func;
 		}
+	
+	let get_class (ctx : EcsoContext.t) =
+		match ctx.ctx_group.eg_t with
+		| TClassDecl cl -> cl
+		| _ ->
+			print_endline ("{ECSO} invalid entity group instance - please report this at https://github.com/dpomier/ecso/issues/new");
+			assert false
 
-	let retrieve_rset (kind : rset_kind) (into_cl : tclass) (def : archetype) : rset_status =
+	let retrieve_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_status =
+		let cl = get_class ctx in
 		let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 		let api = gcon.basic in
 		let rset_id = string_of_int (hash_tanon def) in
@@ -231,11 +239,11 @@ module RsetGenerator = struct
 			let list_name = "slist_" ^ rset_id in
 			let length_name = "slength_" ^ rset_id in
 			let list_impl =
-				try Some (mk_cf_accessor into_cl (PMap.find list_name into_cl.cl_fields))
+				try Some (mk_cf_accessor cl (PMap.find list_name cl.cl_fields))
 				with Not_found -> None
 			in
 			let length_impl =
-				try Some (mk_cf_accessor into_cl (PMap.find length_name into_cl.cl_fields))
+				try Some (mk_cf_accessor cl (PMap.find length_name cl.cl_fields))
 				with Not_found -> None
 			in
 			begin match list_impl, length_impl with
@@ -248,7 +256,8 @@ module RsetGenerator = struct
 				})
 			end
 
-	let gen_rset (bdata : rset_build_data) (into_cl : tclass) (def : archetype) : rset_impl =
+	let gen_rset (bdata : rset_build_data) (ctx : EcsoContext.t) (def : archetype) : rset_impl =
+		let cl = get_class ctx in
 		match bdata with
 		| BMonolist impl_data ->
 			let gcon = (EvalContext.get_ctx()).curapi.get_com() in
@@ -259,28 +268,28 @@ module RsetGenerator = struct
 				let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
 				let cf_list = Gencommon.mk_class_field impl_data.list_name t true pos kind [] in (* name type public pos kind params *)
 				cf_list.cf_expr <- Some (mk (TArrayDecl []) cf_list.cf_type cf_list.cf_pos);
-				append_field_into into_cl cf_list false;
-				mk_cf_accessor into_cl cf_list
+				append_field_into cl cf_list false;
+				mk_cf_accessor cl cf_list
 			in
 			let length_impl =
 				let pos = { pfile = "ecso.gen.RLength"; pmin = 1; pmax = 4; } in
 				let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
 				let cf_length = Gencommon.mk_class_field impl_data.length_name api.tint true pos kind [] in (* name type public pos kind params *)
 				cf_length.cf_expr <- Some (mk (TConst (TInt 0l)) api.tint cf_length.cf_pos);
-				append_field_into into_cl cf_length false;
-				mk_cf_accessor into_cl cf_length
+				append_field_into cl cf_length false;
+				mk_cf_accessor cl cf_length
 			in
-			match retrieve_rset RMonolist into_cl def with
+			match retrieve_rset RMonolist ctx def with
 			| Retrieved impl -> impl
-			| Missing _ -> 
-				print_endline "Could not generate correctly";
+			| Missing _ ->
+				print_endline "{ECSO} could not generate correctly - please report this at https://github.com/dpomier/ecso/issues/new";
 				assert false
 		
-	let retrieve_or_gen_rset (kind : rset_kind) (into_cl : tclass) (def : archetype) : rset_impl =
-		match retrieve_rset kind into_cl def with
+	let retrieve_or_gen_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_impl =
+		match retrieve_rset kind ctx def with
 		| Retrieved impl -> impl
 		| Missing build_data ->
-			gen_rset build_data into_cl def
+			gen_rset build_data ctx def
 
 end
 
@@ -371,7 +380,7 @@ module EcsoGraph = struct
 		(* | GIdent of string *)
 
 	let mk_srequirement ((v,eo) : tvar * texpr option) : srequirement =
-		begin match eo with | None -> () | Some _ -> Error.error "[ECSO] Optional entities are not supported yet" v.v_pos end;
+		begin match eo with | None -> () | Some _ -> Error.error "{ECSO} Optional entities are not supported yet" v.v_pos end;
 		let archetype = archetype_of_type v.v_type v.v_pos in
 		SREntity (v,archetype)
 	
@@ -497,7 +506,8 @@ module EcsoGraph = struct
 			f value
 
 	let restore (ectx : EvalContext.context) (ctx : EcsoContext.t) (debug_buffer : (string,string)Hashtbl.t) (g : gexpr) : texpr =
-		let api = (ectx.curapi.get_com()).basic in
+		let com = ectx.curapi.get_com() in
+		let api = com.basic in
 		let rec f (g : gexpr) : texpr = 
 			let e = g.greal in match g.gexpr with
 			| GReal -> e
@@ -594,14 +604,6 @@ module EcsoGraph = struct
 					end					
 				in
 
-				(* FIXME: this should not be here *)
-				let into_cl = match follow group.etype with
-					| TInst (cl,_) -> cl
-					| _ -> 
-						print_endline ("ECSO - invalid entity group instance - please report this.");
-						assert false
-				in
-
 				if ctx.ctx_debug_gen >= EcsoContext.simple_debugging then begin
 					Hashtbl.add debug_buffer "create-entity" (s_archetype a);
 				end;
@@ -612,7 +614,7 @@ module EcsoGraph = struct
 				let einstance_var = alloc_var VGenerated "e" einstance_t p in
 				let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
 
-				let rset = RsetGenerator.retrieve_or_gen_rset RMonolist into_cl a in
+				let rset = RsetGenerator.retrieve_or_gen_rset RMonolist ctx a in
 				block := (rset.gen_add group einstance p) :: !block;
 				block := (mk (TVar (einstance_var, Some (f e1))) api.tvoid p) :: !block;
 				{ e with eexpr = (mk (TBlock !block) api.tstring p).eexpr }
@@ -621,14 +623,6 @@ module EcsoGraph = struct
 
 				let archetype = archetype_of_type instance.greal.etype instance.greal.epos in
 				let instance = f instance in
-				
-				(* FIXME: this should not be here *)
-				let into_cl = match follow group.etype with
-					| TInst (cl,_) -> cl
-					| _ -> 
-						print_endline ("ECSO - invalid entity group instance - please report this.");
-						assert false
-				in
 
 				let p = instance.epos in
 				let block = ref [] in
@@ -640,7 +634,7 @@ module EcsoGraph = struct
 							| AoS (_,MCumulated,_) -> mk_cast einstance (TAnon { a_fields = a.a_components; a_status = ref Closed }) e.epos
 							| _ -> einstance
 						in
-						match RsetGenerator.retrieve_rset RMonolist into_cl a with
+						match RsetGenerator.retrieve_rset RMonolist ctx a with
 						| Retrieved rset -> block := (rset.gen_remove group einstance p) :: !block
 						| Missing _ -> ()
 					)
@@ -649,14 +643,6 @@ module EcsoGraph = struct
 				{ e with eexpr = TBlock !block; etype = api.tvoid }
 
 			| GEcsoProcess (group,system,_) ->
-
-				(* FIXME: this should not be here *)
-				let into_cl = match follow group.etype with
-					| TInst (cl,_) -> cl
-					| _ -> 
-						print_endline ("ECSO - invalid entity group instance - please report this.");
-						assert false
-				in
 
 				let rl = match follow (skip system).greal.etype with
 					| TFun (rl,ret) -> rl
@@ -695,7 +681,7 @@ module EcsoGraph = struct
 									Hashtbl.add debug_buffer "foreach-entity" (s_archetype archetype);
 								end;
 								let entity_type = TAnon { a_fields = archetype.a_components; a_status = ref Closed } in
-								let rset = RsetGenerator.retrieve_or_gen_rset RMonolist into_cl archetype in
+								let rset = RsetGenerator.retrieve_or_gen_rset RMonolist ctx archetype in
 								let gen_system_block (entity : texpr) =
 									let write_rt_entity_check e : texpr =
 										match ctx.ctx_storage_mode with

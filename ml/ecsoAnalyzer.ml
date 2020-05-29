@@ -120,7 +120,7 @@ module EcsoAnalyzer = struct
 			in
 			let get_meta_name m = match m with Meta.Custom v -> "@" ^ v in
 			{
-				eg_t = type_of_module_type m;
+				eg_t = m;
 				eg_context_id = make_context_id is_static cl;
 				eg_create = get_single sanitize_ec_ed creates (get_meta_name EcsoMeta.api_create);
 				eg_delete = get_single sanitize_ec_ed deletes (get_meta_name EcsoMeta.api_delete);
@@ -396,7 +396,7 @@ module CheckComponentGlobalization = struct
 					| FInstance (_,_,cf)
 					| FStatic (_,cf) -> cf.cf_name
 					| FDynamic n -> n
-					| FEnum _ -> Error.error "{ECSO} unsupported entity kind - please report this" g.greal.epos
+					| FEnum _ -> Error.error "{ECSO} unsupported entity kind - please report this at https://github.com/dpomier/ecso/issues/new" g.greal.epos
 				in
 				(* Forbid downcasting mutations *)
 				begin

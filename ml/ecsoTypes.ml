@@ -219,7 +219,7 @@ module EcsoContext = struct
 	}
 
 	and egroup = {
-		eg_t : Type.t;
+		eg_t : Type.module_type;
 		eg_context_id : int;
 		eg_create : tclass_field option;
 		eg_delete : tclass_field option;
