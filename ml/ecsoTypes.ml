@@ -78,6 +78,17 @@ let dynarray_filter_dupplicates darr f =
 	) darr;
 	filtered
 
+let dynarray_map_opt f arr =
+	let mapped = DynArray.make(DynArray.length arr) in
+	DynArray.iter
+		(fun v ->
+			match f v with
+			| Some v -> DynArray.add mapped v;
+			| None -> ()
+		)
+		arr;
+	mapped
+
 (* Types *)
 
 let s_component_type ?(skip_null=false) cf =
