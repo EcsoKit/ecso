@@ -50,7 +50,7 @@ module EcsoAnalyzer = struct
 				| _ -> ()
 			in
 			let unify_or_raise a b p =
-				if type_iseq_strict a b then true
+				if type_iseq_strict a b then ()
 				else raise (Error (Unify [cannot_unify a b], p)) 
 			in
 			let single_param_or_raise name cf = match cf.cf_params with
@@ -72,9 +72,6 @@ module EcsoAnalyzer = struct
 				| _ ->
 					Error.error ("[ECSO] " ^ name ^ " fields must be function") cf.cf_pos
 			in
-			let get_arg_name f =
-				match f with | TFun ([n,_,_],_) -> n
-			in
 			let sanitize_ec_ed name cf =
 				let cf = common_sanity name cf in
 				match cf.cf_type with
@@ -91,6 +88,7 @@ module EcsoAnalyzer = struct
 					hint_or_raise name t want cf.cf_pos;
 					unify_or_raise have want cf.cf_pos;
 					cf
+				| _ -> assert false
 			in
 			let sanitize_ef name cf =
 				let cf = common_sanity name cf in
@@ -105,6 +103,7 @@ module EcsoAnalyzer = struct
 					hint_or_raise name t want cf.cf_pos;
 					unify_or_raise have want cf.cf_pos;
 					cf
+				| _ -> assert false
 			in
 			let get_single sanity_check l name =
 				if List.length l = 0 then
@@ -118,7 +117,7 @@ module EcsoAnalyzer = struct
 				else
 					Error.error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos
 			in
-			let get_meta_name m = match m with Meta.Custom v -> "@" ^ v in
+			let get_meta_name m = match m with | Meta.Custom v -> "@" ^ v | _ -> assert false in
 			{
 				eg_t = m;
 				eg_context_id = make_context_id is_static cl;
@@ -565,15 +564,12 @@ module EcsoArchetypeAnalyzer = struct
 									let fill_one_to_another (a : archetype) (a' : archetype) =
 										PMap.iter
 											(fun name cf ->
-												if (try PMap.find name a'.a_components; true with | Not_found -> false) then
+												if (try PMap.find name a'.a_components; true with | Not_found -> false) then begin
 													(* Propagate nullability *)
 													if is_explicit_null cf.cf_type then
 														a'.a_components <- PMap.add name cf a'.a_components
-													else
-														()
-												else
-													a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components;
-												()
+												end else
+													a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
 											)
 											a.a_components
 									in
