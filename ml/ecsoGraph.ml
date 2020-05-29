@@ -701,7 +701,7 @@ module EcsoGraph = struct
 										match ctx.ctx_storage_mode with
 											| AoS (_, MCumulated, _) ->
 												(*
-													Generates the following:
+													Generates the following (only for nullable components):
 														if (e.c0 != null)
 															if (e.c1 != null)
 																if (e.cN != null)
@@ -747,7 +747,6 @@ module EcsoGraph = struct
 				end;
 				let impl = gen_next_requirement rl [] in
 				let impl =
-					let impl = { impl with eexpr = TMeta((Meta.Custom("$ecso.sbb2"), [], impl.epos), impl) } in
 					if !used then
 						mk
 							(TBlock[
@@ -881,9 +880,6 @@ module EcsoGraph = struct
 				let acc,e1,_ = f acc e1 in
 				let e = { greal = e; gexpr = GAssign (prel, v, ANormal(op,e2), vl) } in
 
-				(* 
-					TODO: https://gitlab.com/dpomier/ecso/-/issues/6
-				*)
 				if Meta.has EcsoMeta.entity v.v_meta then
 					Error.error ("[ECSO] Assigning entity variables is not supported yet") e.greal.epos;
 				
@@ -1042,7 +1038,6 @@ module EcsoGraph = struct
 						a.a_components <- prune_dead_components a.a_components fl;
 						a
 					| _ -> 
-						(* TODO: https://gitlab.com/dpomier/ecso/-/issues/10 *)
 						Error.error "[ECSO] Object declaration expected" e1.greal.epos
 				in
 				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,make_context_id false cl) } in
@@ -1289,15 +1284,6 @@ module EcsoGraph = struct
 				let acc,e1,vl = f acc e1 in
 				acc,{ greal = e; gexpr = GMeta(m,e1)},vl
 		in
-		(*
-			var v = _;
-
-			if (xxx) [
-				v = e;
-			]
-
-			v.x = 42; // system or not?
-		*)
 		let _,e,_ = f (create_acc 0 f) e in
 		{
 			gr_expr = e;

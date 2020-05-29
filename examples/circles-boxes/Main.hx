@@ -57,7 +57,7 @@ class Main {
 		if (entity.y < - SHAPE_HALF_SIZE) entity.y = canvasHeight + SHAPE_HALF_SIZE;
 	}
 
-	static function clearSystem(ctx : CanvasRenderingContext2D) {
+	static function clearCanvas(ctx : CanvasRenderingContext2D) {
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = "#ffffff";
 		ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -134,7 +134,7 @@ class Main {
 		var delta = time - lastTime;
 		
 		// Reset canvas
-		clearSystem( ctx );
+		clearCanvas( ctx );
 
         // Run all the systems
         entities.foreachEntity(

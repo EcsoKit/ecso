@@ -42,9 +42,7 @@ module EcsoAnalyzer = struct
 			let creates = find_fields_with EcsoMeta.api_create fl in
 			let deletes = find_fields_with EcsoMeta.api_delete fl in
 			let foreachs = find_fields_with EcsoMeta.api_foreach fl in
-			print_endline ("CREATES List " ^ string_of_int (List.length creates));
-			print_endline ("DELETES List " ^ string_of_int (List.length deletes));
-			print_endline ("FOREACHS List " ^ string_of_int (List.length foreachs));
+
 			let hint_or_raise name t want p =
 				match t with
 				| TMono _ ->

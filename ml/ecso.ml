@@ -110,7 +110,6 @@ class plugin =
 
 		method init () =
 			executed <- false;
-			print_endline "Init Ecso plugin";
 			let compiler = (EvalContext.get_ctx()).curapi in
 				compiler.after_typing
 					self#on_after_typing;
@@ -137,7 +136,7 @@ class plugin =
 		*)
 		method run (ml : module_type list) =
 
-			let print_ctxs = true in (* FIXME *)
+			let print_ctxs = false in (* FIXME *)
 
 			let ctx = EvalContext.get_ctx() in
 			let ctxl = EcsoAnalyzer.fetch ctx ml in
@@ -154,7 +153,7 @@ class plugin =
 				print_list_br "              | " s_ctx ctxl ~cache:true;
 			end;
 
-			List.iter (fun ctx -> 
+			List.iter (fun ctx ->
 
 				(*
 					Prepare the analyzer graph.
