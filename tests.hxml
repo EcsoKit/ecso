@@ -1,11 +1,14 @@
--D analyzer-optimize
+--define analyzer-optimize
+--define analyzer-times
+# --define dump=pretty
+--dce full
 --times
--lib buddy
-# -lib utest
--lib ecso
--main tests.Main
--dce full
---interp
 
-# -D dump=pretty
-# --no-inline 
+--library buddy
+--library utest
+--library ecso
+--main tests.Main
+
+--interp
+# --js bin/Tests.js
+# --library hxnodejs
