@@ -105,12 +105,13 @@ module EcsoAnalyzer = struct
 					cf
 				| _ -> assert false
 			in
+			let ctx_id = make_context_id is_static cl in
 			let get_single sanity_check l name =
 				if List.length l = 0 then
 					None
 				else if List.length l = 1 then
-					let ctx_id = make_context_id is_static cl in
-					let cf = List.nth l 0 in begin
+					let cf = List.nth l 0 in
+					begin
 						cf.cf_meta <- (EcsoMeta.context,[EConst (Int (string_of_int ctx_id)),cf.cf_name_pos],cf.cf_name_pos) :: cf.cf_meta;
 						Some (sanity_check name cf)
 					end
@@ -120,11 +121,11 @@ module EcsoAnalyzer = struct
 			let get_meta_name m = match m with | Meta.Custom v -> "@" ^ v | _ -> assert false in
 			{
 				eg_t = m;
-				eg_context_id = make_context_id is_static cl;
+				eg_static = is_static;
 				eg_create = get_single sanitize_ec_ed creates (get_meta_name EcsoMeta.api_create);
 				eg_delete = get_single sanitize_ec_ed deletes (get_meta_name EcsoMeta.api_delete);
 				eg_foreach = get_single sanitize_ef foreachs (get_meta_name EcsoMeta.api_foreach);
-			}
+			},ctx_id
 		in
 		let does_define_group cf =
 			let rec loop ml = match ml with
@@ -149,10 +150,10 @@ module EcsoAnalyzer = struct
 		| TClassDecl cl ->
 			let gl = retrive_groups cl false cl.cl_ordered_fields [] in
 			let gl = retrive_groups cl true cl.cl_ordered_statics gl in
-			List.map (fun g -> {
+			List.map (fun (g,id) -> {
 					(* a_global = gctx; *)
 					a_global = { gctx with gl_fields = Hashtbl.create 0 ~random:false };
-					a_ctx = EcsoContext.create g.eg_context_id g;
+					a_ctx = EcsoContext.create id g;
 				}) gl
 		| TEnumDecl en -> []
 		| TTypeDecl td -> []
@@ -162,7 +163,7 @@ module EcsoAnalyzer = struct
 		let gctx = {
 			gl_fields = Hashtbl.create 0 ~random:false;
 			gl_ectx = ctx;
-			gl_debug_mutations = true;
+			gl_debug_mutations = false;
 		} in
 		List.flatten (List.map (from_module gctx) ml)
 
@@ -178,7 +179,7 @@ let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 	match e.eexpr with
 	| TCall(fident,fargs) ->
 		begin match fident.eexpr with
-			| TField (g, (FInstance(_,_,cf) | FStatic(_,cf))) when EcsoContext.in_context cf ctx ->
+			| TField (g, (FInstance(_,_,cf) | FStatic(_,cf) | FClosure(_,cf))) when EcsoContext.in_context cf ctx ->
 				let rec find_api ml al = match ml with
 					| [] -> UNone
 					| m :: ml ->
@@ -192,7 +193,7 @@ let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 			| _ ->
 				UNone
 		end
-	| TField (entity_group, (FInstance(_,_,cf) | FStatic(_,cf))) when EcsoContext.in_context cf ctx ->
+	| TField (entity_group, (FInstance(_,_,cf) | FStatic(_,cf) | FClosure(_,cf))) when EcsoContext.in_context cf ctx ->
 		Error.error "[ECSO] Cannot use ecso's core functions as value" e.epos
 	| _ ->
 		UNone

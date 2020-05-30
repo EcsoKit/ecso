@@ -137,10 +137,14 @@ module RsetGenerator = struct
 		cf_type : t;
 	}
 
-	let mk_cf_accessor cl cf : cf_impl_accessor = {
-		cf_access = FInstance (cl,[],cf);
-		cf_type = cf.cf_type;
-	}
+	let mk_cf_accessor cl cf static : cf_impl_accessor =
+		if not static then {
+			cf_access = FInstance (cl,[],cf);
+			cf_type = cf.cf_type;
+		} else {
+			cf_access = FStatic (cl,cf);
+			cf_type = cf.cf_type;
+		}
 
 	let get_field_access t name =
 		match t with
@@ -224,26 +228,26 @@ module RsetGenerator = struct
 	
 	let get_class (ctx : EcsoContext.t) =
 		match ctx.ctx_group.eg_t with
-		| TClassDecl cl -> cl
+		| TClassDecl cl -> cl,(if ctx.ctx_group.eg_static then cl.cl_statics else cl.cl_fields)
 		| _ ->
 			print_endline ("{ECSO} invalid entity group instance - please report this at https://github.com/dpomier/ecso/issues/new");
 			assert false
 
 	let retrieve_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_status =
-		let cl = get_class ctx in
+		let cl,fl = get_class ctx in
 		let gcon = (EvalContext.get_ctx()).curapi.get_com() in
 		let api = gcon.basic in
-		let rset_id = string_of_int (hash_tanon def) in
 		match kind with
 		| RMonolist ->
+			let rset_id = string_of_int ctx.ctx_id ^ "_" ^ string_of_int (hash_tanon def) in
 			let list_name = "slist_" ^ rset_id in
 			let length_name = "slength_" ^ rset_id in
 			let list_impl =
-				try Some (mk_cf_accessor cl (PMap.find list_name cl.cl_fields))
+				try Some (mk_cf_accessor cl (PMap.find list_name fl) ctx.ctx_group.eg_static)
 				with Not_found -> None
 			in
 			let length_impl =
-				try Some (mk_cf_accessor cl (PMap.find length_name cl.cl_fields))
+				try Some (mk_cf_accessor cl (PMap.find length_name fl) ctx.ctx_group.eg_static)
 				with Not_found -> None
 			in
 			begin match list_impl, length_impl with
@@ -257,7 +261,7 @@ module RsetGenerator = struct
 			end
 
 	let gen_rset (bdata : rset_build_data) (ctx : EcsoContext.t) (def : archetype) : rset_impl =
-		let cl = get_class ctx in
+		let cl,_ = get_class ctx in
 		match bdata with
 		| BMonolist impl_data ->
 			let gcon = (EvalContext.get_ctx()).curapi.get_com() in
@@ -268,16 +272,16 @@ module RsetGenerator = struct
 				let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
 				let cf_list = Gencommon.mk_class_field impl_data.list_name t true pos kind [] in (* name type public pos kind params *)
 				cf_list.cf_expr <- Some (mk (TArrayDecl []) cf_list.cf_type cf_list.cf_pos);
-				append_field_into cl cf_list false;
-				mk_cf_accessor cl cf_list
+				append_field_into cl cf_list ctx.ctx_group.eg_static;
+				mk_cf_accessor cl cf_list ctx.ctx_group.eg_static
 			in
 			let length_impl =
 				let pos = { pfile = "ecso.gen.RLength"; pmin = 1; pmax = 4; } in
 				let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
 				let cf_length = Gencommon.mk_class_field impl_data.length_name api.tint true pos kind [] in (* name type public pos kind params *)
 				cf_length.cf_expr <- Some (mk (TConst (TInt 0l)) api.tint cf_length.cf_pos);
-				append_field_into cl cf_length false;
-				mk_cf_accessor cl cf_length
+				append_field_into cl cf_length ctx.ctx_group.eg_static;
+				mk_cf_accessor cl cf_length ctx.ctx_group.eg_static
 			in
 			match retrieve_rset RMonolist ctx def with
 			| Retrieved impl -> impl
@@ -1002,7 +1006,7 @@ module EcsoGraph = struct
 				in
 				let e = { greal = e; gexpr = GObjectDecl el } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_create cf ctx ->
+			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_create cf ctx ->
 				let acc,e1,_ = f acc e1 in
 				let archetype = match (skip e1).gexpr with
 					| GObjectDecl fl ->
@@ -1026,14 +1030,13 @@ module EcsoGraph = struct
 					| _ -> 
 						Error.error "[ECSO] Object declaration expected" e1.greal.epos
 				in
-				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,make_context_id false cl) } in
+				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,ctx.ctx_id) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_delete cf ctx ->
+			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_delete cf ctx ->
 				let acc,e1,_ = f acc e1 in
-				let e = { greal = e; gexpr = GEcsoDelete (group,e1,make_context_id false cl) } in
+				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, FInstance(cl,_,cf)) },el) when EcsoContext.does_match_api ctx.ctx_group.eg_foreach cf ctx ->
-				let context_id = make_context_id false cl in
+			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },el) when EcsoContext.does_match_api ctx.ctx_group.eg_foreach cf ctx ->
 				let rec parse_system (e : texpr) : gexpr =
 
 					let make_s real tf : gexpr =
@@ -1042,7 +1045,7 @@ module EcsoGraph = struct
 						List.iter
 							(fun r -> match r with
 								| SREntity (v,arch) ->
-									v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int context_id)),v.v_pos],v.v_pos) :: v.v_meta;
+									v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id)),v.v_pos],v.v_pos) :: v.v_meta;
 									LocalFlow.assign acc.locals v (ref [],None,VVoid) (* declare requirements to satisfy LocalFlow *)
 							)
 							rl;
@@ -1058,7 +1061,7 @@ module EcsoGraph = struct
 									greal = { tf.tf_expr with eexpr = TFunction tf }; (* dummy *)
 									gexpr = GFunction (tf,e); (* e *)
 								}; *)
-							}, context_id);
+							}, ctx.ctx_id);
 						}
 					in
 
@@ -1081,7 +1084,7 @@ module EcsoGraph = struct
 									| None ->
 										Error.error "[ECSO] Cannont use system without implementation" e.epos
 								in { cf with
-									cf_name = "_ECSO" ^ string_of_int context_id ^ "_" ^ cf.cf_name;
+									cf_name = "_ECSO" ^ string_of_int ctx.ctx_id ^ "_" ^ cf.cf_name;
 									cf_type = cf.cf_type;
 									cf_doc = cf.cf_doc;
 									cf_meta = cf.cf_meta;
@@ -1094,22 +1097,14 @@ module EcsoGraph = struct
 								},e
 							in
 							let mk_class_system cl cf static =
-									let cf,e = mk_field_system cf in
-									if static then begin
-										if PMap.mem cf.cf_name cl.cl_statics then PMap.find cf.cf_name cl.cl_statics
-										else begin
-											let cf = append_field_into cl cf true in
-											DynArray.add extra (cl,cf,e);
-											cf
-										end
-									end else begin
-										if PMap.mem cf.cf_name cl.cl_fields then PMap.find cf.cf_name cl.cl_fields
-										else begin
-											let cf = append_field_into cl cf false in
-											DynArray.add extra (cl,cf,e);
-											cf
-										end
-									end
+								let cf,e = mk_field_system cf in
+								let fl = if static then cl.cl_statics else cl.cl_fields in
+								if PMap.mem cf.cf_name fl then PMap.find cf.cf_name fl
+								else begin
+									let cf = append_field_into cl cf static in
+									DynArray.add extra (cl,cf,e);
+									cf
+								end
 							in
 							let fa' = match fa with
 								| FInstance (cl,params,cf) -> FInstance (cl, params, mk_class_system cl cf false)
@@ -1216,7 +1211,7 @@ module EcsoGraph = struct
 				in
 				let sl = List.map parse_system el in
 				let mk_eprocess system =
-					{ system with gexpr = GEcsoProcess (group,system,context_id) }
+					{ system with gexpr = GEcsoProcess (group,system,ctx.ctx_id) }
 				in
 				let e = { greal = e; gexpr = GBlock (List.map mk_eprocess sl) } in
 				acc,e,VSelf

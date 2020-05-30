@@ -5,8 +5,7 @@ open Globals
 (* Tools *)
 
 let make_context_id static cl : int = 
-	let kind = if static then "static" else "instance" in
-	Hashtbl.hash (Globals.s_type_path cl.cl_path ^ ":" ^ kind)
+	Hashtbl.hash (Globals.s_type_path cl.cl_path ^ ":" ^ if static then "s" else "i")
 
 let append_field_into cl cf static =
 	if static then begin
@@ -231,7 +230,7 @@ module EcsoContext = struct
 
 	and egroup = {
 		eg_t : Type.module_type;
-		eg_context_id : int;
+		eg_static : bool;
 		eg_create : tclass_field option;
 		eg_delete : tclass_field option;
 		eg_foreach : tclass_field option;
