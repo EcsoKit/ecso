@@ -443,12 +443,8 @@ module EcsoArchetypeAnalyzer = struct
 			iter loop g;
 			match g.gexpr with
 			| GEcsoCreate (group,archetype,obj,ctx_id) when ctx_id = actx.a_ctx.ctx_id ->
-				begin match List.find_opt (eq_archetype archetype) !archetypes with
-				| None -> archetypes := archetype :: !archetypes
-				| Some a' ->
-					(* Rebind the archetype reference to its listed one, this is required by MCumulated *)
-					g.gexpr <- GEcsoCreate (group,a',obj,ctx_id)
-				end
+				if not (List.exists (eq_archetype archetype) !archetypes) then
+					archetypes := archetype :: !archetypes
 			| GEcsoSystem (s,ctx_id) when ctx_id = actx.a_ctx.ctx_id && actx.a_ctx.ctx_mutation_accuracy = MPresumed ->
 				
 				let presume_mutations rl : mutation list =
