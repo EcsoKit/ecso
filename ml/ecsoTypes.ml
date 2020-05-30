@@ -250,7 +250,7 @@ module EcsoContext = struct
 		ctx_identity_mode = IGlobal;
 		ctx_renaming_registry = Hashtbl.create 0;
 		ctx_debug_archetype_eq = false;
-		ctx_debug_gen = simple_debugging;
+		ctx_debug_gen = no_debugging;
 	}
 
 	let in_context (cf : tclass_field) (ctx : t) =
