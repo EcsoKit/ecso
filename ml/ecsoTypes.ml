@@ -259,9 +259,20 @@ module EcsoContext = struct
 		| (_,[Ast.EConst (Int (id)),_],p) when id = string_of_int ctx.ctx_id -> true
 		| _ -> false
 	
-	let does_match_api (gfield : tclass_field option) (cf : tclass_field) (ctx : t) =
-		in_context cf ctx && match gfield with
-		| Some gfield -> cf.cf_name = gfield.cf_name
-		| None -> false
+	let does_match_api (ctx : t) (fa : tfield_access) (api_field : tclass_field option) : bool =
+		match api_field, fa with
+		| Some api_field, (FInstance (_,_,cf) | FStatic (_,cf) | FClosure (_,cf) | FAnon cf) ->
+			cf.cf_name = api_field.cf_name && in_context cf ctx
+		| _ ->
+			false
+
+	let is_api_create (ctx : t) (fa : tfield_access) : bool =
+		does_match_api ctx fa ctx.ctx_group.eg_create
+
+	let is_api_delete (ctx : t) (fa : tfield_access) : bool =
+		does_match_api ctx fa ctx.ctx_group.eg_delete
+
+	let is_api_foreach (ctx : t) (fa : tfield_access) : bool =
+		does_match_api ctx fa ctx.ctx_group.eg_foreach
 
 end

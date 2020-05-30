@@ -1006,7 +1006,7 @@ module EcsoGraph = struct
 				in
 				let e = { greal = e; gexpr = GObjectDecl el } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_create cf ctx ->
+			| TCall ({ eexpr = TField(group, fa) },[e1]) when EcsoContext.is_api_create ctx fa ->
 				let acc,e1,_ = f acc e1 in
 				let archetype = match (skip e1).gexpr with
 					| GObjectDecl fl ->
@@ -1032,11 +1032,11 @@ module EcsoGraph = struct
 				in
 				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,ctx.ctx_id) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },[e1]) when EcsoContext.does_match_api ctx.ctx_group.eg_delete cf ctx ->
+			| TCall ({ eexpr = TField(group, fa) },[e1]) when EcsoContext.is_api_delete ctx fa ->
 				let acc,e1,_ = f acc e1 in
 				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
 				acc,e,VSelf
-			| TCall ({ eexpr = TField(group, (FInstance(cl,_,cf) | FStatic(cl,cf) | FClosure(Some(cl,_),cf))) },el) when EcsoContext.does_match_api ctx.ctx_group.eg_foreach cf ctx ->
+			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
 				let rec parse_system (e : texpr) : gexpr =
 
 					let make_s real tf : gexpr =
