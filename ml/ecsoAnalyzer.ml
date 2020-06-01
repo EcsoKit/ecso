@@ -228,6 +228,9 @@ module EcsoFilterFields = struct
 	let make_field_id cl_s cf =
 		cl_s ^ "." ^ cf.cf_name
 
+	let restore_graph (actx : EcsoAnalyzer.t) (e : EcsoGraph.gexpr) (d : (string,string) Hashtbl.t) = 
+		Some (EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e)
+
 	let rec register (actx : EcsoAnalyzer.t) (id : string) (e : texpr) (commit : EcsoGraph.gexpr->((string,string) Hashtbl.t)->unit) : unit =
 		DynArray.add actx.a_ctx.ctx_field_ids id;
 		if not (registered actx id) then begin
@@ -242,7 +245,7 @@ module EcsoFilterFields = struct
 				DynArray.add actx.a_ctx.ctx_field_ids id;
 				Hashtbl.add actx.a_global.gl_fields id {
 					a_graph = g;
-					a_commit = (fun e d -> cf.cf_expr <- Some(EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e));
+					a_commit = (fun e d -> cf.cf_expr <- restore_graph actx e d);
 				}
 			in
 			DynArray.iter register_extra g.gr_extra
@@ -250,11 +253,11 @@ module EcsoFilterFields = struct
 
 	let register_field (actx : EcsoAnalyzer.t) (cl_s : string) (cf : tclass_field) (e : texpr) _ : unit =
 		let id = make_field_id cl_s cf in
-		register actx id e (fun e d -> cf.cf_expr <- Some(EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e))
+		register actx id e (fun e d -> cf.cf_expr <- restore_graph actx e d)
 
 	let register_init (actx : EcsoAnalyzer.t) (cl_s : string) (cl : tclass) (e : texpr) _ : unit =
 		let id = cl_s in
-		register actx id e (fun e d -> cl.cl_init <- Some(EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e))
+		register actx id e (fun e d -> cl.cl_init <- restore_graph actx e d)
 
 	let rec run_expr (actx : EcsoAnalyzer.t) (register : unit->unit) (e : texpr) : unit =
 		match u_analyze actx.a_ctx e with
