@@ -1037,7 +1037,7 @@ module EcsoGraph = struct
 				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
-				let rec parse_system (e : texpr) : gexpr =
+				let parse_system (e : texpr) : gexpr =
 
 					let make_s real tf : gexpr =
 						let rl = List.map mk_srequirement tf.tf_args in
@@ -1057,10 +1057,6 @@ module EcsoGraph = struct
 								s_runtime_status = RBoolStatus;
 								s_ret = tf.tf_type;
 								s_expr = e;
-								(* {
-									greal = { tf.tf_expr with eexpr = TFunction tf }; (* dummy *)
-									gexpr = GFunction (tf,e); (* e *)
-								}; *)
 							}, ctx.ctx_id);
 						}
 					in
@@ -1141,10 +1137,23 @@ module EcsoGraph = struct
 									var system = z;
 									g.process( system );
 							*)
-							let v' = alloc_var VGenerated ("_ECSO_" ^ v.v_name ^ "_") v.v_type v.v_pos in
-							v'.v_meta <- v.v_meta;
-							v'.v_extra <- v.v_extra;
-							decl_prel := (mk_local_decl v' None) :: !decl_prel;
+							let v' =
+								let extract_existing e = match e.gexpr with
+									| GAssign (_,v,_,_) when Meta.has (Meta.Custom ("$ecso.v_clone" ^ string_of_int v.v_id)) v.v_meta -> true
+									| _ -> false
+								in match List.find_opt extract_existing !decl_prel with (* FIXME Ocaml 4.10 has find_map *)
+								| Some { gexpr = GAssign (_,v',_,_) } ->
+									v' (* Avoid multiple declaration per copy *)
+								| None ->
+									let v' = alloc_var VGenerated ("_ECSO_" ^ v.v_name ^ "_") v.v_type v.v_pos in
+									Hashtbl.add local_cache v.v_id v';
+									Hashtbl.add local_cache v'.v_id v';
+									v'.v_meta <- (Meta.Custom ("$ecso.v_clone" ^ string_of_int v'.v_id),[],v.v_pos) :: v.v_meta;
+									v'.v_extra <- v.v_extra;
+									decl_prel := (mk_local_decl v' None) :: !decl_prel;
+									v'
+								| _ -> assert false
+							in
 
 							(*
 								Process the local copy instead of the user's variable, which we also move above
