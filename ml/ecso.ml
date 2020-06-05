@@ -1,0 +1,1286 @@
+open Ast
+open EvalValue
+open Type
+open Printf
+open Printer
+open Globals
+
+exception Invalid_expr
+exception Invalid_ecso_analyse
+exception Unhandled_meta
+exception Unhandled_system_type
+exception Unhandled_component_type
+exception Unexpected_expr
+exception Missing_ecso_library
+exception Invalid_rlist_type
+exception Invalid_rlist_optimization
+exception Not_used
+exception Found
+
+let hash_tanon v = Hashtbl.hash (s_type (TAnon v))
+
+let decode_module_type v =
+	match EvalDecode.decode_enum v with
+	| 0, [c] -> TClassDecl (EvalDecode.decode_ref c)
+	| 1, [en] -> TEnumDecl (EvalDecode.decode_ref en)
+	| 2, [t] -> TTypeDecl (EvalDecode.decode_ref t)
+	| 3, [a] -> TAbstractDecl (EvalDecode.decode_ref a)
+	| _ -> raise Invalid_expr
+
+let string_of_path (path : Globals.path) : string =
+	let str = ref "" in 
+	let concat_name v = str := !str ^ v in
+	let concat_pack v = concat_name (v ^ ".") in
+		match path with
+			| (p, s) -> (
+				List.iter concat_pack p;
+				concat_name s;
+				!str
+			)
+
+let identifier_of_path (p,s) = match p with [] -> s | _ -> String.concat "_" p ^ "_" ^ s
+
+(* Extract *)
+
+type r =
+	| REntity of tanon * bool * t
+
+and rcomponent = {
+	(* rc_path : path;
+	rc_type : t;
+	rc_ident : string;
+	rc_opt : bool;
+	rc_pos : pos; *)
+	rc_name : string;
+	rc_def : tclass_field;
+}
+
+(* let r_type_eq a b : bool =
+	match a, b with
+		| REntity rc_a, REntity rc_b -> rc_a.rc_ident = rc_b.rc_ident *)
+
+type saccess =
+	| SField of tfield_access
+	| SAnon of texpr
+
+type uexpr = 
+	| EProcessSystem of sprocess
+	| ECreateEntity of ecreate
+	| ECreateComponent of ccreate
+	| EDeleteComponent of cdelete
+	| EGetComponent of cget
+
+and sprocess = {
+	expr : texpr;
+	eorigin : tclass_field;
+	group : texpr;
+	s_field : saccess;
+	s_requirement : r list;
+}
+and ecreate = {
+	expr : texpr;
+	eorigin : tclass_field;
+	group : texpr;
+	e_inits : ((string * pos * quote_status) * texpr) list;
+	e_def : tanon;
+}
+and edelete = {
+	expr : texpr;
+	eorigin : tclass_field;
+	group : texpr;
+	e_def : tanon;
+}
+and ccreate = {
+	c_expr : texpr;
+	to_group : texpr;
+}
+and cdelete = {
+	d_expr : texpr;
+	from_group : texpr;
+}
+and cget = {
+	g_expr : texpr;
+}
+
+let rec fetch_type t =
+	match t with
+	| TLazy tlazy ->
+		(match !tlazy with
+		| LAvailable t -> fetch_type t
+		| LProcessing f -> fetch_type (f())
+		| LWait f -> fetch_type (f()))
+	| TMono tmono -> 
+		(match tmono.tm_type with
+		| Some t -> fetch_type t
+		| None -> t)
+	| _ -> t
+
+let s_saccess v = 
+	match v with
+		| SField tfield_access -> s_field_access s_type_kind tfield_access
+		| SAnon efun -> s_expr s_type_kind efun
+
+let rec edef_of_followed t =
+	match fetch_type t with
+	| TType (tdef, tparams) -> edef_of_followed tdef.t_type
+	| TAnon tanon -> tanon
+	| _ -> 
+		print_endline ("Unhandled_component_type" ^ (s_type_kind t));
+		raise Unhandled_component_type
+
+(* let make_srequirement ((tvar : tvar), (texpr_opt : texpr option)) : r = *)
+let make_srequirement (name, is_opt, t) : r =
+	let def : tanon = edef_of_followed t in
+	REntity (def, is_opt, t)
+
+let sort_requirements (r_list : r list) : r list = 
+	r_list
+	(* let r_sorting (a : r) (b : r) : int =
+		match a, b with 
+			| REntity c1, REntity c2 -> (
+				match c1.rc_opt, c2.rc_opt with
+					| true, false -> 1
+					| false, true -> -1
+					| _ ->
+						if (EvalHash.path_hash c1.rc_path) < (EvalHash.path_hash c2.rc_path) then
+							-1
+						else
+							1
+			)
+	in List.sort r_sorting r_list *)
+
+(* let string_of_requirement r : string =
+	match r with
+		| REntity (def,opt,t) -> 
+			(if opt then "?" else "") ^ (Globals.s_type_path rc.rc_path) *)
+
+(* Process *)
+
+(* type rlist =
+	| LImpl of rlist_kind * rlist_length
+	| LShare of typed_rlist
+and rlist_length = {
+	len_ident : string
+}
+and rlist_kind =
+	| KArray of string
+	(* | RVector of string * int *)
+and typed_rlist = {
+	(* l_requirement : r; *)
+	mutable l_impl : rlist;
+}
+
+type rset = {
+	r_name : string;
+	r_hash : int;
+	r_kind : rset_kind;
+}
+and rset_kind = typed_rlist list
+
+let make_rset_kind rset_hash (sorted_requirements : r list) : rset_kind =
+	let make_typed_rlist rset_hash r : typed_rlist =
+		let list_name = match r with
+			| REntity rc -> "clist_" ^ (string_of_int rset_hash) ^ "_" ^ rc.rc_ident
+		in
+		{
+			l_requirement = r;
+			l_impl = LImpl(KArray list_name, { len_ident = list_name ^ "_length"; })
+		}
+	in
+	List.map (make_typed_rlist rset_hash) sorted_requirements *)
+
+(* let make_rset (srequirements : r list) : rset =
+	let sorted_requirements = sort_requirements srequirements in
+	let named = ref "" in
+		List.iter
+			(fun r -> (named := !named ^ "#" ^ (string_of_requirement r)))
+			sorted_requirements;
+	let hash = EvalHash.hash !named in
+	let kind = make_rset_kind hash sorted_requirements in
+	{
+		r_name = !named;
+		r_hash = hash;
+		r_kind = kind;
+	} *)
+
+(* let rset_eq a b : bool =
+	a.r_hash = b.r_hash *)
+
+let remove_dupplicate (f : 'a -> 'b -> bool) list =
+	let new_list = ref [] in
+	List.iter
+		(fun a ->
+			let f = f a in
+			if false = (List.exists f !new_list)
+				then
+					new_list := a :: !new_list
+		)
+		list;
+	!new_list
+
+(* Optimization *)
+
+let optimize_rlists unoptimized_rsets = ()
+	(* let for_every_list f =
+		List.iter
+		(fun rset ->
+			List.iter f rset.r_kind;
+			()
+		)
+		unoptimized_rsets
+	in
+	for_every_list
+		(fun a ->
+			match a.l_impl with
+				| LImpl (_, _) -> (* If have an implemention, seeks to convert other lists *)
+					let chained = ref false in
+					for_every_list
+						(fun b ->
+							if (!chained = false && a != b && r_type_eq a.l_requirement b.l_requirement) then
+								(match b.l_impl with
+									| LImpl (k_b, len_b) -> 
+										print_endline "Optimaze!";
+										b.l_impl <- LShare a;
+										chained := true
+									| _ -> ()
+								)
+						)
+				| _ -> ()
+		) *)
+				
+
+(* Tools *)
+
+let append_field_into cl cf =
+	cl.cl_fields <- PMap.add cf.cf_name cf cl.cl_fields;
+	cl.cl_ordered_fields <- cf :: cl.cl_ordered_fields;
+	print_endline ("[ECSO] Generate " ^ cf.cf_name)
+
+type cf_impl_accessor = {
+	cf_access : tfield_access; 
+	cf_type : t;
+}
+
+let mk_cf_accessor cl cf : cf_impl_accessor =
+	{
+		cf_access = FInstance (cl,[],cf);
+		cf_type = cf.cf_type;
+	}
+
+let get_field_access t name =
+	match t with
+	| TInst (cl, params) ->
+		let push = PMap.find name cl.cl_fields in
+		{
+			cf_access = FInstance (cl, params, push);
+			cf_type = push.cf_type;
+		}
+	| _ -> 
+		print_endline ("Unhandled get_field_access type for " ^ (s_type_kind t));
+		raise Unhandled_component_type
+
+
+let has_tanon_field (name : string) (cf : tclass_field) (an : tanon) : bool =
+	let s_tanon_field name cf = s_type (mk_anon (PMap.add name cf PMap.empty)) in
+	let sid = s_tanon_field name cf in
+	try begin (PMap.iter (fun name2 cf2 -> if sid = (s_tanon_field name2 cf2) then raise Found) an.a_fields); false end
+	with Found -> true
+
+let is_compatible_def (def : tanon) (with_def : tanon) : bool =
+	let compatible = ref true in
+	print_endline ("CHECK SYSTEM COMPATIBILITY");
+	PMap.iter
+		(fun name cf ->
+			if (has_tanon_field name cf def) then
+				()
+			else 
+				compatible := false;
+			()
+		)
+		with_def.a_fields;
+	print_endline ("--- type " ^ (s_type (TAnon def)));
+	if !compatible then
+		print_endline ("--- is FULLY compatible")
+	else 
+		print_endline ("--- is NOT compatible");
+	print_endline ("--- with " ^ (s_type (TAnon with_def)));
+	!compatible
+
+let contains_compatible_defs from_list (with_def : tanon) : bool =
+	try begin (Hashtbl.iter (fun def_hash def -> if is_compatible_def def with_def then raise Found) from_list); false end
+	with | Found -> true
+
+let foreach_compatible_system sprocesses f (def : tanon) =
+	let processed = ref PMap.empty in
+	Hashtbl.iter
+		(fun def_hash sp ->
+			List.iter
+				(fun r -> 
+					match r with
+					| REntity (sdef,opt,t) ->
+						let h = hash_tanon sdef in
+						if (PMap.exists h !processed) = false && is_compatible_def def sdef then f sdef;
+						processed := PMap.add h h !processed;
+						()
+				)
+				sp.s_requirement
+		)
+		sprocesses
+
+let foreach_dependent_system sprocesses f (def : tanon) =
+	let processed = ref PMap.empty in
+	Hashtbl.iter
+		(fun def_hash sp ->
+			List.iter
+				(fun r -> 
+					match r with
+					| REntity (sdef,opt,t) -> 
+						let h = hash_tanon sdef in
+						if (PMap.exists h !processed) = false && (is_compatible_def def sdef || is_compatible_def sdef def) then f sdef;
+						processed := PMap.add h h !processed;
+						()
+				)
+				sp.s_requirement
+		)
+		sprocesses
+
+(* Transform *)
+
+(* let rec retrieve_or_gen_rlist (into_cl : tclass) (rlist : typed_rlist) : tfield_access =
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	match rlist.l_impl with 
+		| LImpl (k, len) ->
+			(match k with
+				| KArray list_name -> 
+
+					let retrieved = try Some (PMap.find list_name into_cl.cl_fields) with Not_found -> None in
+					let list = match retrieved with
+						| Some cf_list ->
+							cf_list
+						| None ->
+							let list_type = match rlist.l_requirement with
+								| REntity rc -> rc.rc_type
+							in
+							let list_initialization pos = match rlist.l_requirement with
+								| REntity rc -> Some {
+									eexpr = TArrayDecl[];
+									etype = list_type;
+									epos = pos;
+								}
+							in
+
+							(* Generate the runtime list *)
+							let t = api.tarray list_type in
+							let pos = { pfile = "ecso.gen.RList"; pmin = 1; pmax = 4; } in
+							let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
+							let cf_list = Gencommon.mk_class_field list_name t true pos kind [] in (* name type public pos kind params *)
+							cf_list.cf_expr <- list_initialization cf_list.cf_pos;
+							
+							append_field_into into_cl cf_list;
+							cf_list
+					in
+					FInstance (into_cl,[],list)
+			)
+		| LShare l -> 
+			retrieve_or_gen_rlist into_cl l *)
+
+(* let retrieve_or_gen_rset_lists (into_cl : tclass) (rset : rset) : tfield_access list = *)
+	(* List.map
+		(retrieve_or_gen_rlist into_cl)
+		rset.r_kind *)
+	
+
+(* let retrieve_or_gen_rset_range (into_cl : tclass) (rset : rset) : tfield_access =
+	let range_name = "rdata_" ^ (string_of_int rset.r_hash) ^ "$length" in
+	let retrieved = try Some (PMap.find range_name into_cl.cl_fields) with Not_found -> None in
+	let range = match retrieved with
+		| Some cf_length ->
+			cf_length
+		| None ->
+			let api = ((EvalContext.get_ctx()).curapi.get_com()).basic in
+			let cf_length = Gencommon.mk_class_field
+				range_name (* name *)
+				api.tint (* type *)
+				true (* public *)
+				{ pfile = "ecso.gen.LengthOfRSet"; pmin = 1; pmax = 4; } (* pos *)
+				(Var { v_read = AccNormal; v_write = AccNormal; }) (* kind *)
+				[] (* params *)
+			in
+			cf_length.cf_expr <- Some {
+				eexpr = TConst (TInt 0l);
+				etype = cf_length.cf_type;
+				epos = cf_length.cf_pos;
+			};
+			append_field_into into_cl cf_length;
+			cf_length
+	in FInstance (into_cl,[],range) *)
+
+let setup_extern_field cl cf_name arg_name arg_count = 
+	let compiler = (EvalContext.get_ctx()).curapi in
+	let api = (compiler.get_com()).basic in
+	let cf = PMap.find cf_name cl.cl_fields in
+	if (has_class_field_flag cf CfExtern) then begin
+		remove_class_field_flag cf CfExtern;
+		cf.cf_kind <- Method MethInline;
+		(match cf.cf_expr with
+			| None ->
+				let mk_arg name =
+					let system_varg = alloc_var VGenerated name api.tstring cf.cf_pos in
+					(system_varg, Some (mk (TConst TNull) system_varg.v_type system_varg.v_pos))
+				in
+				let rec mk_args name count arg_list =
+					if (count > 0) then
+						let system_varg = alloc_var VGenerated (name^string_of_int count) api.tstring cf.cf_pos in
+						let system_arg = (system_varg,Some (mk (TConst TNull) system_varg.v_type system_varg.v_pos)) in
+						mk_args name (count - 1) ((mk_arg (name^string_of_int count)) :: arg_list)
+					else
+						arg_list
+				in
+				let arg_var arg = match arg with | (v,_) -> v in
+				let type_arg arg = 
+					let var = arg_var arg in
+					(var.v_name,false,var.v_type)
+				in
+				let ident_arg i args =
+					mk (TLocal (arg_var (List.nth i args))) api.tstring cf.cf_pos
+				in
+				let args = 
+					if arg_count = 0 then
+						[mk_arg arg_name]
+					else
+						mk_args arg_name arg_count [] 
+				in
+				let process_impl = {
+					tf_args = args;
+					(* tf_type = TFun ([(system_arg.v_name,false,api.tstring)],api.tvoid); *)
+					tf_type = TFun (List.map type_arg args,api.tvoid);
+					tf_expr = mk (TBlock[]) api.tvoid cf.cf_pos;
+				} in
+				cf.cf_expr <- Some (mk (TFunction process_impl) cf.cf_type cf.cf_pos)
+			| Some e -> ()
+		)
+	end else ()
+
+let setup_process into_cl = 
+	let compiler = (EvalContext.get_ctx()).curapi in
+	let api = (compiler.get_com()).basic in
+	let process_cf = PMap.find "process" into_cl.cl_fields in
+	if (has_class_field_flag process_cf CfExtern) then begin
+		remove_class_field_flag process_cf CfExtern;
+		process_cf.cf_kind <- Method MethInline;
+		(match process_cf.cf_expr with
+			| None ->
+				let rec mk_args count arg_list =
+					if (count > 0) then
+						let system_arg = alloc_var VGenerated ("s"^string_of_int count) api.tstring process_cf.cf_pos in
+						mk_args (count - 1) ((system_arg,Some (mk (TConst TNull) system_arg.v_type system_arg.v_pos)) :: arg_list )
+					else
+						arg_list
+				in
+				let arg_var arg = match arg with | (v,_) -> v in
+				let type_arg arg = 
+					let var = arg_var arg in
+					(var.v_name,false,var.v_type)
+				in
+				let ident_arg i args =
+					mk (TLocal (arg_var (List.nth i args))) api.tstring process_cf.cf_pos
+				in
+				let args = mk_args 65535 [] in
+				let process_impl = {
+					tf_args = args;
+					(* tf_type = TFun ([(system_arg.v_name,false,api.tstring)],api.tvoid); *)
+					tf_type = TFun (List.map type_arg args,api.tvoid);
+					tf_expr = mk (TBlock[]) api.tvoid process_cf.cf_pos;
+				} in
+				process_cf.cf_expr <- Some (mk (TFunction process_impl) process_cf.cf_type process_cf.cf_pos)
+			| Some e -> ()
+		);
+		print_endline "setup g.process"
+	end else ()
+
+let implement_uexpr (eorigin : tclass_field) (expr : texpr) (impl : texpr) =
+	
+		let rec check_expr (e : texpr) : texpr = 
+			if (e.epos.pmin = expr.epos.pmin && e.epos.pmax = expr.epos.pmax && e.epos.pfile = expr.epos.pfile) then
+				impl
+			else
+				map_expr
+					check_expr
+					e
+		in
+		eorigin.cf_expr <- Some (match eorigin.cf_expr with
+			| Some field_expr ->
+				(* Some *) (
+					check_expr
+						field_expr
+				)
+			| None ->
+				(* Some *) impl
+		)
+
+(* let make_process (g : tclass) (rset : rset) (sp : sprocess) : texpr = 
+	print_endline "make process _ _ _";
+	(* rewrite `g.process(s)` into `for (i in g.iterator<RSET-HASH>()) s(g.get_<RSET-HASH>_r0_at(i))` *)
+	(* var i:Int = g.<RSET-HASH>_length;
+	while( --i >= 0 )
+		s( g.get_<RSET-HASH>_r0_at(i) ); *)
+	let compiler = (EvalContext.get_ctx()).curapi in
+	let api = (compiler.get_com()).basic in
+	let mk_block exprs = {
+		eexpr = TBlock exprs;
+		etype = (List.nth exprs (List.length exprs - 1)).etype;
+		epos = sp.expr.epos;
+	} in
+	let mk_texpr = function
+		| TClassDecl c -> TAnon { a_fields = PMap.empty; a_status = ref (Statics c) }
+		| TEnumDecl e -> TAnon { a_fields = PMap.empty; a_status = ref (EnumStatics e) }
+		| TAbstractDecl a -> TAnon { a_fields = PMap.empty; a_status = ref (AbstractStatics a) }
+		| TTypeDecl _ -> assert false
+	in
+
+	let p = sp.expr.epos in
+	let gmodule = TClassDecl g in
+	let gexpr = mk (TTypeExpr gmodule) (mk_texpr gmodule) p in	
+	let smodule = match sp.s_field with 
+		| FStatic (cl,cf) -> TClassDecl cl
+		| _ -> raise Unhandled_system_type
+	in
+	let sexpr = mk (TTypeExpr smodule) (mk_texpr smodule) p in
+	
+	let flength = mk (TField (gexpr,retrieve_or_gen_rset_range g rset)) api.tint p in (* g.<RSET-HASH>_length *)
+	let var_length = alloc_var VGenerated "rlength" flength.etype flength.epos in
+	let decl_length = mk (TVar (var_length,Some flength)) api.tvoid p in (* var i = $e{flength} *)
+	let ident_length = mk (TLocal var_length) flength.etype p in
+	let decrement_length = mk (TUnop (Decrement,Prefix,ident_length)) flength.etype p in
+
+	let rlist_accesses = retrieve_or_gen_rset_lists g rset in
+	let args = List.map
+		(fun rla ->
+			let rltype = match rla with
+				| FInstance (_,_,cf) -> cf.cf_type
+				| _ -> raise Unexpected_expr
+			in
+			let rtype = match rltype with
+				| TAbstract (_,[rtype]) | TInst (_,[rtype]) | TType (_,[rtype]) ->
+					rtype
+				| _ ->
+					raise Unhandled_component_type
+			in
+			let flist = mk 
+				(TField (gexpr,rla))
+				rltype
+				p
+			in
+			mk (TArray (flist,ident_length)) rtype p
+		)
+		rlist_accesses
+	in
+	let fsystem = 
+		mk 
+		(TField (sexpr,sp.s_field)) 
+		(match sp.s_field with
+			| FStatic (cl,cf) -> cf.cf_type
+			| _ -> raise Unhandled_system_type
+		)
+		p
+	in
+	let call = mk (TCall (fsystem, args)) api.tvoid p in
+	let zero = mk (TConst (TInt 0l)) api.tint p in
+	let call_all_condition = mk (TBinop (OpGte,decrement_length,zero)) api.tbool p in
+	let call_all = mk (TWhile (call_all_condition, call, NormalWhile)) api.tvoid p in
+	
+	mk_block [
+		decl_length;
+		call_all;
+		ident_length
+	] *)
+
+(* Generate *)
+
+type rset_kind =
+	| RMonolist
+
+and rset_status = 
+	| Retrieved of rset_impl
+	| Missing of rset_build_data
+
+and rset_build_data =
+	| BMonolist of { list_name : string; length_name : string; }
+
+and rset_impl = {
+	gen_add : texpr -> texpr -> pos -> texpr;
+	gen_remove : texpr -> texpr -> pos -> texpr;
+	gen_iter : texpr -> pos -> (texpr -> texpr) -> t -> texpr;
+}
+
+let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_impl_accessor) : rset_impl =
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	let list g p = mk (TField (g, list_impl.cf_access)) list_impl.cf_type p in
+	let length g p = mk (TField (g, length_impl.cf_access)) length_impl.cf_type p in
+	let gen_add_func (g : texpr) (einstance : texpr) (p : pos) : texpr =
+		let list_push_info = get_field_access list_impl.cf_type "push" in
+		let list_push = mk (TField (list g p, list_push_info.cf_access)) list_push_info.cf_type p in
+
+		(mk (TBlock[
+			(mk (TCall (list_push, [einstance])) api.tint p); (* rset.push( _ ) TODO: ensure to not push a reference! *)
+			(mk (TBinop (OpAdd,length g p, mk (TConst (TInt 1l)) api.tint p)) api.tint p); (* ++rset_length *)
+			(mk (TUnop (Increment,Prefix,length g p)) api.tint p); (* ++rset_length *)
+		]) api.tint p)
+	in
+	let gen_remove_func (g : texpr) (einstance : texpr) (p : pos) : texpr =
+		let list_remove_info = get_field_access list_impl.cf_type "remove" in
+		let list_remove = mk (TField (list g p, list_remove_info.cf_access)) list_remove_info.cf_type p in
+
+		(mk (TBlock[
+			(mk (TIf (
+				(mk (TCall (list_remove, [einstance])) api.tbool p), (* rset.remove( _ ) *)
+				(mk (TUnop (Decrement,Prefix,length g p)) api.tint p), (* --rset_length *)
+				None
+			)) api.tvoid p);
+		]) api.tvoid p)
+	in
+	let gen_iter_func (g : texpr) (p : pos) (f : texpr -> texpr) (iterated_t : t) : texpr =
+		let ivar = alloc_var VGenerated "i" api.tint p in
+		let i = mk (TLocal ivar) ivar.v_type p in
+		let decrease_i = mk (TUnop (Decrement,Prefix,i)) api.tint p in
+		let entity_at_i = mk (TArray (list g p,i)) iterated_t p in
+		(mk (TBlock[
+			mk (TVar (ivar, Some (length g p))) api.tint p;
+			mk (TWhile (
+				mk (TBinop (OpGte,decrease_i, mk (TConst (TInt 0l)) api.tint p)) api.tbool p,
+				f entity_at_i,
+				NormalWhile
+			)) api.tvoid p;
+		]) api.tvoid p)
+	in
+	{
+		gen_add = gen_add_func;
+		gen_remove = gen_remove_func;
+		gen_iter = gen_iter_func;
+	}
+
+let retrieve_rset (kind : rset_kind) (into_cl : tclass) (def : tanon) : rset_status =
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	let rset_id = string_of_int (hash_tanon def) in
+	let list_name = "slist_" ^ rset_id in
+	let length_name = "slength_" ^ rset_id in
+	let list_impl =
+		try Some (mk_cf_accessor into_cl (PMap.find list_name into_cl.cl_fields))
+		with Not_found -> None
+	in
+	let length_impl =
+		try Some (mk_cf_accessor into_cl (PMap.find length_name into_cl.cl_fields))
+		with Not_found -> None
+	in
+	match list_impl, length_impl with
+	| Some list_impl, Some length_impl ->
+		Retrieved (make_rmonolist_accessor list_impl length_impl)
+	| _ ->
+		(
+		match kind with
+		| RMonolist ->
+			Missing (BMonolist {
+				list_name = list_name;
+				length_name = length_name;
+			})
+		)		
+
+let gen_rset (bdata : rset_build_data) (into_cl : tclass) (def : tanon) : rset_impl =
+	match bdata with
+	| BMonolist impl_data ->
+		let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+		let api = gcon.basic in
+		let list_impl =
+			let t = api.tarray (TAnon def) in
+			let pos = { pfile = "ecso.gen.RList"; pmin = 1; pmax = 4; } in
+			let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
+			let cf_list = Gencommon.mk_class_field impl_data.list_name t true pos kind [] in (* name type public pos kind params *)
+			cf_list.cf_expr <- Some (mk (TArrayDecl []) cf_list.cf_type cf_list.cf_pos);
+			append_field_into into_cl cf_list;
+			mk_cf_accessor into_cl cf_list
+		in
+		let length_impl =
+			let pos = { pfile = "ecso.gen.RLength"; pmin = 1; pmax = 4; } in
+			let kind = Var { v_read = AccNormal; v_write = AccNormal; } in
+			let cf_length = Gencommon.mk_class_field impl_data.length_name api.tint true pos kind [] in (* name type public pos kind params *)
+			cf_length.cf_expr <- Some (mk (TConst (TInt 0l)) api.tint cf_length.cf_pos);
+			append_field_into into_cl cf_length;
+			mk_cf_accessor into_cl cf_length
+		in
+		match retrieve_rset RMonolist into_cl def with
+		| Retrieved impl -> impl
+		| Missing _ -> 
+			print_endline "Could not generate correctly";
+			raise Invalid_expr
+	
+let retrieve_or_gen_rset (kind : rset_kind) (into_cl : tclass) (def : tanon) : rset_impl =
+	match retrieve_rset kind into_cl def with
+	| Retrieved impl -> impl
+	| Missing build_data ->
+		gen_rset build_data into_cl def
+
+let gen_ecreate (into_cl : tclass) sprocesses (def_hash : int) (ec : ecreate) = 
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	let p = ec.expr.epos in
+	let block = ref [mk (TConst (TString ("CreateEntity " ^ (s_type (TAnon ec.e_def))))) api.tstring p] in
+	let einstance_var = alloc_var VGenerated "e" (TAnon ec.e_def) p in
+	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
+	print_endline ("gen_ecreate" ^ (s_type (TAnon ec.e_def)));
+	foreach_compatible_system sprocesses
+		(fun sdef -> 
+			match retrieve_rset RMonolist into_cl sdef with
+			| Retrieved rset -> block := (rset.gen_add ec.group einstance p) :: !block;
+				print_endline ("--- gen add into " ^ (s_type (TAnon sdef)))
+			| Missing _ -> ()
+		)
+		ec.e_def;
+	block := (mk (TVar (einstance_var, Some ec.expr)) api.tvoid p) :: !block;
+	implement_uexpr ec.eorigin ec.expr (mk (TBlock !block) api.tstring p);
+	()
+
+let gen_edelete (into_cl : tclass) sprocesses (def_hash : int) (ed : edelete) = 
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	let p = ed.expr.epos in
+	let block = ref [mk (TConst (TString ("DeleteEntity " ^ (s_type (TAnon ed.e_def))))) api.tstring p] in
+	let einstance_var = alloc_var VGenerated "e" (TAnon ed.e_def) p in
+	let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
+	print_endline "edelete";
+	foreach_dependent_system sprocesses
+		(fun sdef -> 
+			print_endline "---- ---- edelete";
+			match retrieve_rset RMonolist into_cl sdef with
+			| Retrieved rset -> block := (rset.gen_remove ed.group einstance p) :: !block
+			| Missing _ -> ()
+		)
+		ed.e_def;
+	block := (mk (TVar (einstance_var, Some ed.expr)) api.tvoid p) :: !block;
+	implement_uexpr ed.eorigin ed.expr (mk (TBlock !block) api.tstring p);
+	()
+
+let gen_sprocess (into_cl : tclass) possible_edefs (def_hash : int) (sp : sprocess) = 
+	let gcon = (EvalContext.get_ctx()).curapi.get_com() in
+	let api = gcon.basic in
+	let p = sp.expr.epos in
+	let used = ref true in
+	let gen_system_call args : texpr =
+		(mk (TCall (sp.expr, args)) api.tvoid p)
+	in
+	let rec gen_next_requirement (r_list : r list) (system_args : texpr list) : texpr =
+		if List.length r_list = 0 then
+			gen_system_call (List.rev system_args)
+		else match List.hd r_list with
+		| REntity (def,opt,t) -> 
+			if contains_compatible_defs possible_edefs def then
+				begin
+				let rset = retrieve_or_gen_rset RMonolist into_cl def in
+				let gen_block (entity : texpr) =
+					(gen_next_requirement (List.tl r_list) (entity :: system_args))
+				in
+				rset.gen_iter sp.group p gen_block t
+				end
+			else
+				begin
+				used := false;
+				mk (TConst TNull) t p
+				end
+	in
+	let impl = gen_next_requirement sp.s_requirement [] in
+	if !used then
+		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
+			impl;
+			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field)))) api.tstring p); (* report *)
+		]) api.tstring p)
+	else
+		implement_uexpr sp.eorigin sp.expr (mk (TBlock[
+			(mk (TConst (TString ("ProcessSystem " ^ (s_saccess sp.s_field) ^ " (skipped)"))) api.tstring p);
+		]) api.tstring p);
+	()
+	(* let rsets_for_iteration =
+		try
+			List.filter_map
+				(fun r ->
+					match r with
+					| REntity (def,opt,t) -> 
+						if contains_compatible_defs possible_edefs def then
+							begin
+							Some (retrieve_or_gen_rset RMonolist into_cl def)
+							end
+						else
+							raise Not_used
+				)
+				sp.s_requirement
+		with Not_used -> 
+			used := false;
+			[]
+	in
+	if !used then
+		begin
+		let impl = ref None in
+		List.iter 
+			(fun rset -> (
+				let block (entity : texpr) : texpr =
+					(* iter the next until calling the system *)
+					call sp.s_field [entity]
+				in
+				let impl = rset_impl.gen_iter sp.group sp sp.expr.epos block in
+			))
+			rsets_for_iteration
+		implement_uexpr sp.eorigin sp.expr impl;
+		end
+	else
+		() *)
+
+type c = {
+	def : t;
+}
+and caccess_expr =
+	| CCreate of (texpr * c)
+	| CDelete of (texpr * c)
+	| CGet of (texpr * c)
+
+type p =
+	| PSystem of psystem
+
+and psystem = {
+	spath : string;
+	sprocess : pexecution;
+}
+
+and pexecution =
+	| PExpr of texpr
+
+class plugin =
+	object (self)
+
+		val mutable need_init = (true)
+
+		(* Macro-Time *)
+
+		val mutable registered_components = ( [] : (string * pos) list )
+
+		method for_registered_c_tdef t list f =
+			List.iter 
+				(fun (name, pos) ->
+					if name = string_of_path t.t_path then
+						f t pos
+					else 
+						()
+				)
+				list
+
+		(* Typing-Time *)
+
+		val mutable processed_components = ( [] : (Type.tdef * pos) list )
+
+		method process_component_tdef c_tdef c_pos =
+			print_endline ("PROCESS COMPONENT" ^ (string_of_path c_tdef.t_path));
+			(* TODO: declare the type `cdata`, and process the component to create a `cdata` object*)
+			processed_components <- (c_tdef, c_pos) :: processed_components;
+			()
+
+		(* Analyse *)
+
+		val mutable ecso_entity_group = (None : tclass option)
+
+		method analyze_types types =
+			List.iter self#analyse_type types
+
+		method analyse_type t =
+			match t with
+				| TClassDecl cl -> 
+					let s_cl_path  = Globals.s_type_path cl.cl_path in
+					(match s_cl_path with
+						| "ecso.EntityGroup" -> (ecso_entity_group <- Some cl)
+						| _ ->
+							List.iter (fun static -> self#analyse_field static true) cl.cl_ordered_statics;
+							List.iter (fun field -> self#analyse_field field false) cl.cl_ordered_fields;
+							List.iter (fun field -> self#analyse_field field false) cl.cl_overrides;
+							self#analyse_field_opt cl.cl_constructor false
+					)
+				| TAbstractDecl a ->
+					let s_a_path  = Globals.s_type_path a.a_path in
+					(match s_a_path with
+						| _ -> ()
+					)
+				| _ -> ()
+
+		method analyse_field_opt field is_static = 
+			match field with
+				| Some field -> self#analyse_field field is_static
+				| _ -> ()
+
+		method analyse_field field is_static = 
+			(match field.cf_expr_unoptimized with
+				| Some func -> raise Invalid_ecso_analyse
+				| _ -> ()
+			);
+			(match field.cf_expr with
+				| Some texpr -> self#analyse_texpr field texpr
+				| _ -> ()
+			)
+		
+		method analyse_texpr (eorigin : tclass_field) texpr =
+			(match texpr.eexpr with
+				| TCall ({ eexpr = TField (e, access) }, targs) ->
+					(match access with
+						| FInstance (cl, _, field) ->
+							if field.cf_name = "process" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+								self#extract_sprocess eorigin e targs
+							else if field.cf_name = "createEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+								self#extract_ecreate eorigin e (match targs with | [arg] -> arg | _ -> raise Unexpected_expr)
+							else if field.cf_name = "deleteEntity" && (string_of_path cl.cl_path) = "ecso.EntityGroup" then
+								self#extract_edelete eorigin e (match targs with | [arg] -> arg | _ -> raise Unexpected_expr)
+							else
+								()
+						| _ -> ()
+					)
+				| _ -> ()
+			);
+			iter (self#analyse_texpr eorigin) texpr
+
+		(* Extract *)
+
+		val mutable ecso_extracts = ([] : uexpr list)
+		val mutable ecreates = Hashtbl.create 0 ~random:false
+		val mutable edeletes = Hashtbl.create 0 ~random:false
+		val mutable sprocesses = Hashtbl.create 0 ~random:false
+
+		method extract_sprocess (eorigin : tclass_field) (entity_group : texpr) (process_args : texpr list) =
+			(* let extract ((e, tfield_access) : texpr * tfield_access) =  *)
+			let extract_system args ret saccess e = 
+				let r_list = List.map make_srequirement args in
+				let first_r = 
+					if (List.length r_list) = 0 then
+						{ a_fields = PMap.empty; a_status = ref Closed }
+					else
+						(match (List.nth r_list 0) with
+						| REntity (tanon,opt,t) -> tanon
+						)
+				in
+				Hashtbl.add sprocesses (hash_tanon first_r) {
+					expr = e;
+					eorigin = eorigin;
+					group = entity_group;
+					s_field = saccess;
+					s_requirement = r_list;
+				}				
+			in
+			let rec analyse_arg e =
+				match e.eexpr, fetch_type e.etype with
+				| _, TFun (args, ret) ->
+					extract_system args ret (SAnon e) e;
+					()
+				| TMeta (metadata_entry, texpr), _ -> 
+					(match metadata_entry with
+						| (Meta.ImplicitCast, [], pos) -> (
+								match texpr.eexpr with
+									| TCast (texpr, _) -> analyse_arg texpr
+									| _ -> 
+										print_endline "[ECSO] Wrong process parsing";
+										raise Unexpected_expr
+							)
+						| _ -> raise Unhandled_meta
+					)
+				| _ ->
+					print_endline ("[ECSO] Wrong anonymous system parsing for " ^ (s_type_kind e.etype));
+					raise Unexpected_expr
+			in
+			List.iter analyse_arg process_args
+		
+		method extract_ecreate (eorigin : tclass_field) (entity_group : texpr) (edef : texpr) =
+				let extract (inits : ((string * pos * quote_status) * texpr) list) (def : tanon) = 
+					Hashtbl.add ecreates (hash_tanon def) {
+						expr = edef;
+						eorigin = eorigin;
+						group = entity_group;
+						e_inits = inits;
+						e_def = def;
+					}
+				in
+				let rec analyse_arg e =
+					match e.eexpr with
+						| TMeta (metadata_entry, e) ->
+							(match metadata_entry with
+								| (Meta.ImplicitCast, [], pos) -> (
+										match e.eexpr with
+											| TCast (e, _) -> analyse_arg e
+											| _ -> 
+												print_endline "[ECSO] Wrong process parsing";
+												raise Unexpected_expr
+									)
+								| _ -> raise Unhandled_meta
+							)
+						| TObjectDecl fields ->
+							let def : tanon = (match e.etype with | TAnon tanon -> tanon | _ -> raise Unhandled_component_type) in
+							extract fields def
+						| _ ->
+							print_endline ("ANALYSE S-Args " ^ (s_expr s_type_kind e));
+							()
+				in
+				analyse_arg edef
+		
+		method extract_edelete (eorigin : tclass_field) (entity_group : texpr) (einstance : texpr) =
+				let extract (def : tanon) = 
+					Hashtbl.add edeletes (hash_tanon def) {
+						expr = einstance;
+						eorigin = eorigin;
+						group = entity_group;
+						e_def = def;
+					}
+				in
+				let rec analyse_arg e =
+					match e.eexpr, fetch_type e.etype with
+					| _, TAnon def ->
+						extract def
+					| TMeta (metadata_entry, e), _ ->
+						(match metadata_entry with
+							| (Meta.ImplicitCast, [], pos) -> (
+									match e.eexpr with
+										| TCast (e, _) -> analyse_arg e
+										| _ -> 
+											print_endline "[ECSO] Wrong process parsing";
+											raise Unexpected_expr
+								)
+							| _ -> raise Unhandled_meta
+						)
+					| _ ->
+						raise Unhandled_component_type
+				in
+				analyse_arg einstance
+
+		(* Process *)
+
+		method init () =
+			if need_init then begin
+				need_init <- false;
+				print_endline "Init Ecso plugin";
+				let compiler = (EvalContext.get_ctx()).curapi in
+				(* let is_registered_component (name, pos) =  *)
+				
+				compiler.after_typing
+					self#on_after_typing;
+
+				compiler.after_typing (fun haxe_types ->
+					List.iter
+						(fun hx_type ->
+							match hx_type with
+								| TTypeDecl t ->
+									self#for_registered_c_tdef
+										t
+										registered_components
+										self#process_component_tdef
+								
+								| _ -> ()
+						)
+						haxe_types
+				);
+			end
+		
+		method on_after_typing haxe_types =
+			self#analyze_types haxe_types;
+
+			(* List.iter
+				(fun uexpr ->
+					match uexpr with
+						| EProcessSystem sp -> print_endline ("SysUexpr: " ^ (string_of_system sp.s_field)); ()
+						| _ -> ()
+				)
+				ecso_extracts; *)
+
+			(* let raw_rsets : rset list = 
+				List.filter_map 
+					(fun uexpr ->
+						match uexpr with
+							| EProcessSystem sp -> Some (make_rset sp.s_requirement)
+							| _ -> None
+					)
+					ecso_extracts
+			in *)
+
+			(* let rsets_uniq = remove_dupplicate rset_eq raw_rsets in
+			optimize_rlists rsets_uniq; *)
+			
+			(* let get_uniq_rset sp = 
+				List.find
+					(fun rs -> rset_eq rs (make_rset sp.s_requirement))
+					rsets_uniq
+			in *)
+
+			(* let rsets_usages : (rset * uexpr) list =
+				List.filter_map
+					(fun uexpr ->
+						match uexpr with
+							| EProcessSystem sp ->
+								Some (List.find (rset_eq (make_rset sp.s_requirement)) rsets_uniq, uexpr)
+							| _ -> None
+					)
+					ecso_extracts
+			in *)
+
+			(* List.iter
+				(fun (r,u) ->
+					print_endline ("RSy-u: " ^ r.r_name)
+				)
+				rsets_usages; *)
+
+			let ecso_entity_group = (match ecso_entity_group with
+				| Some cl -> cl
+				| None -> raise Missing_ecso_library) in (* TODO: print nice error message *)
+
+			let print_sprocess k sp = 
+				List.iter
+					(fun r -> 
+						(match r with
+						| REntity (def,opt,t) -> print_endline ("Process System" ^ (s_type (TAnon def)) )
+						)
+					)
+					sp.s_requirement
+			in
+
+			let print_ecreate k ec = 
+				print_endline ("Create Entity " ^ (s_type (TAnon ec.e_def)) )
+			in
+
+			Hashtbl.iter
+				print_sprocess
+				sprocesses;
+
+			Hashtbl.iter
+				print_ecreate
+				ecreates;
+			
+			let possible_edefs = (* TODO: find a better structure for this *)
+				let list = Hashtbl.create (1 + (Hashtbl.length ecreates) / 4) in
+				Hashtbl.iter
+					(fun def_hash ec -> if (Hashtbl.mem list def_hash) = false then Hashtbl.add list def_hash ec.e_def)
+					ecreates;
+				list
+			in
+
+			print_endline ("List ecreates " ^ (string_of_int (Hashtbl.length ecreates)));
+			print_endline ("List possible_edefs " ^ (string_of_int (Hashtbl.length possible_edefs)));
+
+			Hashtbl.iter
+				(gen_sprocess ecso_entity_group possible_edefs)
+				sprocesses;
+			
+			Hashtbl.iter
+				(gen_ecreate ecso_entity_group sprocesses)
+				ecreates;
+			
+			Hashtbl.iter
+				(gen_edelete ecso_entity_group sprocesses)
+				edeletes;
+			
+			(* setup_process ecso_entity_group; *)
+			setup_extern_field ecso_entity_group "process" "s" 32;
+			setup_extern_field ecso_entity_group "createEntity" "e" 0;
+			setup_extern_field ecso_entity_group "deleteEntity" "e" 0;
+									
+			(* List.iter
+				(fun (rset,uexpr) ->
+					match uexpr with
+						| EProcessSystem sp ->
+							(* let rset = List.find (rset_eq (make_rset sp.s_requirement)) rsets_uniq in *)
+							print_endline "implement sp";
+							let impl = make_process ecso_entity_group rset sp in
+							(match sp.eorigin.cf_expr with
+								| Some e ->
+									sp.eorigin.cf_expr <- Some { e with eexpr = (implement_uexpr sp impl).eexpr }
+								| None ->
+									sp.eorigin.cf_expr <- Some (implement_uexpr sp impl)
+							)
+							
+							(* let implemented_cf_expr = change_expr ps.expr impl (match ps.eorigin.cf_expr with | Some e -> e | None -> raise Invalid_ecso_analyse) in
+							ps.eorigin.cf_expr <- Some implemented_cf_expr *)
+						| _ -> ()
+				)
+				rsets_usages; *)
+
+			(*
+				// uexpr: g.process( Sys.move )
+				for (i in 0...g.rsetCompsAB_length)
+					Sys.move(g.rsetCompsAB_A[i], g.rsetCompsAB_B[i])
+			 *)
+
+			(* system_to_set_link = rset * tsystem *)
+			
+			()
+
+		method register_component (name : value) (pos : value) : value = 
+			self#init ();
+			let name = EvalDecode.decode_string name in
+			let pos = EvalDecode.decode_pos pos in
+			registered_components <- (name, pos) :: registered_components;
+			print_endline ("Registered component " ^ name);
+			vnull
+
+
+		(**
+			Prints greeting to stdout.
+			Takes no arguments, returns Void.
+		*)
+		method hello () : value =
+			print_endline "Hello from plugin";
+			(*
+				Plugin architecture requires to return something even for methods typed Void on Haxe side.
+				Return `null`
+			*)
+			vnull
+		(**
+			Takes `haxe.macro.Position` and returns a string of that position in the same format used for
+			compiler errors
+		*)
+		method stringify_position (pos:value) : value =
+			let pos = EvalDecode.decode_pos pos in
+			let str = Lexer.get_error_pos (Printf.sprintf "%s:%d:") pos in
+			EvalEncode.encode_string str
+		(**
+			Change all static methods named "test" to throw "Hello from plugin".
+			This is an example how to modify typed syntax tree.
+		*)
+		method hijack_static_test () : value =
+			let compiler = (EvalContext.get_ctx()).curapi in
+			(**
+				Add a callback like `haxe.macro.Context.onAfterTyping`
+			*)
+			compiler.after_typing (fun haxe_types ->
+				List.iter
+					(fun hx_type ->
+						match hx_type with
+							| TClassDecl cls ->
+								List.iter
+									(fun field ->
+										match field.cf_name, field.cf_expr with
+											| "test", Some e ->
+												let hello = {
+													eexpr = TConst (TString "Hello from plugin");
+													etype = (compiler.get_com()).basic.tstring;
+													epos = Globals.null_pos;
+												} in
+												field.cf_expr <- Some { e with eexpr = TThrow hello }
+											| _ -> ()
+									)
+									cls.cl_ordered_statics
+							| _ -> ()
+					)
+					haxe_types
+			);
+			vnull
+	end
+;;
+
+let api = new plugin in
+
+(**
+	Register our plugin API.
+	This code is executed upon `eval.vm.Context.loadPlugin` call.
+*)
+EvalStdLib.StdContext.register [
+	("registerComponent", EvalEncode.vfun2 api#register_component);
+]

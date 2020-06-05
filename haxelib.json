@@ -1,0 +1,11 @@
+{
+    "name": "ecso",
+    "url" : "https://gitlab.com/dpomier/ecso",
+    "license": "MIT",
+    "description": "Ecso Plugin",
+    "tags": ["ecs", "cross", "plugin"],
+    "version": "0.0.0-alpha",
+	"classPath": "hx",
+    "releasenote": "Initial alpha release",
+    "contributors": ["dpomier"]
+  }
