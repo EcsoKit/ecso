@@ -8,7 +8,7 @@ ecso
 * **Framework agnostic**: focus exclusively on core ECS aspects.
 * **Haxe-Powered**: integrates with built-in semantics and features (even macros).
 * **Advanced code-analyzes**: structure for high-level ECS-oriented compiler optimizations.
-* **Lightweight API**: minimalist and push clarity, readability and discoverability over conciseness.
+* **Super simple API**: lightweight with clarity, readability and discoverability over conciseness policy.
 * **Cross-platform**: enables target-specific optimizations.
 * **Performance**: while speed is not the current focus, the nature of `ecso` should eventually offer a good level of customization to best fit specific needs, optimizing out branching, unboxing, etc... from systems.
 * **Fast Compilation**: plugins are incredibly fast, plus zero-overhead for non-`ecso` projects.
