@@ -344,9 +344,9 @@ module CheckComponentGlobalization = struct
 					in
 					if cl == cl' then
 						()
-					else if is_parent cl cl' then
+					else if extends cl' cl then
 						downcast_error name p p'
-					else if is_parent cl' cl then
+					else if extends cl cl' then
 						downcast_error  name p' p
 				| _ -> ()
 			end
@@ -356,7 +356,7 @@ module CheckComponentGlobalization = struct
 				| TInst (cl,_),TInst (cl',_) ->
 					if cl == cl' then
 						()
-					else if is_parent cl' cl then
+					else if extends cl cl' then
 						Error.error (
 							"[ECSO] Cannot upcast component " ^ name ^ " declared as " ^ Globals.s_type_path cl.cl_path
 							^ "\n         declared at: " ^ Printer.s_pos p
