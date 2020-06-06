@@ -273,7 +273,6 @@ module EcsoFilterFields = struct
 		let s_cl = Globals.s_type_path cl.cl_path in
 		List.iter (run_field actx s_cl) cl.cl_ordered_statics;
 		List.iter (run_field actx s_cl) cl.cl_ordered_fields;
-		List.iter (run_field actx s_cl) cl.cl_overrides;
 		match cl.cl_constructor with
 			| Some cf -> run_field actx s_cl cf
 			| None -> ();
