@@ -61,4 +61,4 @@ For more details about `ecso` please visit [the wiki page](https://github.com/Ec
 
 # Build Instructions
 
-To build `ecso` from source on your system, you can refer to the [installation](Installation) page.
+To build `ecso` from source on your system, you can refer to the [installation](https://github.com/EcsoKit/ecso/wiki/Installation) page.
