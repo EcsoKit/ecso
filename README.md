@@ -1,7 +1,7 @@
 ecso
 ----
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md)
-[![Slack](https://img.shields.io/badge/slack-online-success?style=flat&logo=slack)](https://join.slack.com/t/ecsokit/shared_invite/zt-ex72k2bp-tDx6yJ~zvZc1swdFW6i8Eg)
+[![Slack](https://img.shields.io/badge/chat-online-success?style=flat&logo=slack)](https://join.slack.com/t/ecsokit/shared_invite/zt-ex72k2bp-tDx6yJ~zvZc1swdFW6i8Eg)
 
 `ecso` is an open-source and experimental [Entity Component System](https://en.wikipedia.org/wiki/Entity_component_system) plugin for Haxe, which enables compiler ECS oriented features and focuses on simplicity.
 
