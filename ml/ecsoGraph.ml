@@ -700,7 +700,7 @@ module EcsoGraph = struct
 												let rec fold_checks cf e =
 													if PMap.mem cf.cf_name required_archetype.a_components then begin
 														let null_safety = false in (* FIXME *)
-														let has_component =
+														let make_has_component =
 															let optional = is_explicit_null (PMap.find cf.cf_name required_archetype.a_components).cf_type in
 															let nullable = is_nullable cf.cf_type in
 															if (not null_safety || is_explicit_null cf.cf_type) && not optional && nullable then
@@ -709,7 +709,7 @@ module EcsoGraph = struct
 																Builder.make_bool api true e.epos
 														in
 														{ e with
-															eexpr = TIf(has_component, e, None)
+															eexpr = TIf(make_has_component, e, None)
 														}
 													end else
 														e
