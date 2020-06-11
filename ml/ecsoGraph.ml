@@ -777,9 +777,10 @@ module EcsoGraph = struct
 					etype = TFun (signature_of_system s);
 				}
 			| GEcsoMutation (v,fa,op,value,_) ->
-				let entity = { e with eexpr = TLocal v } in
-				let component = { e with eexpr = TField(entity,fa) } in
-				{ e with eexpr = TBinop(op,component,f value) }
+				let value = f value in
+				let entity = Builder.make_local v e.epos in
+				let component = mk (TField (entity,fa)) value.etype e.epos in
+				{ e with eexpr = TBinop(op,component,value) }
 		in
 		f g
 
