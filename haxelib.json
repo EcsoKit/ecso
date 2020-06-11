@@ -1,11 +1,11 @@
 {
-    "name": "ecso",
-    "url" : "https://gitlab.com/dpomier/ecso",
-    "license": "MIT",
-    "description": "Ecso Plugin",
-    "tags": ["ecs", "cross", "plugin"],
-    "version": "0.0.0-alpha",
+	"name": "ecso",
+	"url" : "https://github.com/EcsoKit/ecso",
+	"license": "MIT",
+	"description": "Entity Component System for Haxe",
+	"tags": ["ecs", "plugin"],
+	"version": "0.1.0",
 	"classPath": "hx",
-    "releasenote": "Initial alpha release",
-    "contributors": ["dpomier"]
-  }
+	"releasenote": "Initial alpha release",
+	"contributors": ["dpomier"]
+}
