@@ -167,7 +167,7 @@ private class CoreSpecification extends BuddySuite {
                         e.z = 10;
                         count++;
                     });
-                    entities.foreachEntity((e:PositionComponent & { z:Int }) -> {
+                    entities.foreachEntity((e:PositionComponent & { #if static ? #end z:Int }) -> {
                         e.z.should.be(10);
                         e.z = null;
                         count++;
