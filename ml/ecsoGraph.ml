@@ -701,8 +701,9 @@ module EcsoGraph = struct
 													if PMap.mem cf.cf_name required_archetype.a_components then begin
 														let null_safety = false in (* FIXME *)
 														let has_component =
-															let optional _ = is_explicit_null (PMap.find cf.cf_name required_archetype.a_components).cf_type in
-															if (not null_safety || is_explicit_null cf.cf_type) && not (optional()) then
+															let optional = is_explicit_null (PMap.find cf.cf_name required_archetype.a_components).cf_type in
+															let nullable = is_nullable cf.cf_type in
+															if (not null_safety || is_explicit_null cf.cf_type) && not optional && nullable then
 																Builder.binop OpNotEq (Builder.field entity cf.cf_name cf.cf_type e.epos) (Builder.make_null cf.cf_type e.epos) api.tbool e.epos
 															else
 																Builder.make_bool api true e.epos
