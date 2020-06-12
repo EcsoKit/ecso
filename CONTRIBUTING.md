@@ -25,4 +25,4 @@ Feel free to open issues for ideas you would like to propose. If you are unsure,
 
 ## Improving the documentation
 
-If you feel something could be added or fix in the [wiki](https://github.com/EcsoKit/ecso/wiki) or in the public API: don't hesitate to submit a pull-request or [open a new issue](https://github.com/EcsoKit/ecso/issues/new).
+If you feel something could be added or fixed in either the [wiki](https://github.com/EcsoKit/ecso/wiki) or in the public API: don't hesitate to submit a pull-request or [open a new issue](https://github.com/EcsoKit/ecso/issues/new).
