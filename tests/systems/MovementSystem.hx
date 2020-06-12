@@ -1,8 +1,7 @@
 package tests.systems;
 
 import ecso.Entity;
-import tests.components.PositionComponent;
-import tests.components.VelocityComponent;
+import tests.components.*;
 
 class MovementSystem {
 
