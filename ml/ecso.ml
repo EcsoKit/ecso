@@ -16,8 +16,8 @@ class plugin =
 		method init () =
 			executed <- false;
 			let compiler = (EvalContext.get_ctx()).curapi in
-				compiler.after_typing
-					self#on_after_typing;
+			compiler.after_typing
+				self#on_after_typing;
 			vnull
 
 		method on_after_typing (ml : module_type list) =
