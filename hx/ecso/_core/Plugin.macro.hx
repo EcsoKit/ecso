@@ -30,7 +30,10 @@ class Plugin {
 			plugin = try {
 				eval.vm.Context.loadPlugin( getPluginPath() );
 			} catch (e:String) {
-				throw '[ECSO] Failed to load plugin: $e';
+				if (e.indexOf("Ecso__' is already loaded") > 0)
+					throw "[ECSO] Some errors are preventing the compilation. Try to restart the Completion Server.";
+				else
+					throw '[ECSO] Failed to load plugin: $e';
 			}
 		} else {
 			plugin;
