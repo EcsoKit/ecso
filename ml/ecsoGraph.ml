@@ -684,7 +684,6 @@ module EcsoGraph = struct
 								if ctx.ctx_debug_gen >= EcsoContext.simple_debugging then begin
 									Hashtbl.add debug_buffer "foreach-entity" (s_archetype archetype);
 								end;
-								let entity_type = TAnon { a_fields = archetype.a_components; a_status = ref Closed } in
 								let rset = RsetGenerator.retrieve_or_gen_rset RMonolist ctx archetype in
 								let gen_system_block (entity : texpr) =
 									let write_rt_entity_check e : texpr =
@@ -721,7 +720,7 @@ module EcsoGraph = struct
 									write_rt_entity_check
 										(gen_next_requirement (List.tl r_list) (entity :: system_args))
 								in
-								let e = rset.gen_iter group p gen_system_block entity_type in
+								let e = rset.gen_iter group p gen_system_block t in
 								list_iterations := (e :: !list_iterations)
 							)
 							required_archetype
