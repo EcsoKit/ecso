@@ -1147,8 +1147,6 @@ module EcsoGraph = struct
 									v' (* Avoid multiple declaration per copy *)
 								| None ->
 									let v' = alloc_var VGenerated ("_ECSO_" ^ v.v_name ^ "_") v.v_type v.v_pos in
-									Hashtbl.add local_cache v.v_id v';
-									Hashtbl.add local_cache v'.v_id v';
 									v'.v_meta <- (Meta.Custom ("$ecso.v_clone" ^ string_of_int v'.v_id),[],v.v_pos) :: v.v_meta;
 									v'.v_extra <- v.v_extra;
 									decl_prel := (mk_local_decl v' None) :: !decl_prel;
