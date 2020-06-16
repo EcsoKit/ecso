@@ -4,6 +4,16 @@ import js.Browser.window;
 import js.Browser.document;
 import js.html.CanvasElement;
 
+inline var NUM_ELEMENTS = 600;
+inline var SPEED_MULTIPLIER = 0.1;
+inline var SHAPE_SIZE = 20;
+inline var SHAPE_HALF_SIZE = SHAPE_SIZE / 2;
+
+var canvas : CanvasElement;
+var canvasHeight = 0.0;
+var canvasWidth = 0.0;
+var ctx : CanvasRenderingContext2D;
+
 //----------------------
 // Components
 //----------------------
@@ -33,11 +43,11 @@ enum abstract Primitive (Int) {
 // Define an archetype  of both "Velocity" and "Position"
 typedef Moving = Velocity & Position
 
-
 //----------------------
 // Systems
 //----------------------
 
+// MovableSystem
 function movableSystem(delta : Float, entity : Velocity & Position) {
 	entity.x += entity.vx * delta;
 	entity.y += entity.vy * delta;
@@ -48,14 +58,8 @@ function movableSystem(delta : Float, entity : Velocity & Position) {
 	if (entity.y < - SHAPE_HALF_SIZE) entity.y = canvasHeight + SHAPE_HALF_SIZE;
 }
 
-function clearCanvas(ctx : CanvasRenderingContext2D) {
-	ctx.globalAlpha = 1;
-	ctx.fillStyle = "#ffffff";
-	ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-	//ctx.globalAlpha = 0.6;
-}
-
-function renderSystem(ctx : CanvasRenderingContext2D, entity : Shape & Position) {
+// RendererSystem
+function renderSystem(entity : Shape & Position) {
 	switch entity.primitive {
 		case Box:
 			ctx.beginPath();
@@ -80,13 +84,7 @@ function renderSystem(ctx : CanvasRenderingContext2D, entity : Shape & Position)
 // Create the world
 //----------------------
 
-inline var NUM_ELEMENTS = 600;
-inline var SPEED_MULTIPLIER = 0.1;
-inline var SHAPE_SIZE = 20;
-inline var SHAPE_HALF_SIZE = SHAPE_SIZE / 2;
-
-var canvasHeight = 0.0;
-var canvasWidth = 0.0;
+var entities : EntityGroup;
 
 function createWorld() {
 
@@ -103,7 +101,7 @@ function createWorld() {
 		return Math.random() >= 0.5 ? Circle : Box;
 	}
 
-	var entities = new EntityGroup();
+	entities = new EntityGroup();
 
 	for (_ in 0...NUM_ELEMENTS) {
 		entities.createEntity({
@@ -114,42 +112,38 @@ function createWorld() {
 			primitive: getRandomShape()
 		});   
 	}
-
-	return entities;
 }
 
 //----------------------
 // Run!
 //----------------------
 
-var ctx : CanvasRenderingContext2D;
-var entities : EntityGroup;
 var lastTime : Float;
 
-function run(?_) {
-	
+function run(_) {
 	// Compute delta and elapsed time
 	var time = window.performance.now();
 	var delta = time - lastTime;
 	
-	// Reset canvas
-	clearCanvas( ctx );
-
 	// Run all the systems
-	entities.foreachEntity(
-		inline movableSystem.bind( delta ),
-		inline renderSystem.bind( ctx )
-	);
+	entities.foreachEntity( movableSystem.bind(delta) );
+	clearCanvas();
+	entities.foreachEntity( renderSystem );
 
 	lastTime = time;
 	window.requestAnimationFrame( run );
 }
 
+function clearCanvas() {
+	ctx.globalAlpha = 1;
+	ctx.fillStyle = "#ffffff";
+	ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+	//ctx.globalAlpha = 0.6;
+}
+
 //----------------------
 // Entry point
 //----------------------
-
-var canvas : CanvasElement;
 
 function main() {
 	window.addEventListener( "load", init );
@@ -157,15 +151,16 @@ function main() {
 
 function init() {
 	canvas = cast document.getElementById( "game" );
+	ctx = cast canvas.getContext( "2d" );
 	
+	// Resize event
 	resize();
 	window.addEventListener( "resize", resize, false );
 	
 	// Start
-	ctx = cast canvas.getContext( "2d" );
-	entities = createWorld();
+	createWorld();
 	lastTime = window.performance.now();
-	run();
+	window.requestAnimationFrame( run );
 }
 
 function resize() {
