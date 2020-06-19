@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
 
       - name: Install Neko using snapshot from S3 (Windows)
         if: startsWith(env.PLATFORM, 'windows')
@@ -91,7 +91,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` haxe 2>&1')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=${{github.workspace}}/plugins/ecso/ml/ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win haxelib 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
 
       - name: Install Neko using snapshot from S3 (Windows)
         if: startsWith(env.PLATFORM, 'windows')
@@ -184,7 +184,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` haxe 2>&1')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=${{github.workspace}}/plugins/ecso/ml/ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win haxelib 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
@@ -213,7 +213,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
 
       - name: Install dependencies
         run: |
@@ -238,7 +238,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`nproc` STATICLINK=1 haxe
-          opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=${{github.workspace}}/plugins/ecso/ml/ecso plugin
+          opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
           opam config exec -- make -s haxelib
           make -s package_unix
           ls -l out
@@ -277,7 +277,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
 
       - name: Install Neko using homebrew (Mac)
         if: (startsWith(env.PLATFORM, 'mac'))
@@ -312,7 +312,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/opt/zlib/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" haxe
-          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/opt/zlib/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=${{github.workspace}}/plugins/ecso/ml/ecso plugin
+          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/opt/zlib/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
           opam config exec -- make -s haxelib
           make -s package_unix
           ls -l out
@@ -348,7 +348,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -442,7 +442,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -546,7 +546,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
       - uses: actions/download-artifact@v1
         with:
           name: linuxBinaries
@@ -634,7 +634,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-          path: '$GITHUB_WORKSPACE/plugins/ecso'
+          path: 'plugins/ecso'
       - uses: actions/download-artifact@v1
         with:
           name: macBinaries
