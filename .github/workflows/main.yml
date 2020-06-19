@@ -101,7 +101,7 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
           path: plugins/ecso/cmxs/*
@@ -201,7 +201,7 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
           path: plugins/ecso/cmxs/*
@@ -271,7 +271,7 @@ jobs:
           EOL
       
       - name: Upload Ecso
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: ecso-linuxBinaries
           path: plugins/ecso/cmxs/*
@@ -340,7 +340,7 @@ jobs:
           otool -L ./haxelib
       
       - name: Upload Ecso
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: ecso-macBinaries
           path: plugins/ecso/cmxs/*
@@ -375,7 +375,7 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
       - uses: actions/download-artifact@v1
@@ -472,7 +472,7 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
       - uses: actions/download-artifact@v1
@@ -579,7 +579,7 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: ecso-linuxBinaries
       - uses: actions/download-artifact@v1
@@ -670,7 +670,7 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: ecso-macBinaries
       - uses: actions/download-artifact@v1
