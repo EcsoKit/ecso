@@ -99,6 +99,12 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: ecso-win${{env.ARCH}}Binaries
+          path: plugins/ecso/cmxs/*/plugin.cmxs
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
@@ -192,6 +198,12 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: ecso-win${{env.ARCH}}Binaries
+          path: plugins/ecso/cmxs/*/plugin.cmxs
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
@@ -256,6 +268,12 @@ jobs:
             }
           EOL
       
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: ecso-linuxBinaries
+          path: plugins/ecso/cmxs/*/plugin.cmxs
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
@@ -319,6 +337,12 @@ jobs:
           otool -L ./haxe
           otool -L ./haxelib
       
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: ecso-macBinaries
+          path: plugins/ecso/cmxs/*/plugin.cmxs
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
@@ -349,6 +373,9 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
+      - uses: actions/download-artifact@v1
+        with:
+          name: ecso-win${{env.ARCH}}Binaries
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -443,6 +470,9 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
+      - uses: actions/download-artifact@v1
+        with:
+          name: ecso-win${{env.ARCH}}Binaries
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -549,6 +579,9 @@ jobs:
           path: 'plugins/ecso'
       - uses: actions/download-artifact@v1
         with:
+          name: ecso-linuxBinaries
+      - uses: actions/download-artifact@v1
+        with:
           name: linuxBinaries
 
       - name: Install Neko using apt-get (Linux)
@@ -635,6 +668,9 @@ jobs:
         with:
           submodules: recursive
           path: 'plugins/ecso'
+      - uses: actions/download-artifact@v1
+        with:
+          name: ecso-macBinaries
       - uses: actions/download-artifact@v1
         with:
           name: macBinaries
