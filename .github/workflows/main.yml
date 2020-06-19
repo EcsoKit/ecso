@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
-          path: plugins/ecso/cmxs/*/plugin.cmxs
+          path: plugins/ecso/cmxs/*/
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -204,7 +204,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso-win${{env.ARCH}}Binaries
-          path: plugins/ecso/cmxs/*/plugin.cmxs
+          path: plugins/ecso/cmxs/*/
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -274,7 +274,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso-linuxBinaries
-          path: plugins/ecso/cmxs/*/plugin.cmxs
+          path: plugins/ecso/cmxs/*/
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -343,7 +343,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso-macBinaries
-          path: plugins/ecso/cmxs/*/plugin.cmxs
+          path: plugins/ecso/cmxs/*/
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
