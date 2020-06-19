@@ -86,7 +86,7 @@ jobs:
         shell: pwsh
         run: Write-Host "::add-path::${env:CYG_ROOT}/usr/$($env:MINGW_ARCH)-w64-mingw32/sys-root/mingw/bin"
       
-      - name: Build Haxe
+      - name: Build Haxe + Ecso
         shell: pwsh
         run: |
           Set-PSDebug -Trace 1
@@ -179,7 +179,7 @@ jobs:
         shell: pwsh
         run: Write-Host "::add-path::${env:CYG_ROOT}/usr/$($env:MINGW_ARCH)-w64-mingw32/sys-root/mingw/bin"
       
-      - name: Build Haxe
+      - name: Build Haxe + Ecso
         shell: pwsh
         run: |
           Set-PSDebug -Trace 1
@@ -233,7 +233,7 @@ jobs:
           opam list
           ocamlopt -v
       
-      - name: Build Haxe
+      - name: Build Haxe + Ecso
         run: |
           set -ex
           eval $(opam env)
@@ -307,7 +307,7 @@ jobs:
           opam list
           ocamlopt -v
       
-      - name: Build Haxe
+      - name: Build Haxe + Ecso
         run: |
           set -ex
           eval $(opam env)
