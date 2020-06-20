@@ -103,8 +103,24 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
-          name: ecso-win${{env.ARCH}}Binaries
-          path: plugins/ecso/cmxs/*/
+          name: ecso
+          path: plugins/ecso/cmxs
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/hx
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.md
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.hxml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -203,8 +219,24 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
-          name: ecso-win${{env.ARCH}}Binaries
-          path: plugins/ecso/cmxs/*/
+          name: ecso
+          path: plugins/ecso/cmxs
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/hx
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.md
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.hxml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -273,8 +305,24 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
-          name: ecso-linuxBinaries
-          path: plugins/ecso/cmxs/*/
+          name: ecso
+          path: plugins/ecso/cmxs
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/hx
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.md
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.hxml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -342,8 +390,24 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
-          name: ecso-macBinaries
-          path: plugins/ecso/cmxs/*/
+          name: ecso
+          path: plugins/ecso/cmxs
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/hx
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.md
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.hxml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/*.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -377,7 +441,8 @@ jobs:
           path: 'plugins/ecso'
       - uses: actions/download-artifact@v2
         with:
-          name: ecso-win${{env.ARCH}}Binaries
+          name: ecso
+          path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -474,7 +539,8 @@ jobs:
           path: 'plugins/ecso'
       - uses: actions/download-artifact@v2
         with:
-          name: ecso-win${{env.ARCH}}Binaries
+          name: ecso
+          path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
@@ -581,7 +647,8 @@ jobs:
           path: 'plugins/ecso'
       - uses: actions/download-artifact@v2
         with:
-          name: ecso-linuxBinaries
+          name: ecso
+          path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
         with:
           name: linuxBinaries
@@ -672,7 +739,8 @@ jobs:
           path: 'plugins/ecso'
       - uses: actions/download-artifact@v2
         with:
-          name: ecso-macBinaries
+          name: ecso
+          path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
         with:
           name: macBinaries
