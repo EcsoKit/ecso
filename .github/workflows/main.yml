@@ -104,23 +104,37 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/cmxs
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.cmxs
+      
+      - name: . . . add sources
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/hx
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.hx
+      
+      - name: . . . add readme
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.md
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/README.md
+      
+      - name: . . . add license
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.hxml
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/LICENSE.md
+      
+      - name: . . . add extraParams.hxml
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.json
+          path: plugins/ecso/extraParams.hxml
+      
+      - name: . . . add haxelib.json
+        uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -220,23 +234,37 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/cmxs
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.cmxs
+      
+      - name: . . . add sources
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/hx
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.hx
+      
+      - name: . . . add readme
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.md
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/README.md
+      
+      - name: . . . add license
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.hxml
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/LICENSE.md
+      
+      - name: . . . add extraParams.hxml
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.json
+          path: plugins/ecso/extraParams.hxml
+      
+      - name: . . . add haxelib.json
+        uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -306,23 +334,37 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/cmxs
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.cmxs
+      
+      - name: . . . add sources
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/hx
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.hx
+      
+      - name: . . . add readme
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.md
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/README.md
+      
+      - name: . . . add license
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.hxml
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/LICENSE.md
+      
+      - name: . . . add extraParams.hxml
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.json
+          path: plugins/ecso/extraParams.hxml
+      
+      - name: . . . add haxelib.json
+        uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
@@ -391,23 +433,37 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/cmxs
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.cmxs
+      
+      - name: . . . add sources
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/hx
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/**/*.hx
+      
+      - name: . . . add readme
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.md
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/README.md
+      
+      - name: . . . add license
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.hxml
-      - uses: actions/upload-artifact@v2
+          path: plugins/ecso/LICENSE.md
+      
+      - name: . . . add extraParams.hxml
+        uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/*.json
+          path: plugins/ecso/extraParams.hxml
+      
+      - name: . . . add haxelib.json
+        uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
