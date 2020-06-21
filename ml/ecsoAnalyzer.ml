@@ -211,15 +211,15 @@ module EcsoFilterFields = struct
 		if actx.a_ctx.ctx_debug_gen >= EcsoContext.simple_debugging then begin
 			print_endline "{ECSO} | Generation Repport";
 			let key_cacke = ref "" in
-			Seq.iter
-				(fun k ->
+			Hashtbl.iter
+				(fun k _ ->
 					if k = !key_cacke then ()
 					else begin
 						print_list_br ("              | " ^ k ^ " ") (fun v -> v) (Hashtbl.find_all debug_buffer k) ~cache:true;
 						key_cacke := k;
 					end
 				)
-				(Hashtbl.to_seq_keys debug_buffer)
+				(debug_buffer)
 		end
 	
 	let registered (actx : EcsoAnalyzer.t) (id : string) : bool =
