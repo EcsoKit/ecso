@@ -43,7 +43,15 @@ class Plugin {
 	static function getPluginPath ():String {
 		final currentFile = (function(?p:PosInfos) return p.fileName)();
 		final srcDir = currentFile.directory().directory().directory().directory();
-		return Path.join([srcDir, 'cmxs', Sys.systemName(), 'plugin.cmxs']);
+		final system = Sys.systemName();
+		final system = switch Sys.systemName() {
+			case "Windows":
+				final arch = Sys.environment()["processor_architecture"];
+				"Windows" + (arch == null || arch.indexOf("64") >= 0 ? "64" : "32");
+			case s:
+				s;
+		}
+		return Path.join([srcDir, 'cmxs', system, 'plugin.cmxs']);
 	}
 
 }
