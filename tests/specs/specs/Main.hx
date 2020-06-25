@@ -1,10 +1,10 @@
-package tests;
+package specs;
 
 import buddy.*;
 import ecso.Entity;
-import tests.components.*;
-import tests.systems.*;
-import tests.units.*;
+import specs.components.*;
+import specs.systems.*;
+import specs.units.*;
 using buddy.Should;
 
 class Main implements Buddy<[

@@ -568,7 +568,7 @@ jobs:
       - name: Test
         shell: pwsh
         run: haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/tests
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
   windows-test:
@@ -666,7 +666,7 @@ jobs:
       - name: Test
         shell: pwsh
         run: haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/tests
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
   linux-test:
@@ -761,12 +761,12 @@ jobs:
       - name: Test
         if: success() && !(matrix.SAUCE && matrix.SAUCE_ACCESS_KEY)
         run: haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/tests
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
       
       - name: Test (with SauceLabs)
         if: matrix.target == 'js' && success() && matrix.SAUCE && matrix.SAUCE_ACCESS_KEY
         run: haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/tests
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
         env:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
       
@@ -845,5 +845,5 @@ jobs:
           # disable invalid Unicode filenames on APFS
           echo "" > sys/compile-fs.hxml
           haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/tests
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
       

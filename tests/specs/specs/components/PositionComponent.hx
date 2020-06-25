@@ -1,4 +1,4 @@
-package tests.components;
+package specs.components;
 
 typedef PositionComponent = {
 
