@@ -1,9 +1,9 @@
-package tests.units;
+package specs.units;
 
 import utest.*;
 import utest.ui.common.*;
 import ecso.Entity;
-import tests.systems.*;
+import specs.systems.*;
 
 class CustomGroup {
     public function new () {}

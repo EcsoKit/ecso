@@ -1,0 +1,7 @@
+--library buddy
+--library utest
+--library ecso
+--main specs.Main
+
+--define analyzer-optimize
+--dce full

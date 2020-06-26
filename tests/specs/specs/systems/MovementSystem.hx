@@ -1,7 +1,7 @@
-package tests.systems;
+package specs.systems;
 
 import ecso.Entity;
-import tests.components.*;
+import specs.components.*;
 
 class MovementSystem {
 
