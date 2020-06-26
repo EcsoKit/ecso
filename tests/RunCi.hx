@@ -15,9 +15,6 @@ function main() {
 			[for (v in env.split(",")) v.trim().toLowerCase()];
 	}
 
-	if (isCi() && tests.length > 1)
-		tests.unshift(Interp);
-
 	haxelibInstallDev('ecso', repoDir);
 	infoMsg('Going to test: $tests');
 
@@ -57,9 +54,9 @@ function main() {
 				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Js | Java | Jvm | Cs | Flash9:
 					infoMsg("skip tests");
 				case Interp:
-					changeDirectory(specsDir);
-					runCommand("haxe", ["compile-interp.hxml"].concat(args));
 					changeDirectory(unitsDir);
+					runCommand("haxe", ["compile-interp.hxml"].concat(args));
+					changeDirectory(specsDir);
 					runCommand("haxe", ["compile-interp.hxml"].concat(args));
 				case Hl:
 					testHaxe(Hl);
@@ -68,12 +65,12 @@ function main() {
 						case [GithubActions, _]: Path.join([Sys.getEnv("HOME"), "hashlink_build", "bin", "hl"]);
 						case _: "hl";
 					};
-					changeDirectory(specsDir);
-					runCommand("haxe", ["compile-hl.hxml"].concat(args));
-					runCommand(hlBinary, ["bin/specs.hl"]);
 					changeDirectory(unitsDir);
 					runCommand("haxe", ["compile-hl.hxml"].concat(args));
 					runCommand(hlBinary, ["bin/units.hl"]);
+					changeDirectory(specsDir);
+					runCommand("haxe", ["compile-hl.hxml"].concat(args));
+					runCommand(hlBinary, ["bin/specs.hl"]);
 				case t:
 					throw new Exception("unknown target: " + t);
 			}
