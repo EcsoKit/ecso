@@ -1,0 +1,4 @@
+- uses: actions/checkout@v2
+  with:
+    submodules: recursive
+    path: 'plugins/ecso'

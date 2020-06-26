@@ -1,0 +1,5 @@
+- uses: actions/checkout@v2
+  with:
+    repository: 'HaxeFoundation/haxe'
+    submodules: recursive
+    ref: '::HAXE_VERSION::'
