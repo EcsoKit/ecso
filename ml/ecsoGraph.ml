@@ -656,7 +656,10 @@ module EcsoGraph = struct
 				let p = system.greal.epos in
 				let used = ref true in
 				let gen_system_call (args : texpr list) : texpr =
-					mk (TCall (f system, args)) api.tvoid p
+					let t = api.tvoid in
+					let tcall = mk (TCall (f system, args)) t p in
+					let nullsafety_off = (Meta.NullSafety, [(EConst (Ident "Off"), p)], p) in
+					mk (TMeta(nullsafety_off, tcall)) t p
 				in
 				let rec gen_next_requirement (r_list : (string * bool * t) list) (system_args : texpr list) : texpr =
 					if List.length r_list = 0 then

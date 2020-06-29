@@ -65,18 +65,18 @@ class Units extends buddy.SingleSuite {
                 Assert.equals(2, staticCount);
             });
 
-            // it('with null safety', {
-            //     nullSafety();
-            // });
+            it('with null safety', {
+                nullSafety();
+            });
         });
     }
 
-    // @:nullSafety(Strict) function nullSafety () {
-    //     staticCount = 0;
-    //     entities.foreachEntity(staticPre);
-    //     entities.foreachEntity(staticPost);
-    //     Assert.equals(2, staticCount);
-    // }
+    @:nullSafety(Strict) function nullSafety () {
+        staticCount = 0;
+        entities.foreachEntity(staticPre);
+        entities.foreachEntity(staticPost);
+        Assert.equals(2, staticCount);
+    }
 
     // members
 
