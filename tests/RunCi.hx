@@ -1,3 +1,4 @@
+import sys.FileSystem;
 import haxe.io.Path;
 import haxe.Exception;
 import runci.System;
@@ -23,6 +24,20 @@ function main() {
 			Sys.putEnv("TEST", Std.string(target));
 			changeDirectory(Path.join([repoDir, "../../tests"]));
 			runCommand("haxe", ["RunCi.hxml"]);
+		}
+	}
+
+	function testIssues(target:TestTarget, args:Array<String>, ?run:String->Void) {
+		changeDirectory(unitsDir);
+		for (file in FileSystem.readDirectory("units/issues")) {
+			if (!file.endsWith(".hx") || !file.startsWith("Issue")) {
+				continue;
+			}
+			var issue = file.substring(5, file.length - 3);
+			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])));
+			if (run != null) {
+				run("units");
+			}
 		}
 	}
 
@@ -54,23 +69,34 @@ function main() {
 				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Js | Java | Jvm | Cs | Flash9:
 					infoMsg("skip tests");
 				case Interp:
+					testIssues(Interp, args);
+
 					changeDirectory(unitsDir);
 					runCommand("haxe", ["compile-interp.hxml"].concat(args));
+
 					changeDirectory(specsDir);
 					runCommand("haxe", ["compile-interp.hxml"].concat(args));
 				case Hl:
 					testHaxe(Hl);
-					final hlBinary = switch [ci, systemName] {
-						case [GithubActions, "Windows"]: "C:\\hashlink_build\\bin\\hl.exe";
-						case [GithubActions, _]: Path.join([Sys.getEnv("HOME"), "hashlink_build", "bin", "hl"]);
-						case _: "hl";
-					};
+
+					function runHl(name:String) {
+						final hlBinary = switch [ci, systemName] {
+							case [GithubActions, "Windows"]: "C:\\hashlink_build\\bin\\hl.exe";
+							case [GithubActions, _]: Path.join([Sys.getEnv("HOME"), "hashlink_build", "bin", "hl"]);
+							case _: "hl";
+						};
+						runCommand(hlBinary, ['bin/$name.hl']);
+					}
+
+					testIssues(Hl, args, runHl);
+
 					changeDirectory(unitsDir);
 					runCommand("haxe", ["compile-hl.hxml"].concat(args));
-					runCommand(hlBinary, ["bin/units.hl"]);
+					runHl("units");
+
 					changeDirectory(specsDir);
 					runCommand("haxe", ["compile-hl.hxml"].concat(args));
-					runCommand(hlBinary, ["bin/specs.hl"]);
+					runHl("specs");
 				case t:
 					throw new Exception("unknown target: " + t);
 			}

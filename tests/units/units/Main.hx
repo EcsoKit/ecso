@@ -4,9 +4,12 @@ import utest.ui.Report;
 import utest.Runner;
 
 function main() {
-	var classes = [];
 
-	Issues.addClasses('units/issues', 'units.issues');
+	var classes = #if issue [
+		Issues.instantiateFrom('units.issues')
+	] #else [
+		return // no tests atm.
+	] #end;
 
 	var runner = new Runner();
 
