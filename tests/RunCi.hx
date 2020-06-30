@@ -65,7 +65,7 @@ function main() {
 
 			args = args.concat(["-D", systemName]);
 
-			switch (test) {
+			switch test {
 				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Js | Java | Jvm | Cs | Flash9:
 					infoMsg("skip tests");
 				case Interp:
