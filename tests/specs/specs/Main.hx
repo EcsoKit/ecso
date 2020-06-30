@@ -258,12 +258,12 @@ private class CoreSpecification extends BuddySuite {
                         count++;
                     });
                     count.should.be(1);
-                    entities.createEntity({ z: 2 });
+                    entities.createEntity({ x: 0, y: 0, z: 1 });
                     var totalz = 0;
                     entities.foreachEntity((e:PositionComponent, sibling:{ z:Int }) -> {
                         totalz += sibling.z;
                     });
-                    totalz.should.be(4);
+                    totalz.should.be(2);
                 });
                 it('with undirect function value', {
                     var positive = Math.random() > .5;
