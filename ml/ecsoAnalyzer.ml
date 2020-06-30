@@ -547,18 +547,22 @@ module EcsoArchetypeAnalyzer = struct
 								(* It is assumed that each component has an unique name *)
 								let cumulate_components a1 a2 =
 									let does_share_components a1 a2 =
-										let partial_share = ref false in
-										PMap.iter (fun name cf ->
-												if (try PMap.find name a2.a_components; true with | Not_found -> false) then
-													partial_share := true
-											)
-											a1.a_components;
-										PMap.iter (fun name cf ->
-												if (try PMap.find name a1.a_components; true with | Not_found -> false) then
-													partial_share := true
-											)
-											a2.a_components;
-										!partial_share
+										if PMap.is_empty a1.a_components || PMap.is_empty a2.a_components then
+											true
+										else begin
+											let partial_share = ref false in
+											PMap.iter (fun name cf ->
+													if (try PMap.find name a2.a_components; true with | Not_found -> false) then
+														partial_share := true
+												)
+												a1.a_components;
+											PMap.iter (fun name cf ->
+													if (try PMap.find name a1.a_components; true with | Not_found -> false) then
+														partial_share := true
+												)
+												a2.a_components;
+											!partial_share
+										end
 									in
 									let fill_one_to_another (a : archetype) (a' : archetype) =
 										PMap.iter
