@@ -155,7 +155,7 @@ module RsetGenerator = struct
 				cf_type = push.cf_type;
 			}
 		| _ -> 
-			print_endline ("{ECSO} unhandled get_field_access type for " ^ (s_type_kind t) ^ " - please report this at https://github.com/dpomier/ecso/issues/new");
+			print_endline ("{ECSO} unhandled get_field_access type for " ^ (s_type_kind t) ^ " - please report this at https://github.com/EcsoKit/ecso/issues");
 			assert false
 
 	type rset_kind =
@@ -230,7 +230,7 @@ module RsetGenerator = struct
 		match ctx.ctx_group.eg_t with
 		| TClassDecl cl -> cl,(if ctx.ctx_group.eg_static then cl.cl_statics else cl.cl_fields)
 		| _ ->
-			print_endline ("{ECSO} invalid entity group instance - please report this at https://github.com/dpomier/ecso/issues/new");
+			print_endline ("{ECSO} invalid entity group instance - please report this at https://github.com/EcsoKit/ecso/issues");
 			assert false
 
 	let retrieve_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_status =
@@ -286,7 +286,7 @@ module RsetGenerator = struct
 			match retrieve_rset RMonolist ctx def with
 			| Retrieved impl -> impl
 			| Missing _ ->
-				print_endline "{ECSO} could not generate correctly - please report this at https://github.com/dpomier/ecso/issues/new";
+				print_endline "{ECSO} could not generate correctly - please report this at https://github.com/EcsoKit/ecso/issues";
 				assert false
 		
 	let retrieve_or_gen_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_impl =

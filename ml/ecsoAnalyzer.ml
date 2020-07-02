@@ -398,7 +398,7 @@ module CheckComponentGlobalization = struct
 					| FInstance (_,_,cf)
 					| FStatic (_,cf) -> cf.cf_name
 					| FDynamic n -> n
-					| FEnum _ -> Error.error "{ECSO} unsupported entity kind - please report this at https://github.com/dpomier/ecso/issues/new" g.greal.epos
+					| FEnum _ -> Error.error "{ECSO} unsupported entity kind - please report this at https://github.com/EcsoKit/ecso/issues" g.greal.epos
 				in
 				(* Forbid downcasting mutations *)
 				begin
