@@ -36,15 +36,17 @@ class Plugin {
 		final srcDir = thisFile.directory().directory().directory().directory();
 		final system = switch Sys.systemName() {
 			case "Windows":
-				final arch = switch Sys.environment()["processor_architecture"] {
-					case null:
-						Context.warning("{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues", Context.currentPos());
-						"64";
+				final wmic = new sys.io.Process("WMIC OS GET osarchitecture /value");
+				final arch = switch wmic.stdout.readAll().toString() {
 					case v if (v.indexOf("64") >= 0):
 						"64";
-					case _:
+					case v if (v.indexOf("32") >= 0):
 						"32";
+					case _:
+						Context.warning("{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues", Context.currentPos());
+						"64";
 				}
+				wmic.close();
 				'Windows$arch';
 			case s:
 				s;
