@@ -28,7 +28,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -159,7 +159,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -285,7 +285,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -385,7 +385,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -492,7 +492,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -590,7 +590,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -698,7 +698,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -790,7 +790,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '7a3f246e54d7c796ee23110b86552de0393ad8f8'
+          ref: '32a5b1ccabfc871df75d65862ed8cfd24fd1df1e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
