@@ -62,6 +62,10 @@ function main () {
 
 For more details about `ecso` please visit [the wiki page](https://github.com/EcsoKit/ecso/wiki).
 
-# Build Instructions
+# How to install
 
-To build `ecso` from source on your system, you can refer to the [installation](https://github.com/EcsoKit/ecso/wiki/Installation) page.
+To use `ecso` on your system, you can refer to the [installation](https://github.com/EcsoKit/ecso/wiki/Installation) page.
+
+# Contribution
+
+Any kind of contribution is welcome and appreciated. You can read more [here](https://github.com/EcsoKit/ecso/blob/master/CONTRIBUTING.md). Thank you!
