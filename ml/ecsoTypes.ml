@@ -153,11 +153,10 @@ let rec archetype_of_type t p =
 		archetype_of_type td.t_type p
 	| TAnon a ->
 		{ a_components = a.a_fields; }
+	| TDynamic _
+	| TMono { tm_type = None }
 	| TAbstract ({ a_path = [],"Any" }, []) ->
 		archetype_of_type (TAnon { a_fields = PMap.empty; a_status = ref Closed }) p
-	| TDynamic _
-	| TMono { tm_type = None } ->
-		Error.error ("[ECSO] Cannot use " ^ TPrinting.Printer.s_type t ^ " as entity") p
 	| _ ->
 		Error.error "[ECSO] Cannot use non-anonymous structure as entity" p
 
