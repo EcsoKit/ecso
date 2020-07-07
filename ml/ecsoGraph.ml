@@ -914,6 +914,7 @@ module EcsoGraph = struct
 				
 				acc,e,VBranch[e1] (* intentionally forwards the local *)
 			| TBinop (op,e1,e2) ->
+				let is_writting = match op with | OpAssign | OpAssignOp _ -> true | _ -> false in
 				let is_entity e vl =
 					let entity = ref false in
 					let always = ref true in
@@ -958,7 +959,7 @@ module EcsoGraph = struct
 
 						let is_entity,always = is_entity fe fvl in
 						let e =
-							if is_entity then begin
+							if is_writting && is_entity then begin
 								let entity = (fe,fvl) in
 								(* Transform e2 as an entity value *)
 								begin match vl2 with
