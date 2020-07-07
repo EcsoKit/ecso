@@ -935,7 +935,7 @@ module EcsoGraph = struct
 						let transform e1v =
 							match e1v.gexpr with
 							| GLocal (v,_) when Meta.has EcsoMeta.entity v.v_meta ->
-								f v e2v
+								f v { greal = e2v.greal; gexpr = e2v.gexpr; }
 							| _ ->
 								normal_binop e1v e2v
 						in
