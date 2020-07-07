@@ -382,6 +382,40 @@ module EcsoGraph = struct
 		| GEnumParameter of gexpr * tenum_field * int
 		| GEnumIndex of gexpr
 		(* | GIdent of string *)
+	
+	let s_gexpr_kind ge : string =
+		match ge with
+		| GEcsoCreate _ -> "GEcsoCreate"
+		| GEcsoDelete _ -> "GEcsoDelete"
+		| GEcsoProcess _ -> "GEcsoProcess"
+		| GEcsoSystem _ -> "GEcsoSystem"
+		| GEcsoMutation _ -> "GEcsoMutation"
+		| GReal -> "GReal"
+		| GLocal _ -> "GLocal"
+		| GAssign _ -> "GAssign"
+		| GArray _ -> "GArray"
+		| GBinop _ -> "GBinop"
+		| GField _ -> "GField"
+		| GParenthesis _ -> "GParenthesis"
+		| GObjectDecl _ -> "GObjectDecl"
+		| GArrayDecl _ -> "GArrayDecl"
+		| GCall _ -> "GCall"
+		| GNew _ -> "GNew"
+		| GUnop _ -> "GUnop"
+		| GFunction _ -> "GFunction"
+		| GVar _ -> "GVar"
+		| GBlock _ -> "GBlock"
+		| GFor _ -> "GFor"
+		| GIf _ -> "GIf"
+		| GWhile _ -> "GWhile"
+		| GSwitch _ -> "GSwitch"
+		| GTry _ -> "GTry"
+		| GReturn _ -> "GReturn"
+		| GThrow _ -> "GThrow"
+		| GCast _ -> "GCast"
+		| GMeta _ -> "GMeta"
+		| GEnumParameter _ -> "GEnumParameter"
+		| GEnumIndex _ -> "GEnumIndex"
 
 	let mk_srequirement ((v,eo) : tvar * texpr option) : srequirement =
 		begin match eo with | None -> () | Some _ -> Error.error "{ECSO} Optional entities are not supported yet" v.v_pos end;
