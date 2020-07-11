@@ -7,6 +7,7 @@ final cwd = Sys.getCwd();
 final repoDir = FileSystem.fullPath("..") + "/";
 final specsDir = cwd + "specs/";
 final unitsDir = cwd + "units/";
+final serverDir = cwd + "server/";
 
 enum Ci {
 	GithubActions;

@@ -1,6 +1,7 @@
 package runci;
 
 enum abstract TestTarget(String) from String {
+	var Server = "server";
 	var Interp = "interp";
 	var Macro = "macro";
 	var Neko = "neko";

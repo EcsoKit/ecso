@@ -68,6 +68,11 @@ function main() {
 			switch test {
 				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Js | Java | Jvm | Cs | Flash9:
 					infoMsg("skip tests");
+				case Server:
+					haxelibInstall("hxnodejs");
+					haxelibInstallGit("Simn", "haxeserver");
+					changeDirectory(serverDir);
+					runCommand("haxe", ["run.hxml"].concat(args));
 				case Interp:
 					testIssues(Interp, args);
 

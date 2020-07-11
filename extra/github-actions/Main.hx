@@ -101,13 +101,20 @@ class Main {
 			return matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
 		});
 
-		// Add "interp" to test targets
+		// Add test targets
 		script = matchHaxeTargets.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var targets = reg.matched(1);
 			var list = targets.split(',');
-			return if (list.length > 1 && !targets.contains('interp')) {
-				list.unshift('interp ');
+			return if (list.length > 1) {
+				// start with "interp"
+				if (!targets.contains('interp')) {
+					list[0] = " " + list[0];
+					list.unshift('interp');
+				}
+				// end with "server"
+				if (!targets.contains('server'))
+					list.push(' server');
 				matched.replace(targets, list.join(','));
 			} else {
 				matched;

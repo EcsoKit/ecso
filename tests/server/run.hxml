@@ -1,0 +1,15 @@
+-cp ../../../../tests/display/src-shared
+-cp ../../../../tests/server/src
+-cp ../shared
+--main server.Main
+-js test.js
+-lib hxnodejs
+-lib utest
+-lib haxeserver
+-D analyzer-optimize
+# -D UTEST_PATTERN=9087
+# or set UTEST_PATTERN environment variable
+
+--next
+
+-cmd node test.js
