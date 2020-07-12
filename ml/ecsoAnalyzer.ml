@@ -171,9 +171,9 @@ end
 
 type uexpr =
 	| UNone
-	| UCreate of texpr
-	| UDelete of texpr
-	| UForeach of texpr list
+	| UCreate
+	| UDelete
+	| UForeach
 	
 let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 	match e.eexpr with
@@ -184,9 +184,9 @@ let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 					| [] -> UNone
 					| m :: ml ->
 						match m with
-						| (m,_,p) when m = EcsoMeta.api_create -> UCreate (List.nth al 0)
-						| (m,_,p) when m = EcsoMeta.api_delete -> UDelete (List.nth al 0)
-						| (m,_,p) when m = EcsoMeta.api_foreach -> UForeach al
+						| (m,_,p) when m = EcsoMeta.api_create -> UCreate
+						| (m,_,p) when m = EcsoMeta.api_delete -> UDelete
+						| (m,_,p) when m = EcsoMeta.api_foreach -> UForeach
 						| _ -> find_api ml al
 				in
 				find_api cf.cf_meta fargs
