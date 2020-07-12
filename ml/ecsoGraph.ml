@@ -342,9 +342,9 @@ module EcsoGraph = struct
 	and flow_value = prel * gexpr option * gexpr_value (* prel, expression, value of the expression *)
 
 	and gexpr_expr =
-		| GEcsoCreate of texpr * archetype * gexpr * int
-		| GEcsoDelete of texpr * gexpr * int
-		| GEcsoProcess of texpr * gexpr * int
+		| GEcsoCreate of (texpr * gexpr) * archetype  * int (* (group, obj), archetype, ctx_id *)
+		| GEcsoDelete of texpr * gexpr * int (* group, entity, ctx_id *)
+		| GEcsoProcess of texpr * gexpr * int (* group, system, ctx_id *)
 		| GEcsoSystem of s * int
 		| GEcsoMutation of tvar * tfield_access * Ast.binop * gexpr * int
 		(* | GReal of texpr,gexpr *)
@@ -502,7 +502,7 @@ module EcsoGraph = struct
 		| GCast (e,_)
 		| GUnop (_,_,e)
 		| GFunction (_,e)
-		| GEcsoCreate (_,_,e,_)
+		| GEcsoCreate ((_,e),_,_)
 		| GEcsoDelete (_,e,_)
 		| GEcsoProcess (_,e,_)
 		| GMeta(_,e) ->
@@ -628,7 +628,7 @@ module EcsoGraph = struct
 				{ e with eexpr = TCast (f e1,t) }
 			| GMeta (m,e1) ->
 				{ e with eexpr = TMeta (m,f e1) }
-			| GEcsoCreate (group,a,e1,_) ->
+			| GEcsoCreate ((group,e1),a,_) ->
 
 				let a = match ctx.ctx_storage_mode with
 					| AoS (_,MCumulated,_) -> begin
@@ -1070,7 +1070,7 @@ module EcsoGraph = struct
 					| _ -> 
 						Error.error "[ECSO] Object declaration expected" e1.greal.epos
 				in
-				let e = { greal = e; gexpr = GEcsoCreate (group,archetype,e1,ctx.ctx_id) } in
+				let e = { greal = e; gexpr = GEcsoCreate ((group,e1),archetype,ctx.ctx_id) } in
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },[e1]) when EcsoContext.is_api_delete ctx fa ->
 				let acc,e1,_ = f acc e1 in

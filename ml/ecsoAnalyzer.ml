@@ -366,7 +366,7 @@ module CheckComponentGlobalization = struct
 		let rec check_ecreate (g : gexpr) =
 			EcsoGraph.iter check_ecreate g;
 			match g.gexpr with
-			| GEcsoCreate (_,a,_,ctx_id) when ctx_id = actx.a_ctx.ctx_id ->
+			| GEcsoCreate (_,a,ctx_id) when ctx_id = actx.a_ctx.ctx_id ->
 
 				(* Check name globalization *)
 				if actx.a_ctx.ctx_identity_mode = IGlobal then
@@ -444,9 +444,9 @@ module EcsoArchetypeAnalyzer = struct
 		let rec loop g =
 			iter loop g;
 			match g.gexpr with
-			| GEcsoCreate (group,archetype,obj,ctx_id) when ctx_id = actx.a_ctx.ctx_id ->
-				if not (List.exists (eq_archetype archetype) !archetypes) then
-					archetypes := archetype :: !archetypes
+			| GEcsoCreate (_,a,ctx_id) when ctx_id = actx.a_ctx.ctx_id ->
+				if not (List.exists (eq_archetype a) !archetypes) then
+					archetypes := a :: !archetypes
 			| GEcsoSystem (s,ctx_id) when ctx_id = actx.a_ctx.ctx_id && actx.a_ctx.ctx_mutation_accuracy = MPresumed ->
 				
 				let presume_mutations rl : mutation list =
