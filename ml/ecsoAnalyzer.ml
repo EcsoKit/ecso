@@ -269,7 +269,18 @@ module EcsoFilterFields = struct
 		| Some e -> run_expr actx (register_field actx cl cf e) e
 		| None -> ()
 
+	let add_dependencies (actx : EcsoAnalyzer.t) md =
+		let g = match actx.a_ctx.ctx_group.eg_t with
+			| TClassDecl cl -> cl.cl_module
+			| TEnumDecl en -> en.e_module
+			| TTypeDecl td -> td.t_module
+			| TAbstractDecl ab -> ab.a_module
+		in
+		add_dependency g md;
+		add_dependency md g
+
 	let run_class (actx : EcsoAnalyzer.t) (cl : tclass) : unit =
+		add_dependencies actx cl.cl_module;
 		let s_cl = Globals.s_type_path cl.cl_path in
 		List.iter (run_field actx s_cl) cl.cl_ordered_statics;
 		List.iter (run_field actx s_cl) cl.cl_ordered_fields;
