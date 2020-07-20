@@ -92,8 +92,13 @@ module LocalFlow = struct
 			VarHashtbl.remove lf v;
 			let s = ref "" in
 			begin match VarHashtbl.find_opt lf v with
-			| Some xl' -> VarHashtbl.replace lf v (xl'@xl); s:= !s ^ "concat " ^ string_of_int(List.length xl') ^ " to " ^ string_of_int(List.length xl)
-			| None -> ()
+			| Some xl' ->
+				(* do not commit values that are physically equal with values of the parent branch *)
+				let xl' = List.filter (fun x' -> not (List.exists (fun x -> x == x') xl)) xl' in
+				VarHashtbl.replace lf v (xl'@xl);
+				s:= !s ^ "concat " ^ string_of_int(List.length xl') ^ " to " ^ string_of_int(List.length xl)
+			| None ->
+				()
 			end;
 			if print_debug then begin
 				let all2 = VarHashtbl.find_all lf v in
