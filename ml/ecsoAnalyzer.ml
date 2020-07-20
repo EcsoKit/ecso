@@ -231,7 +231,7 @@ module EcsoFilterFields = struct
 	let restore_graph (actx : EcsoAnalyzer.t) (e : EcsoGraph.gexpr) (d : (string,string) Hashtbl.t) = 
 		Some (EcsoGraph.restore actx.a_global.gl_ectx actx.a_ctx d e)
 
-	let rec register (actx : EcsoAnalyzer.t) (id : string) (e : texpr) (commit : EcsoGraph.gexpr->((string,string) Hashtbl.t)->unit) : unit =
+	let register (actx : EcsoAnalyzer.t) (id : string) (e : texpr) (commit : EcsoGraph.gexpr->((string,string) Hashtbl.t)->unit) : unit =
 		DynArray.add actx.a_ctx.ctx_field_ids id;
 		if not (registered actx id) then begin
 			let g = EcsoGraph.run actx.a_ctx (actx.a_global.gl_ectx.curapi.get_com()) e in
