@@ -63,8 +63,8 @@ class plugin =
 
 			) ctxl;
 
-			()
-
+			if print_ctxs then
+				print_endline "{ECSO} | Done"
 	end
 ;;
 
