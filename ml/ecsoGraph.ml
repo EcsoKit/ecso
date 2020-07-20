@@ -310,7 +310,7 @@ module EcsoGraph = struct
 	}
 
 	and gexpr = {
-		greal : texpr;
+		mutable greal : texpr;
 		mutable gexpr : gexpr_expr;
 	}
 
