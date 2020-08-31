@@ -6,6 +6,10 @@ ecso
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md)
 [![Slack](https://img.shields.io/badge/chat-online-success?style=flat&logo=slack)](https://join.slack.com/t/ecsokit/shared_invite/zt-ex72k2bp-tDx6yJ~zvZc1swdFW6i8Eg)
 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
+[![Slack](https://img.shields.io/badge/chat-online-success?style=flat-square&logo=slack)](https://join.slack.com/t/ecsokit/shared_invite/zt-ex72k2bp-tDx6yJ~zvZc1swdFW6i8Eg)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/EcsoKit/ecso/CI?style=flat-square)](https://github.com/EcsoKit/ecso/actions?query=workflow%3ACI)
+
 ## Features
 
 * **Framework agnostic**: focus exclusively on core ECS aspects.
