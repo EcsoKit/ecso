@@ -16,6 +16,7 @@ class Main {
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
+	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 
 	static function main() {
 		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_VERSION/.github/workflows/main.yml');
@@ -28,6 +29,15 @@ class Main {
 			var action = reg.matched(2);
 			var workflowId = reg.matched(3);
 			return matched.replace(workflowId, WORKFLOW_ID);
+		});
+
+		// Correct path to `compile-fs.hxml`
+		script = matchCompileFs.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var head = reg.matched(1);
+			var path = reg.matched(2);
+			var tail = reg.matched(3);
+			return '$head../../../$path$tail';
 		});
 
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
