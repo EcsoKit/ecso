@@ -8,7 +8,7 @@
   uses: actions/upload-artifact@v2
   with:
     name: ecso
-    path: plugins/ecso/*/ecso/**.hx
+    path: plugins/ecso/*/ecso/*.hx
 
 - name: . . . add readme
   uses: actions/upload-artifact@v2
