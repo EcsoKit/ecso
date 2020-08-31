@@ -853,7 +853,7 @@ jobs:
       - name: Test
         run: |
           # disable invalid Unicode filenames on APFS
-          echo "" > ../../../sys/compile-fs.hxml
+          echo "" > ../../../tests/sys/compile-fs.hxml
           haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
       

@@ -37,7 +37,7 @@ class Main {
 			var head = reg.matched(1);
 			var path = reg.matched(2);
 			var tail = reg.matched(3);
-			return '$head../../../$path$tail';
+			return '$head../../../tests/$path$tail';
 		});
 
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
