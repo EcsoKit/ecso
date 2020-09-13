@@ -1073,7 +1073,7 @@ module EcsoGraph = struct
 						a.a_components <- prune_dead_components a.a_components fl;
 						a
 					| _ -> 
-						Error.error "[ECSO] Object declaration expected" e1.greal.epos
+						Error.error "[ECSO] Object declaration expected in create Entity function" e1.greal.epos
 				in
 				let e = { greal = e; gexpr = GEcsoCreate ((group,e1),archetype,ctx.ctx_id) } in
 				acc,e,VSelf
