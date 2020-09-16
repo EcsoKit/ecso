@@ -582,6 +582,7 @@ jobs:
       
 
   windows-test:
+    if: ${{ false }}
     needs: windows-build
     runs-on: windows-latest
     env:
