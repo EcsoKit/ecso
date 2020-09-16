@@ -17,6 +17,7 @@ class Main {
 	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
+	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
 
 	static function main() {
 		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_VERSION/.github/workflows/main.yml');
@@ -129,6 +130,13 @@ class Main {
 			} else {
 				matched;
 			}
+		});
+
+		// Disable Windows 32 tests
+		script = matchWin32Test.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var br = reg.matched(1);
+			return matched + "if: ${{ false }}" + br;
 		});
 
 		// Save
