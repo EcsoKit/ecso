@@ -1057,7 +1057,7 @@ module EcsoGraph = struct
 					| GObjectDecl fl ->
 						let a = archetype_of_type e1.greal.etype e1.greal.epos in
 						let prune_dead_components cmap fl = 
-							let pruned = ref PMap.empty in
+							let useds = ref PMap.empty in
 							List.iter (fun ((name,pos,quote),e) ->
 								begin match quote with
 								| NoQuotes -> ()
@@ -1065,10 +1065,10 @@ module EcsoGraph = struct
 								end;
 								if not (always_gives_null e) then begin
 									let c = (PMap.find name cmap) in
-									pruned := PMap.add name c !pruned
+									useds := PMap.add name c !useds
 								end
 							) fl;
-							!pruned
+							!useds
 						in
 						a.a_components <- prune_dead_components a.a_components fl;
 						a
