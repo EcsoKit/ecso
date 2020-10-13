@@ -511,7 +511,7 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: win${{env.ARCH}}Binaries
 
@@ -610,7 +610,7 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: win${{env.ARCH}}Binaries
 
@@ -718,7 +718,7 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: linuxBinaries
 
@@ -810,7 +810,7 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: macBinaries
 
