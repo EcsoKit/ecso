@@ -515,11 +515,13 @@ module EcsoArchetypeAnalyzer = struct
 			let additions = List.filter (fun mut -> match mut with | MutAdd _ -> true | _ -> false) mutations in
 			let removals = List.filter (fun mut -> match mut with | MutRem _ -> true | _ -> false) mutations in
 			let mutated_arr = DynArray.of_list al in
-			let pass_mutations al mutl = 
+			let rec pass_mutations al mutl = 
 				List.iter (fun a ->
 					List.iter (fun mut ->
 						match (mutate a mut) with
-						| Some a' -> DynArray.add mutated_arr a'
+						| Some a' -> 
+							DynArray.add mutated_arr a';
+							pass_mutations [a'] mutl
 						| None -> ()
 					) mutl
 				) al
