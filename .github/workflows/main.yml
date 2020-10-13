@@ -142,7 +142,7 @@ jobs:
           path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: win${{env.ARCH}}Binaries
           path: out
@@ -275,7 +275,7 @@ jobs:
           path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: win${{env.ARCH}}Binaries
           path: out
@@ -377,7 +377,7 @@ jobs:
           path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: linuxBinaries
           path: out
@@ -478,7 +478,7 @@ jobs:
           path: plugins/ecso/haxelib.json
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: macBinaries
           path: out
