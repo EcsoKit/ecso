@@ -95,10 +95,9 @@ class Main {
 			var action = reg.matched(2);
 			var name = reg.matched(3);
 
-			var downloadEcso = File.getContent('./download-ecso.yml').replace('::ARTIFACT_NAME::', name);
-			var deleteHaxe = File.getContent('./delete-artifact.yml').replace('::ARTIFACT_NAME::', name);
+			var template = File.getContent('./download-ecso.yml').replace('::ARTIFACT_NAME::', name);
 
-			return align(downloadEcso, head) + matched + align(deleteHaxe, head);
+			return align(template, head) + matched;
 		});
 
 		// Rename build jobs
