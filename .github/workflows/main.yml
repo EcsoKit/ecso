@@ -514,6 +514,9 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Windows)
         if: startsWith(env.PLATFORM, 'windows')
@@ -611,6 +614,9 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
+        with:
+          name: win${{env.ARCH}}Binaries
+      - uses: geekyeggo/delete-artifact@v1
         with:
           name: win${{env.ARCH}}Binaries
 
@@ -721,6 +727,9 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: linuxBinaries
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: linuxBinaries
 
       - name: Install Neko using apt-get (Linux)
         if: (startsWith(env.PLATFORM, 'linux'))
@@ -811,6 +820,9 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v1
+        with:
+          name: macBinaries
+      - uses: geekyeggo/delete-artifact@v1
         with:
           name: macBinaries
 
