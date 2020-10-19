@@ -69,10 +69,10 @@ let dynarray_exists f darr =
 	with
 		| Not_found -> false
 
-let dynarray_filter_dupplicates darr f =
+let dynarray_filter_dupplicates darr eq =
 	let filtered = DynArray.create() in
 	DynArray.iter (fun v ->
-		if not (dynarray_exists (f v) filtered) then
+		if not (dynarray_exists (eq v) filtered) then
 			DynArray.add filtered v
 	) darr;
 	filtered
@@ -179,6 +179,12 @@ let s_mutation mut =
 	match mut with
 	| MutAdd (base,cf) -> "MutAdd(" ^ s_base base ^ " + " ^ cf.cf_name ^ " : " ^ s_component_type cf ^ ")"
 	| MutRem (base,i) -> "MutRem(" ^ s_base base ^ " - " ^ (List.nth base i).cf_name ^ ")"
+
+let eq_mutation m1 m2 =
+	match m1,m2 with
+	| MutAdd(base1,cf1), MutAdd(base2,cf2) -> cf1.cf_name = cf2.cf_name && s_mutation m1 = s_mutation m2
+	| MutRem(base1,i1), MutRem(base2,i2) -> i1 = i2 && s_mutation m1 = s_mutation m2
+	| _,_ -> false
 
 type mutation_accuracy =
 	| MPresumed (* Mutations will be systematically presumed, giving bad performances for mutable entities *)

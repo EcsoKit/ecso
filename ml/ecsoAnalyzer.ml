@@ -451,7 +451,7 @@ module EcsoArchetypeAnalyzer = struct
 	open EcsoGraph
 	open Ast
 
-	let run_expr (actx : EcsoAnalyzer.t) (g : gexpr) (archetypes : (archetype list) ref) (mutations : (mutation list) ref) =
+	let run_expr (actx : EcsoAnalyzer.t) (g : gexpr) (archetypes : (archetype list) ref) (mutations : mutation DynArray.t) =
 		let rec loop g =
 			iter loop g;
 			match g.gexpr with
@@ -460,19 +460,21 @@ module EcsoArchetypeAnalyzer = struct
 					archetypes := a :: !archetypes
 			| GEcsoSystem (s,ctx_id) when ctx_id = actx.a_ctx.ctx_id && actx.a_ctx.ctx_mutation_accuracy = MPresumed ->
 				
-				let presume_mutations rl : mutation list =
-					let rec loop rl mutl = match rl with
-					| [] -> mutl
+				let presume_mutations rl : unit =
+					let rec loop rl = match rl with
+					| [] -> ()
 					| r :: rl ->
 						match r with
 						| SREntity (v,arch) ->
-							let associate_mutations base nullables mutl : mutation list =
-								let rec loop mutl nl = match nl with
-								| [] -> mutl
+							let associate_mutations base nullables : unit =
+								let rec loop nl = match nl with
+								| [] -> ()
 								| n :: nl ->
 									let n = { n with cf_type = unwrap_explicit_null n.cf_type } in
-									loop (MutAdd (base,n) :: MutRem (n :: base,0) :: mutl) nl
-								in loop mutl nullables
+									DynArray.add mutations (MutAdd (base,n));
+									DynArray.add mutations (MutRem (n :: base,0));
+									loop nl
+								in loop nullables
 							in
 							let base,nullables = ref[],ref[] in
 							PMap.iter
@@ -483,10 +485,11 @@ module EcsoArchetypeAnalyzer = struct
 										base := cf :: !base
 								)
 								arch.a_components;
-							loop rl (associate_mutations !base !nullables mutl)
-					in loop rl []
+							associate_mutations !base !nullables;
+							loop rl;
+					in loop rl
 				in
-				mutations := !mutations @ presume_mutations s.s_requirements
+				presume_mutations s.s_requirements
 			| _ ->
 				()
 		in
@@ -623,11 +626,13 @@ module EcsoArchetypeAnalyzer = struct
 		if actx.a_ctx.ctx_identity_mode = IGlobal then
 			CheckComponentGlobalization.run actx;
 
-		let archetypes,mutations = ref[],ref[] in
+		let archetypes = ref[] in
+		let mutations = DynArray.create() in
 		DynArray.iter (fun id ->
 			run_expr actx (Hashtbl.find actx.a_global.gl_fields id).a_graph archetypes mutations
 		) actx.a_ctx.ctx_field_ids;
-
-		actx.a_ctx.ctx_archetypes <- apply_mutations actx !archetypes !mutations;
+		let unique_mutations = dynarray_filter_dupplicates mutations eq_mutation in
+		
+		actx.a_ctx.ctx_archetypes <- apply_mutations actx !archetypes (DynArray.to_list unique_mutations);
 
 end
