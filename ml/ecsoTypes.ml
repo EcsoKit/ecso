@@ -139,9 +139,9 @@ let foreach_compatible_archetype debug al f a =
 			let eq = is_compatible_archetype a' a in
 			if debug then begin
 				print_endline ("_______________________________________");
-				print_endline ("{ECSO} | Archetype EQ " ^ s_archetype a');
-				print_endline ("       | " ^ s_archetype a);
-				print_endline ("       | " ^ string_of_bool eq);
+				print_endline ("{ECSO} | Archetype match : " ^ string_of_bool eq);
+				print_endline ("       |      " ^ s_archetype a');
+				print_endline ("       | with " ^ s_archetype a);
 			end;
 			if eq then f a'
 		)

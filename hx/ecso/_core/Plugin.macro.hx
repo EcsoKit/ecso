@@ -33,8 +33,8 @@ class Plugin {
 	}
 
 	static function getPluginPath():String {
-		final thisFile = (function(?p:PosInfos) return p.fileName)();
-		final srcDir = thisFile.directory().directory().directory().directory();
+		final here = ((?p:PosInfos) -> p.fileName)();
+		final src = here.directory().directory().directory().directory();
 		final system = switch Sys.systemName() {
 			case "Windows":
 				final wmic = new sys.io.Process("WMIC OS GET osarchitecture /value");
@@ -52,6 +52,6 @@ class Plugin {
 			case s:
 				s;
 		}
-		return Path.join([srcDir, 'cmxs', system, 'plugin.cmxs']);
+		return Path.join([src, 'cmxs', system, 'plugin.cmxs']);
 	}
 }
