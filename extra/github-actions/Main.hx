@@ -4,7 +4,7 @@ import sys.io.File;
 
 using StringTools;
 
-final HAXE_VERSION = "83ad82b8718986bd211552e6202059ef398290ef";
+final HAXE_VERSION = "bfcbf809165b3b3df0bce4833bd90a7539f2ae56";
 final WORKFLOW_ID = "1610708";
 
 class Main {
