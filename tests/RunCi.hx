@@ -8,13 +8,7 @@ import runci.TestTarget;
 using StringTools;
 
 function main() {
-	final args = Sys.args();
-	final tests:Array<TestTarget> = switch (args.length == 1 ? args[0] : Sys.getEnv("TEST")) {
-		case null:
-			[Macro];
-		case env:
-			[for (v in env.split(",")) v.trim().toLowerCase()];
-	}
+	final tests = getTests();
 
 	haxelibInstallDev('ecso', repoDir);
 	infoMsg('Going to test: $tests');

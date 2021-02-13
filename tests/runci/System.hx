@@ -170,3 +170,19 @@ function changeDirectory(path:String) {
 	Sys.println('Changing directory to $path');
 	Sys.setCwd(path);
 }
+
+macro function getTests() {
+	final test = switch haxe.macro.Context.definedValue("test") {
+		case null | "" | "1" | "0" | "true" | "false": macro Sys.getEnv("TEST");
+		case test: macro $v{test};
+	}
+	return macro {
+		final args = Sys.args();
+		switch (args.length == 1 ? args[0] : $test) {
+			case null:
+				[Macro];
+			case env:
+				[for (v in env.split(",")) v.trim().toLowerCase()];
+		}
+	}
+}
