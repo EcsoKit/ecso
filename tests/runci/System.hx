@@ -186,3 +186,30 @@ macro function getTests() {
 		}
 	}
 }
+
+macro function getIssues() {
+	final issues = switch haxe.macro.Context.definedValue("issues") {
+		case null | "" | "1" | "0" | "true" | "false":
+			[];
+		case issues:
+			[for (v in issues.split(",")) v.trim().toLowerCase()];
+	}
+	switch haxe.macro.Context.definedValue("issue") {
+		case null | "" | "1" | "0" | "true" | "false":
+		case issue:
+			for (v in issue.split(",")) {
+				final v = v.trim().toLowerCase();
+				issues.remove(v);
+				issues.push(v);
+			}
+	}
+	if (issues.length == 0) {
+		return macro [for (file in sys.FileSystem.readDirectory(unitsDir + "units/issues")) {
+			if (!file.endsWith(".hx") || !file.startsWith("Issue"))
+				continue;
+			file.substring(5, file.length - 3);
+		}];
+	} else {
+		return macro $v{issues};
+	}
+}

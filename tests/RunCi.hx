@@ -1,4 +1,3 @@
-import sys.FileSystem;
 import haxe.io.Path;
 import haxe.Exception;
 import runci.System;
@@ -21,18 +20,35 @@ function main() {
 		}
 	}
 
-	function testIssues(target:TestTarget, args:Array<String>, ?run:String->Void) {
+	function runIssues(target:TestTarget, args:Array<String>, ?run:String->Void) {
+		if (!testIssues)
+			return;
 		changeDirectory(unitsDir);
-		for (file in FileSystem.readDirectory("units/issues")) {
-			if (!file.endsWith(".hx") || !file.startsWith("Issue")) {
-				continue;
-			}
-			var issue = file.substring(5, file.length - 3);
+		final issues = getIssues();
+		infoMsg('Going to test issues $issues');
+		for (issue in issues) {
 			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])));
-			if (run != null) {
+			if (run != null)
 				run("units");
-			}
 		}
+	}
+
+	function runSpecs(target:TestTarget, args:Array<String>, ?run:String->Void) {
+		if (!testSpecs)
+			return;
+		changeDirectory(specsDir);
+		runCommand("haxe", ['compile-$target.hxml'].concat(args));
+		if (run != null)
+			run("specs");
+	}
+
+	function runUnits(target:TestTarget, args:Array<String>, ?run:String->Void) {
+		if (!testUnits)
+			return;
+		changeDirectory(unitsDir);
+		runCommand("haxe", ['compile-$target.hxml'].concat(args));
+		if (run != null)
+			run("units");
 	}
 
 	for (test in tests) {
@@ -68,13 +84,9 @@ function main() {
 					changeDirectory(serverDir);
 					runCommand("haxe", ["run.hxml"].concat(args));
 				case Interp:
-					testIssues(Interp, args);
-
-					changeDirectory(unitsDir);
-					runCommand("haxe", ["compile-interp.hxml"].concat(args));
-
-					changeDirectory(specsDir);
-					runCommand("haxe", ["compile-interp.hxml"].concat(args));
+					runIssues(Interp, args);
+					runUnits(Interp, args);
+					runSpecs(Interp, args);
 				case Hl:
 					testHaxe(Hl);
 
@@ -87,15 +99,9 @@ function main() {
 						runCommand(hlBinary, ['bin/$name.hl']);
 					}
 
-					testIssues(Hl, args, runHl);
-
-					changeDirectory(unitsDir);
-					runCommand("haxe", ["compile-hl.hxml"].concat(args));
-					runHl("units");
-
-					changeDirectory(specsDir);
-					runCommand("haxe", ["compile-hl.hxml"].concat(args));
-					runHl("specs");
+					runIssues(Hl, args, runHl);
+					runUnits(Hl, args, runHl);
+					runSpecs(Hl, args, runHl);
 				case t:
 					throw new Exception("unknown target: " + t);
 			}
