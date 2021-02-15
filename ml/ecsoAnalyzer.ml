@@ -35,7 +35,7 @@ module EcsoAnalyzer = struct
 		let make_group cl is_static fl =
 			let api = (gctx.gl_ectx.curapi.get_com()).basic in
 			let tany = { null_abstract with a_path = ([],"Any") } in
-			let trest = { null_abstract with a_path = (["haxe";"extern"],"Rest") } in
+			let trest = { null_abstract with a_path = (["haxe"],"Rest") } in
 			let tfunc = { null_abstract with a_path = ([],"Any") } in
 			let tparam = { null_class with cl_kind = KTypeParameter [] } in
 
@@ -95,7 +95,8 @@ module EcsoAnalyzer = struct
 				match cf.cf_type with
 				| TFun ([n,opt,t],_) ->
 					let rest_of_any = match t with
-						| TAbstract({ a_path = (["haxe";"extern"],"Rest") }, [TAbstract ({ a_path = [],"Any" },[])]) -> t
+						| TAbstract({a_path=["haxe"],"Rest"}, [TAbstract ({ a_path = [],"Any" },[])])
+						| TType({t_path=["haxe"; "extern"],"Rest"}, [TAbstract ({ a_path = [],"Any" },[])]) -> t
 						| _ -> TAbstract(trest, [TAbstract (tfunc,[])])
 					in
 					let have = TFun([n,opt,t],api.tvoid) in

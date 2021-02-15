@@ -1,6 +1,5 @@
 package ecso;
 
-import haxe.extern.Rest;
 
 final class Entity { }
 
@@ -12,6 +11,6 @@ final class EntityGroup {
 
     @:ecso.delete public extern function deleteEntity <T> (def:T):Void;
 
-    @:ecso.foreach public extern function foreachEntity (systems:Rest<Any>):Void;
+    @:ecso.foreach public extern function foreachEntity (...systems:Any):Void;
 
 }

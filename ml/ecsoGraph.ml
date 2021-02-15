@@ -1082,6 +1082,21 @@ module EcsoGraph = struct
 				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
+				let unwrap_rest_args e =
+					let rec loop el e = match e.eexpr with
+						| TArrayDecl el' -> el',e
+						| _ ->
+							Texpr.foldmap loop el e
+					in
+					let el,_ = loop [] e in
+					el
+				in
+				let el = match el with
+					| [e] when ExtType.is_rest e.etype ->
+						unwrap_rest_args e
+					| _ ->
+						assert false
+				in
 				let parse_system (e : texpr) : gexpr =
 
 					let make_s real tf : gexpr =
