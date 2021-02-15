@@ -192,13 +192,13 @@ macro function getIssues() {
 		case null | "" | "1" | "0" | "true" | "false":
 			[];
 		case issues:
-			[for (v in issues.split(",")) v.trim().toLowerCase()];
+			[for (v in issues.split(",")) v.trim()];
 	}
 	switch haxe.macro.Context.definedValue("issue") {
 		case null | "" | "1" | "0" | "true" | "false":
 		case issue:
 			for (v in issue.split(",")) {
-				final v = v.trim().toLowerCase();
+				final v = v.trim();
 				issues.remove(v);
 				issues.push(v);
 			}
