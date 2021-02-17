@@ -889,14 +889,11 @@ module EcsoGraph = struct
 				pairs
 			in acc,(List.rev pairs),!tvl
 		in
-		let create_acc size f : acc_typer = {
+		let create_acc size : acc_typer = {
 			locals = LocalFlow.create size;
 		} in
-		let rec f ?system:(system=false) acc (e : texpr) =
-			let f ?is_system:(is_system=false) acc e =
-				if not is_system then f acc e ~system:system
-				else f acc e ~system:true
-			in match e.eexpr with
+		let rec f acc (e : texpr) =
+			match e.eexpr with
 			| TConst _
 			| TTypeExpr _
 			| TIdent _ ->
@@ -1088,18 +1085,16 @@ module EcsoGraph = struct
 				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
-				let unwrap_rest_args e =
-					let rec loop el e = match e.eexpr with
-						| TArrayDecl el' -> el',e
-						| _ ->
-							Texpr.foldmap loop el e
-					in
-					let el,_ = loop [] e in
-					el
-				in
+
+				(* Unwrap rest arguments *)
 				let el = match el with
 					| [e] when ExtType.is_rest e.etype ->
-						unwrap_rest_args e
+						let el = ref [] in
+						let rec loop e = match e.eexpr with
+							| TArrayDecl el' -> el := el'
+							| _ -> Texpr.iter loop e
+						in loop e;
+						!el
 					| _ ->
 						assert false
 				in
@@ -1107,7 +1102,7 @@ module EcsoGraph = struct
 
 					let make_s real tf : gexpr =
 						let rl = List.map mk_srequirement tf.tf_args in
-						let acc = create_acc (List.length tf.tf_args) f in
+						let acc = create_acc (List.length tf.tf_args) in
 						List.iter
 							(fun r -> match r with
 								| SREntity (v,arch) ->
@@ -1115,7 +1110,7 @@ module EcsoGraph = struct
 									LocalFlow.assign acc.locals v (ref [],None,VVoid) (* declare requirements to satisfy LocalFlow *)
 							)
 							rl;
-						let _,e,_ = f acc tf.tf_expr ~is_system:true in
+						let _,e,_ = f acc tf.tf_expr in
 						{
 							greal = real; 
 							gexpr = GEcsoSystem ({
@@ -1338,7 +1333,7 @@ module EcsoGraph = struct
 				let acc,e1,vl = f acc e1 in
 				acc,{ greal = e; gexpr = GMeta(m,e1)},vl
 		in
-		let _,e,_ = f (create_acc 0 f) e in
+		let _,e,_ = f (create_acc 0) e in
 		{
 			gr_expr = e;
 			gr_extra = extra;
