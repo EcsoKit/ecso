@@ -388,6 +388,12 @@ module EcsoGraph = struct
 		| GEnumIndex of gexpr
 		(* | GIdent of string *)
 	
+	let s_gexpr_value vl : string =
+		match vl with
+		| VSelf -> "VSelf"
+		| VBranch el -> "VBranch[" ^ TPrinting.Printer.s_list "," (fun e -> s_expr_pretty e.greal) el ^ "]"
+		| VVoid -> "VVoid"
+	
 	let s_gexpr_kind ge : string =
 		match ge with
 		| GEcsoCreate _ -> "GEcsoCreate"
