@@ -1039,9 +1039,9 @@ module EcsoGraph = struct
 				let e = { greal = e; gexpr = GNew (t,pl,el) } in
 				acc,e,VSelf
 			| TBlock el ->
-				let acc,el,_ = foldmap_chain f acc el in
-				let len = List.length el in
-				let rvalue = if len = 0 then VVoid else VBranch[List.nth el (len - 1)] in
+				let acc,el,vll = foldmap_chain f acc el in
+				let len = List.length vll in
+				let rvalue = if len = 0 then VVoid else List.nth vll (len - 1) in
 				acc,{ greal = e; gexpr = GBlock (el) },rvalue
 			| TObjectDecl el ->
 				let acc,el,_ = 
@@ -1098,6 +1098,10 @@ module EcsoGraph = struct
 					| el ->
 						el
 				in
+
+				(* Explore each argument *)
+				let acc,el,vll = foldmap_list f acc el in
+				
 				let parse_system (e : texpr) : gexpr =
 
 					let make_s real tf : gexpr =
@@ -1122,7 +1126,6 @@ module EcsoGraph = struct
 						}
 					in
 
-					let rec loop (e : texpr) : gexpr =
 						let e = Texpr.skip e in
 						match e.eexpr with
 						| TField (fe,fa) ->
@@ -1264,24 +1267,27 @@ module EcsoGraph = struct
 							List.iter loop_fv fvl;
 							e
 						| _ ->
-							(* Pre-evaluate e's rvalues *)
-							begin match f acc e with
-							| _,e,VBranch el ->
-								List.iter (fun e -> e.gexpr <- (loop e.greal).gexpr) el;
-								e
-							| _,e,VSelf ->
-								Error.error ("[ECSO] Cannot reach system " ^ s_expr_pretty e.greal) e.greal.epos
-							| _,e,VVoid ->
-								Error.error ("[ECSO] Cannot process system Void") e.greal.epos
-							end
-					in
-					loop e
+							assert false
 				in
-				let sl = List.map parse_system el in
-				let mk_eprocess system =
-					{ system with gexpr = GEcsoProcess (group,system,ctx.ctx_id) }
+				let mk_eprocess (system : gexpr) =
+					let e = skip system in
+					let system' = parse_system e.greal in
+					e.gexpr <- GEcsoProcess (group,{ e with gexpr = system'.gexpr },ctx.ctx_id)
 				in
-				let e = { greal = e; gexpr = GBlock (List.map mk_eprocess sl) } in
+
+				let rec loop el vll =
+					match el,vll with
+					| e :: el,vl :: vll ->
+						begin match vl with
+						| VSelf -> mk_eprocess e
+						| VBranch el -> List.iter mk_eprocess el
+						| VVoid -> assert false
+						end;
+						loop el vll
+					| [],[] -> ()
+				in loop el vll;
+
+				let e = { greal = e; gexpr = GBlock el } in
 				acc,e,VSelf
 			| TCall (e1,el) ->
 				let acc,e1,_ = f acc e1 in
