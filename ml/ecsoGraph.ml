@@ -1127,8 +1127,8 @@ module EcsoGraph = struct
 				let mk_eprocess (system : gexpr) =
 					let e = skip system in
 					let p = e.greal.epos in
-					let system' = match e.greal.eexpr with
-						| TField (fe,fa) ->
+					let system' = match e.gexpr with
+						| GField (fe,fa) ->
 							let mk_anon_system cf =
 								Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) p
 							in
@@ -1175,16 +1175,13 @@ module EcsoGraph = struct
 								| FDynamic _ -> Error.error "[ECSO] Cannot use Dynamic as system" p
 								| FEnum _ -> Error.error "[ECSO] Cannot use Enum as system" p
 							in
-							let _,fe,_ = f acc fe in
 							{ e with gexpr = GField (fe,fa') }
-						| TFunction tf ->
+						| GFunction (tf,_) ->
 							(* If we inline a function expression, we have to duplicate its locals. *)
 							let tf = match duplicate_tvars e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
 							make_s e.greal tf
-						| TLocal v ->
-							let fvl = LocalFlow.values acc.locals v in
-							let acc,e,_ = f acc e.greal in
-
+						| GLocal (v,vl) ->
+						
 							let decl_prel = match LocalFlow.get_first acc.locals v with
 								| Some (prel,_,_) -> prel
 								| None -> Error.error ("[ECSO] Cannot reach the system value of " ^ v.v_name) v.v_pos
@@ -1264,7 +1261,7 @@ module EcsoGraph = struct
 									()
 								end
 							in
-							List.iter loop_fv fvl;
+							List.iter loop_fv vl;
 							e
 						| _ ->
 							assert false
