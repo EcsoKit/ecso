@@ -855,7 +855,7 @@ module EcsoGraph = struct
 		in
 		let foldmap_list f acc el =
 			let rec loop acc el acc2 vll = (match el with
-				| [] -> acc,(List.rev acc2),vll
+				| [] -> acc,(List.rev acc2),(List.rev vll)
 				| e1 :: el ->
 					let acc,e1,vl = f acc e1 in
 					loop acc el (e1 :: acc2) (vl :: vll))
@@ -863,7 +863,7 @@ module EcsoGraph = struct
 		in
 		let foldmap_chain f acc el =
 			let rec loop acc el acc2 vll = (match el with
-				| [] -> acc,(List.rev acc2),vll
+				| [] -> acc,(List.rev acc2),(List.rev vll)
 				| e1 :: el ->
 					let acc,e1,vl = f acc e1 in
 					loop acc el (e1 :: acc2) (vl :: vll))
