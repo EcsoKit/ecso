@@ -1,3 +1,4 @@
+--debug
 --library buddy
 --library utest
 --library ecso

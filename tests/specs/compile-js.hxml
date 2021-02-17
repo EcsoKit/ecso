@@ -1,0 +1,3 @@
+common.hxml
+--library hxnodejs
+--js bin/specs.js

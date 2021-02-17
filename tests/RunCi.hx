@@ -76,7 +76,7 @@ function main() {
 			args = args.concat(["-D", systemName]);
 
 			switch test {
-				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Js | Java | Jvm | Cs | Flash9:
+				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Java | Jvm | Cs | Flash9:
 					infoMsg("skip tests");
 				case Server:
 					haxelibInstall("hxnodejs");
@@ -102,6 +102,34 @@ function main() {
 					runIssues(Hl, args, runHl);
 					runUnits(Hl, args, runHl);
 					runSpecs(Hl, args, runHl);
+				case Js:
+					testHaxe(Js);
+					for (es_ver in    [[], ["-D", "js-es=3"], ["-D", "js-es=6"]])
+					for (unflatten in [[], ["-D", "js-unflatten"]])
+					for (classic in   [[], ["-D", "js-classic"]])
+					for (enums_as_objects in [[], ["-D", "js-enums-as-arrays"]])
+					{
+						final args = args.concat(es_ver).concat(unflatten).concat(classic).concat(enums_as_objects);
+
+						function runJs(name:String) {
+							final output = if (args.length > 0) {
+								'bin/js/${args.join("")}/$name.js';
+							} else {
+								'bin/js/default/$name.js';
+							}
+							var outputDir = Path.directory(output);
+							if (!sys.FileSystem.exists(outputDir))
+								sys.FileSystem.createDirectory(outputDir);
+							sys.FileSystem.rename('bin/$name.js', output);
+							if (sys.FileSystem.exists('bin/$name.js.map'))
+								sys.FileSystem.rename('bin/$name.js.map', output + ".map");
+							runCommand("node", ["-e", 'require("./$output")']);
+						}
+		
+						runIssues(Js, args, runJs);
+						runUnits(Js, args, runJs);
+						runSpecs(Js, args, runJs);
+					}
 				case t:
 					throw new Exception("unknown target: " + t);
 			}
