@@ -1101,36 +1101,36 @@ module EcsoGraph = struct
 
 				(* Explore each argument *)
 				let acc,el,vll = foldmap_list f acc el in
-				
-				let parse_system (e : texpr) : gexpr =
 
-					let make_s real tf : gexpr =
-						let rl = List.map mk_srequirement tf.tf_args in
-						let acc = create_acc (List.length tf.tf_args) in
-						List.iter
-							(fun r -> match r with
-								| SREntity (v,arch) ->
-									v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id)),v.v_pos],v.v_pos) :: v.v_meta;
-									LocalFlow.assign acc.locals v (ref [],None,VVoid) (* declare requirements to satisfy LocalFlow *)
-							)
-							rl;
-						let _,e,_ = f acc tf.tf_expr in
-						{
-							greal = real; 
-							gexpr = GEcsoSystem ({
-								s_requirements = rl;
-								s_runtime_status = RBoolStatus;
-								s_ret = tf.tf_type;
-								s_expr = e;
-							}, ctx.ctx_id);
-						}
-					in
+				let make_s real tf : gexpr =
+					let rl = List.map mk_srequirement tf.tf_args in
+					let acc = create_acc (List.length tf.tf_args) in
+					List.iter
+						(fun r -> match r with
+							| SREntity (v,arch) ->
+								v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id)),v.v_pos],v.v_pos) :: v.v_meta;
+								LocalFlow.assign acc.locals v (ref [],None,VVoid) (* declare requirements to satisfy LocalFlow *)
+						)
+						rl;
+					let _,e,_ = f acc tf.tf_expr in
+					{
+						greal = real; 
+						gexpr = GEcsoSystem ({
+							s_requirements = rl;
+							s_runtime_status = RBoolStatus;
+							s_ret = tf.tf_type;
+							s_expr = e;
+						}, ctx.ctx_id);
+					}
+				in
 
-						let e = Texpr.skip e in
-						match e.eexpr with
+				let mk_eprocess (system : gexpr) =
+					let e = skip system in
+					let p = e.greal.epos in
+					let system' = match e.greal.eexpr with
 						| TField (fe,fa) ->
 							let mk_anon_system cf =
-								Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) e.epos
+								Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) p
 							in
 							let mk_field_system cf =
 								let e = match cf.cf_expr with
@@ -1139,10 +1139,10 @@ module EcsoGraph = struct
 											| TFunction tf ->
 												make_s impl tf
 											| _ ->
-												Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) e.epos
+												Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) p
 										end
 									| None ->
-										Error.error "[ECSO] Cannont use system without implementation" e.epos
+										Error.error "[ECSO] Cannont use system without implementation" p
 								in { cf with
 									cf_name = "_ECSO" ^ string_of_int ctx.ctx_id ^ "_" ^ cf.cf_name;
 									cf_type = cf.cf_type;
@@ -1172,18 +1172,18 @@ module EcsoGraph = struct
 								| FStatic (cl, cf) -> FStatic (cl, mk_class_system cl cf true)
 								| FAnon cf -> FAnon (mk_anon_system cf)
 								| FClosure (None,cf) -> mk_anon_system cf
-								| FDynamic _ -> Error.error "[ECSO] Cannot use Dynamic as system" e.epos
-								| FEnum _ -> Error.error "[ECSO] Cannot use Enum as system" e.epos
+								| FDynamic _ -> Error.error "[ECSO] Cannot use Dynamic as system" p
+								| FEnum _ -> Error.error "[ECSO] Cannot use Enum as system" p
 							in
 							let _,fe,_ = f acc fe in
-							{ greal = e; gexpr = GField (fe,fa') }
+							{ e with gexpr = GField (fe,fa') }
 						| TFunction tf ->
 							(* If we inline a function expression, we have to duplicate its locals. *)
-							let tf = match duplicate_tvars e with | { eexpr = TFunction tf } -> tf | _ -> assert false in
-							make_s e tf
+							let tf = match duplicate_tvars e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
+							make_s e.greal tf
 						| TLocal v ->
 							let fvl = LocalFlow.values acc.locals v in
-							let acc,e,_ = f acc e in
+							let acc,e,_ = f acc e.greal in
 
 							let decl_prel = match LocalFlow.get_first acc.locals v with
 								| Some (prel,_,_) -> prel
@@ -1268,10 +1268,7 @@ module EcsoGraph = struct
 							e
 						| _ ->
 							assert false
-				in
-				let mk_eprocess (system : gexpr) =
-					let e = skip system in
-					let system' = parse_system e.greal in
+					in
 					e.gexpr <- GEcsoProcess (group,{ e with gexpr = system'.gexpr },ctx.ctx_id)
 				in
 
