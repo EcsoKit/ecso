@@ -1095,8 +1095,8 @@ module EcsoGraph = struct
 							| _ -> Texpr.iter loop e
 						in loop e;
 						!el
-					| _ ->
-						assert false
+					| el ->
+						el
 				in
 				let parse_system (e : texpr) : gexpr =
 
