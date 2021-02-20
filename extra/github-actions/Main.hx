@@ -4,8 +4,26 @@ import sys.io.File;
 
 using StringTools;
 
+/**
+	Commit ID used to download CI configuration.
+ */
 final HAXE_VERSION = "bfcbf809165b3b3df0bce4833bd90a7539f2ae56";
+
+/**
+	URL to the CI logs used to lock the version of OCaml packages.
+ */
+final LOGS_URL = "https://pipelines.actions.githubusercontent.com/MJ6K1GzHcYdmV4YAWtXY6PLIO7NsPCK0yIt1FZ7mlzuwAhLPxn/_apis/pipelines/1/runs/1668/signedlogcontent/7?urlExpires=2021-02-20T13%3A32%3A01.9315645Z&urlSigningMethod=HMACV1&urlSignature=7cZkT0hUbBiupmzv4POAdKgBiXEtaHAv2rFYzK%2FzqzI%3D";
+
+/**
+	Workflow ID of the ECSO's CI. 
+ */
 final WORKFLOW_ID = "1610708";
+
+/**
+	Version locks of OCaml packages.
+	Will be filled from `LOGS_URL` for the non-existing entries.
+ */
+final LIB_LOCKS : Map<String,String> = [];
 
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
@@ -14,7 +32,10 @@ class Main {
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchHaxeTests = ~/[\r\n\s]*(haxe RunCi\.hxml)([\w\W\r\n]+?(?=\sworking-directory:)\s)working-directory:\s([\w${}.\/ ]+)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
+	static final matchOpamUpdateHaxe = ~/.*(opam update[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
+	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
 	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
+	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
@@ -23,13 +44,37 @@ class Main {
 		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_VERSION/.github/workflows/main.yml');
 		var output = '../../.github/workflows';
 
-		// Replace workflow id for cancelling previous run
+		// Get Ocaml's package versions
+		matchOpamPackages.map(Http.requestUrl(LOGS_URL), function(reg:EReg) {
+			var matched = reg.matched(0);
+			var lib = reg.matched(1);
+			var version = reg.matched(2);
+			if (!LIB_LOCKS.exists(lib))
+				LIB_LOCKS.set(lib, version);
+			else if (LIB_LOCKS.get(lib) != version)
+				Sys.println('Override $lib version $version with ${LIB_LOCKS.get(lib)}');
+			return matched;
+		});
+
+		gen( script, output, true );
+		gen( script, output, false );
+	}
+
+	static function gen(script : String, output : String, main : Bool) {
+
+		// Update cancelling previous run
 		script = matchCancelPrevious.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var head = reg.matched(1);
 			var action = reg.matched(2);
 			var workflowId = reg.matched(3);
-			return matched.replace(workflowId, WORKFLOW_ID);
+			return if (main) {
+				// Replace workflow id for cancelling previous run
+				matched.replace(workflowId, WORKFLOW_ID);
+			} else {
+				// Remove workflow id
+				matched.replace(workflowId, "0");
+			}
 		});
 
 		// Correct path to `compile-fs.hxml`
@@ -57,12 +102,28 @@ class Main {
 			return align(templateHaxe, head) + align(templateEcso, head);
 		});
 
-		// Build ecso as plugin
-		script = matchMakeHaxe.map(script, function(reg:EReg) {
+		// Lock Ocaml setup
+		script = matchOpamUpdateHaxe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var make = reg.matched(1);
-			var haxe = reg.matched(2);
-			return matched + "\n" + matched.replace(haxe, "PLUGIN=ecso plugin");
+			var update = reg.matched(1);
+			var libs = [for(lib => version in LIB_LOCKS) '"$lib=$version"'].join(" ");
+			return matched + "\n" + matched.replace(update, 'opam install $libs --yes ');
+		});
+
+		// Build ecso as plugin (after haxelib)
+		script = matchMakeHaxelib.map(script, function(reg:EReg) {
+			var pos = reg.matchedPos();
+			var makeEcso = "";
+			matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+				var matched = reg.matched(0);
+				var make = reg.matched(1);
+				var haxe = reg.matched(2);
+				makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+				return "";
+			});
+			if(makeEcso == "") throw "Fail to find haxe make";
+			var matched = reg.matched(0);
+			return matched + "\n" + makeEcso;
 		});
 
 		// Cygcheck ecso cmxs
@@ -141,7 +202,11 @@ class Main {
 
 		// Save
 		FileSystem.createDirectory(output);
-		File.saveContent('$output/main.yml', script);
+		if (main) {
+			File.saveContent('$output/main.yml', script);
+		} else {
+			File.saveContent('$output/haxe-$HAXE_VERSION.yml', script);
+		}
 	}
 
 	static function align(value:String, head:String):String {
