@@ -148,5 +148,7 @@ function main() {
 
 	if (!success) {
 		Sys.exit(1);
+	} else if(tests.length > 1) {
+		successMsg('all tests succeeded');
 	}
 }
