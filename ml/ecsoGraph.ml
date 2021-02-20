@@ -1109,7 +1109,6 @@ module EcsoGraph = struct
 						(fun r -> match r with
 							| SREntity (v,arch) ->
 								v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id)),v.v_pos],v.v_pos) :: v.v_meta;
-								LocalFlow.assign acc.locals v (ref [],None,VVoid) (* declare requirements to satisfy LocalFlow *)
 						)
 						rl;
 					let _,e,_ = f acc tf.tf_expr in
