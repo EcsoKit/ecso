@@ -1209,6 +1209,7 @@ module EcsoGraph = struct
 									let v' = alloc_var VGenerated ("_ECSO_" ^ v.v_name ^ "_") v.v_type v.v_pos in
 									v'.v_meta <- (Meta.Custom ("$ecso.v_clone" ^ string_of_int v'.v_id),[],v.v_pos) :: v.v_meta;
 									v'.v_extra <- v.v_extra;
+									add_var_flag v' VCaptured;
 									decl_prel := (mk_local_decl v' None) :: !decl_prel;
 									v'
 								| _ -> assert false
