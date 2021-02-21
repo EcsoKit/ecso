@@ -122,6 +122,9 @@ private class CoreSpecification extends BuddySuite {
                     entities.foreachEntity(movingX);
                     entities.foreachEntity(spying);
                     spy.x.should.be(8);
+                    var e2 = { x: 0, y: 0 }
+                    movingX(e2);
+                    e2.x.should.be(4);
                 });
                 it('from hijacked functions', {
                     var movingX = null;
