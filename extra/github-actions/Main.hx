@@ -24,6 +24,7 @@ final WORKFLOW_ID = "1610708";
 	Will be filled from `LOGS_URL` for the non-existing entries.
  */
 final LIB_LOCKS : Map<String,String> = [];
+final OS_LOCKS : Map<String,String> = [];
 
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
@@ -54,6 +55,21 @@ class Main {
 			else if (LIB_LOCKS.get(lib) != version)
 				Sys.println('Override $lib version $version with ${LIB_LOCKS.get(lib)}');
 			return matched;
+		// Get OS Version
+		~/Operating System\s+([\w -]+)\s+(\S+)/g.map(logs, function(reg:EReg) {
+			var os = reg.matched(1).toLowerCase();
+			var version = reg.matched(2);
+			os = if(os.contains("windows")) {
+				"windows";
+			} else if(os.contains("mac")) {
+				"macos";
+			} else if(os.contains("ubuntu")) {
+				"ubuntu";
+			} else {
+				throw 'Unrecognized OS $os';
+			}
+			OS_LOCKS.set(os, version);
+			return "";
 		});
 
 		gen( script, output, true );
@@ -61,6 +77,13 @@ class Main {
 	}
 
 	static function gen(script : String, output : String, main : Bool) {
+
+		// Lock Runner OS
+		script = ~/runs-on:\s*(\w+)-latest/g.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var os = reg.matched(1);
+			return matched.replace('$os-latest', OS_LOCKS.get(os));
+		});
 
 		// Update cancelling previous run
 		script = matchCancelPrevious.map(script, function(reg:EReg) {
