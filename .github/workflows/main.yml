@@ -382,7 +382,7 @@ jobs:
           set -ex
           opam init # --disable-sandboxing
           opam update
-          opam install "sha=1.13" "integers=0.4.0" "luv=0.5.6" "conf-pkg-config=1.3" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "csexp=1.3.2" "extlib=1.7.8" "result=1.5" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "cppo=1.6.7" "xml-light=2.4" "ocamlbuild=0.14.0" "uchar=0.0.2" "stdlib-shims=0.3.0" "gen=0.5.3" "seq=base" "conf-neko=1" "dune-configurator=2.8.2" "ppxlib=0.22.0" "sedlex=2.3" "camlp5=8.00~alpha05" "ocamlfind=1.8.1" "conf-mbedtls=1" "ocaml-compiler-libs=v0.12.3" "ppx_derivers=1.2.1" "conf-zlib=1" "sexplib0=v0.14.0" "ctypes=0.17.1" "ptmap=2.0.5" --yes 
+          opam install "sha=1.13" "integers=0.4.0" "luv=0.5.6" "conf-pkg-config=1.3" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "csexp=1.3.2" "ocaml-secondary-compiler=4.08.1-1" "extlib=1.7.8" "result=1.5" "base-bytes=base" "dune=2.8.2" "conf-libpcre=1" "ocamlfind-secondary=1.8.1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "cppo=1.6.7" "xml-light=2.4" "ocamlbuild=0.14.0" "uchar=0.0.2" "stdlib-shims=0.3.0" "gen=0.5.3" "seq=0.2.2" "conf-neko=1" "dune-configurator=2.8.2" "ppxlib=0.22.0" "sedlex=2.3" "camlp5=8.00~alpha05" "ocamlfind=1.8.1" "conf-mbedtls=1" "ocaml-compiler-libs=v0.12.3" "ppx_derivers=1.2.1" "conf-zlib=1" "sexplib0=v0.14.0" "ctypes=0.17.1" "ptmap=2.0.5" --yes 
           opam pin add haxe . --no-action
           opam install haxe --deps-only
           opam list
@@ -573,7 +573,7 @@ jobs:
           set -ex
           opam init # --disable-sandboxing
           opam update
-          opam install "sha=1.13" "integers=0.4.0" "luv=0.5.6" "conf-pkg-config=1.3" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "csexp=1.3.2" "extlib=1.7.8" "result=1.5" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "cppo=1.6.7" "xml-light=2.4" "ocamlbuild=0.14.0" "uchar=0.0.2" "stdlib-shims=0.3.0" "gen=0.5.3" "seq=base" "conf-neko=1" "dune-configurator=2.8.2" "ppxlib=0.22.0" "sedlex=2.3" "camlp5=8.00~alpha05" "ocamlfind=1.8.1" "conf-mbedtls=1" "ocaml-compiler-libs=v0.12.3" "ppx_derivers=1.2.1" "conf-zlib=1" "sexplib0=v0.14.0" "ctypes=0.17.1" "ptmap=2.0.5" --yes 
+          opam install "sha=1.13" "integers=0.4.0" "luv=0.5.6" "conf-pkg-config=1.3" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "csexp=1.3.2" "extlib=1.7.8" "base-bytes=base" "result=1.5" "dune=2.8.2" "conf-libpcre=1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "cppo=1.6.7" "xml-light=2.4" "ocamlbuild=0.14." "stdlib-shims=0.3.0" "uchar=0.0.2" "gen=0.5.3" "seq=base" "conf-neko=1" "dune-configurator=2.8.2" "ppxlib=0.22." "sedlex=2.3" "camlp5=8.00~" "ocamlfind=1.8.1" "conf-mbedtls=1" "ocaml-compiler-libs=v0.12" "ppx_derivers=1.2.1" "conf-zlib=1" "sexplib0=v0.14" "ctypes=0.17." "ptmap=2.0.5" --yes 
           opam pin add haxe . --no-action
           opam install haxe --deps-only
           opam list

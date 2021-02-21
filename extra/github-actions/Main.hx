@@ -13,6 +13,11 @@ final HAXE_VERSION = "4.2.0";
 	URL to the CI logs used to lock the version of OCaml packages.
  */
 final LOGS_URL = "https://pipelines.actions.githubusercontent.com/MJ6K1GzHcYdmV4YAWtXY6PLIO7NsPCK0yIt1FZ7mlzuwAhLPxn/_apis/pipelines/1/runs/1668/signedlogcontent/7?urlExpires=2021-02-20T13%3A32%3A01.9315645Z&urlSigningMethod=HMACV1&urlSignature=7cZkT0hUbBiupmzv4POAdKgBiXEtaHAv2rFYzK%2FzqzI%3D";
+final HAXE_RUNS = [
+	"windows" => 1861695868,
+	"ubuntu" => 1861695837,
+	"macos" => 1861695889
+];
 
 /**
 	Workflow ID of the ECSO's CI. 
@@ -40,49 +45,43 @@ class Main {
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
+	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(\w+)/g;
 
 	static function main() {
-		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_VERSION/.github/workflows/main.yml');
+		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_COMMIT_SHA/.github/workflows/main.yml');
 		var output = '../../.github/workflows';
+		var locks = new Map<String,Map<String,String>>();
+		for(runOS => runID in HAXE_RUNS) {
+		}
 
-		// Get Ocaml's package versions
-		matchOpamPackages.map(Http.requestUrl(LOGS_URL), function(reg:EReg) {
-			var matched = reg.matched(0);
-			var lib = reg.matched(1);
-			var version = reg.matched(2);
-			if (!LIB_LOCKS.exists(lib))
-				LIB_LOCKS.set(lib, version);
-			else if (LIB_LOCKS.get(lib) != version)
-				Sys.println('Override $lib version $version with ${LIB_LOCKS.get(lib)}');
-			return matched;
-		// Get OS Version
-		~/Operating System\s+([A-Za-z_ -]+)\s+([0-9]+ |[0-9]+\.[0-9]+)/g.map(logs, function(reg:EReg) {
-			var os = reg.matched(1).toLowerCase();
-			var version = reg.matched(2);
-			os = if(os.contains("windows")) {
-				"windows";
-			} else if(os.contains("mac")) {
-				"macos";
-			} else if(os.contains("ubuntu")) {
-				"ubuntu";
-			} else {
-				throw 'Unrecognized OS $os';
-			}
-			OS_LOCKS.set(os, version);
-			return "";
-		});
 
 		gen( script, output, true );
 		gen( script, output, false );
 	}
 
-	static function gen(script : String, output : String, main : Bool) {
+	static function gen(script : String, output : String, locks:Map<String,Map<String,String>>, main : Bool) {
+
+		function getOS(from:EReg):String {
+			final left = from.matchedLeft();
+			final idx = left.lastIndexOf("runs-on:");
+			if(idx < 0) throw 'Failed to get the OS of the current match ${from.matched(0)}';
+			return if(matchRunnerOS.match(left.substr(idx))) {
+				return matchRunnerOS.matched(1).toLowerCase();
+			} else {
+				throw 'Failed to match "runs-on:" withing $left';
+			}
+		}
 
 		// Lock Runner OS
-		script = ~/runs-on:\s*(\w+)-latest/g.map(script, function(reg:EReg) {
+		script = matchRunnerOS.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var os = reg.matched(1).toLowerCase();
-			return matched.replace('latest', OS_LOCKS.get(os));
+			var version = reg.matched(2);
+			return if(version == "latest") {
+				matched.replace('latest', OS_LOCKS.get(os));
+			} else {
+				matched;
+			}
 		});
 
 		// Update cancelling previous run
@@ -129,7 +128,8 @@ class Main {
 		script = matchOpamUpdateHaxe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var update = reg.matched(1);
-			var libs = [for(lib => version in LIB_LOCKS) '"$lib=$version"'].join(" ");
+			var lock = locks[getOS(reg)];
+			var libs = [for(lib => version in lock) '"$lib=$version"'].join(" ");
 			return matched + "\n" + matched.replace(update, 'opam install $libs --yes ');
 		});
 
