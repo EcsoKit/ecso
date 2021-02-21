@@ -1,0 +1,4 @@
+-D github
+-D template=TEMPLATE.md
+-D destination=../../README.md
+--run Main

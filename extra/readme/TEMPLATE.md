@@ -1,9 +1,14 @@
 ecso
 ----
+#if github
 <!--- DO NOT EDIT. Generated from /extra/readme -->
+#end
 
 `ecso` is an open-source and experimental [Entity Component System](https://en.wikipedia.org/wiki/Entity_component_system) plugin for Haxe, which enables ECS oriented compiler features and focuses on simplicity.
 
+#if haxelib
+If you have any suggestions or run into any problems, [open an issue on GitHub](https://github.com/EcsoKit/ecso/issues).
+#end
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
 [![Slack](https://img.shields.io/badge/chat-online-success?style=flat-square&logo=slack)](https://join.slack.com/t/ecsokit/shared_invite/zt-ex72k2bp-tDx6yJ~zvZc1swdFW6i8Eg)
