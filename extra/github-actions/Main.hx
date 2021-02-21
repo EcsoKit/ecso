@@ -7,7 +7,7 @@ using StringTools;
 /**
 	Commit ID used to download CI configuration.
  */
-final HAXE_VERSION = "bfcbf809165b3b3df0bce4833bd90a7539f2ae56";
+final HAXE_VERSION = "4.2.0";
 
 /**
 	URL to the CI logs used to lock the version of OCaml packages.
@@ -56,7 +56,7 @@ class Main {
 				Sys.println('Override $lib version $version with ${LIB_LOCKS.get(lib)}');
 			return matched;
 		// Get OS Version
-		~/Operating System\s+([\w -]+)\s+(\S+)/g.map(logs, function(reg:EReg) {
+		~/Operating System\s+([A-Za-z_ -]+)\s+([0-9]+ |[0-9]+\.[0-9]+)/g.map(logs, function(reg:EReg) {
 			var os = reg.matched(1).toLowerCase();
 			var version = reg.matched(2);
 			os = if(os.contains("windows")) {
@@ -81,8 +81,8 @@ class Main {
 		// Lock Runner OS
 		script = ~/runs-on:\s*(\w+)-latest/g.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var os = reg.matched(1);
-			return matched.replace('$os-latest', OS_LOCKS.get(os));
+			var os = reg.matched(1).toLowerCase();
+			return matched.replace('latest', OS_LOCKS.get(os));
 		});
 
 		// Update cancelling previous run
