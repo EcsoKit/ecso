@@ -17,6 +17,12 @@ class Plugin {
 		if (#if display true || #end Context.defined('display'))
 			return;
 
+		#if (haxe != "4.2.0")
+		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.0. Please update ECSO to a newer version when available at https://lib.haxe.org/p/ecso/', Context.currentPos());
+		#end
+		if (!Context.defined("hl") && !Context.defined("js") && !Context.defined("interp"))
+			Sys.println('\n[ECSO] Warning : Be aware the alpha version has not been thoroughly tested on other targets than HashLink, JavaScrip, or Eval (interp).\n                 You might hit unfriendly issues.\n');
+
 		plugin.init();
 	}
 

@@ -1,3 +1,4 @@
+
 ecso
 ----
 <!--- DO NOT EDIT. Generated from /extra/readme -->
@@ -12,12 +13,12 @@ ecso
 ## Features
 
 * **Framework agnostic**: focus exclusively on core ECS aspects.
-* **Haxe-Powered**: integrates with built-in semantics and features (even macros).
+* **Haxe-Powered**: integrates with built-in semantics and features (such as macros, type inference, closures, null safety, etc).
 * **Advanced code-analyzes**: structure for high-level ECS-oriented compiler optimizations.
-* **Super simple API**: lightweight with clarity, readability and discoverability over conciseness policy.
-* **Cross-platform**: enables target-specific optimizations.
-* **Performance**: while speed is not the current focus, the nature of `ecso` should eventually offer a good level of customization to best fit specific needs, optimizing out branching, unboxing, etc... from systems.
-* **Fast Compilation**: plugins are incredibly fast, plus zero-overhead for non-`ecso` projects.
+* **Super simple API**: lightweight with clarity, readability and discoverability in mind.
+* **Cross-platform**: enables target-specific optimizations, and run on every Haxe target.
+* **Performance**: while the current focus is on design and not on speed, the nature of `ecso` promises a good level of customization to best fit specific needs, optimizing out branching and unboxing from systems, etc.
+* **Fast Compilation**: plugins are incredibly fast, with zero-overhead for non-`ecso` projects.
 
 ## Code example
 
@@ -54,9 +55,9 @@ function main () {
         vy: 1
     });
 
-    entities.foreachEntity( move );
-    entities.foreachEntity( teleport.bind(_, 0, 0) );
-    entities.foreachEntity( function (entity:{ y:Int, vy:Int }) {
+    entities.foreachEntity( move ); // runs the system `move`.
+    entities.foreachEntity( teleport.bind(_, 0, 0) ); // runs `teleport` with arguments.
+    entities.foreachEntity( function (entity:{ y:Int, vy:Int }) { // runs an anonymous system.
         if (entity.y < 100)
             entity.vy -= 1;
     });
@@ -67,7 +68,9 @@ For more details about `ecso` please visit [the wiki page](https://github.com/Ec
 
 # How to install
 
-To use `ecso` on your system, you can refer to the [installation](https://github.com/EcsoKit/ecso/wiki/Installation) page.
+Run `haxelib install ecso` and add `--library ecso` to your compilation flags.
+
+To use `ecso` from source or use nightly builds, you can refer to the [installation](https://github.com/EcsoKit/ecso/wiki/Installation) page.
 
 # Contribution
 
