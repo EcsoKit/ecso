@@ -3,6 +3,7 @@ import haxe.Exception;
 import runci.System;
 import runci.Config;
 import runci.TestTarget;
+import sys.FileSystem;
 
 using StringTools;
 
@@ -76,7 +77,7 @@ function main() {
 			args = args.concat(["-D", systemName]);
 
 			switch test {
-				case Macro | Neko | Php | Python | Lua | Cpp | Cppia | Java | Jvm | Cs | Flash9:
+				case Macro | Neko | Php | Python | Lua | Cppia | Java | Flash9:
 					infoMsg("skip tests");
 				case Server:
 					haxelibInstall("hxnodejs");
@@ -129,6 +130,54 @@ function main() {
 						runIssues(Js, args, runJs);
 						runUnits(Js, args, runJs);
 						runSpecs(Js, args, runJs);
+					}
+				case Jvm:
+					testHaxe(Jvm);
+					for (level in 0...3) {
+						final args = args.concat(["-D", "jvm.dynamic-level=" + level]);
+						function runJvm(name:String) {
+							runCommand("java", ["-jar", 'bin/$name.jar']);
+						}
+						runIssues(Jvm, args, runJvm);
+						runUnits(Jvm, args, runJvm);
+						runSpecs(Jvm, args, runJvm);
+					}
+				case Cpp:
+					testHaxe(Cpp);
+					try {
+						if(systemName == "Windows")
+							runCommand("rmdir", ["/Q/S", "bin/cpp"]);
+						else
+							runCommand("rm", ["-rf", "bin/cpp"]);
+					} catch (_) {}
+					function runCpp(name:String) {
+						runCommand(FileSystem.fullPath('bin/cpp/$name/Main-debug'), []);
+					}
+					final archFlag = if (systemName == "Windows") "HXCPP_M32" else "HXCPP_M64";
+					final args = ["-D", archFlag].concat(args);
+					runIssues(Cpp, args, runCpp);
+					runUnits(Cpp, args, runCpp);
+					runSpecs(Cpp, args, runCpp);
+				case Cs:
+					testHaxe(Cs);
+					for (unsafe in        [[], ["-D", "unsafe"]])
+					for (fastcast in      [[], ["-D", "fast_cast"]])
+					for (noroot in        [[], ["-D", "no_root"]])
+					for (erasegenerics in [[], ["-D", "erase_generics"]])
+					{
+						final args = args.concat(unsafe).concat(fastcast).concat(erasegenerics).concat(noroot);
+						function runCs(name:String) {
+							final exe = FileSystem.fullPath('bin/cs/$name/bin/Main-Debug.exe');
+							switch systemName {
+								case "Linux", "Mac":
+									runCommand("mono", [exe]);
+								case "Windows":
+									runCommand(exe, []);
+							}
+						}
+						runIssues(Cs, args, runCs);
+						runUnits(Cs, args, runCs);
+						runSpecs(Cs, args, runCs);
 					}
 				case t:
 					throw new Exception("unknown target: " + t);
