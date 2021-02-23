@@ -143,7 +143,9 @@ private class CoreSpecification extends BuddySuite {
                     spy.y.should.be(4 + spy.vy);
                 });
                 it('from module functions', {
-                    pending("coming soon");
+                    entities.foreachEntity(moduleMovingY);
+                    entities.foreachEntity(spying);
+                    spy.y.should.be(4 + spy.vy);
                 });
                 it('with correct matches only', {
                     entities.foreachEntity((e:{ foo:String }) -> {
@@ -327,14 +329,14 @@ private class CoreSpecification extends BuddySuite {
                     entities.foreachEntity( spying, remove, movingY, spying );
                     spy.y.should.be(4);
                 });
+                #end
                 it('with nullable value', {
-                    var n:Int = @:analyzer(no) (() -> null)();
-                    function remove (e:{ y:Int })
+                    var n:Null<Int> = @:analyzer(no) (() -> null)();
+                    function remove (e:{ ?y:Int })
                         e.y = n;
                     entities.foreachEntity( spying, remove, movingY, spying );
                     spy.y.should.be(4);
                 });
-                #end
             });
 
             describe('should delete entities', {
@@ -365,3 +367,7 @@ class B extends A {}
 class GrandParent { public function new () {} }
 class Parent extends GrandParent {}
 class Child extends Parent {}
+
+function moduleMovingY (e:PositionComponent & VelocityComponent):Void {
+    e.y += e.vy;
+}
