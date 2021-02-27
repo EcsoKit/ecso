@@ -3,6 +3,7 @@
   with:
     name: ecso
     path: plugins/ecso/**/*.cmxs
+    if-no-files-found: error
 
 - name: . . . add sources
   uses: actions/upload-artifact@v2
@@ -11,27 +12,32 @@
     path: |
       plugins/ecso/*/ecso/*.hx
       plugins/ecso/*/ecso/_core/*.hx
+    if-no-files-found: error
 
 - name: . . . add readme
   uses: actions/upload-artifact@v2
   with:
     name: ecso
     path: plugins/ecso/README.md
+    if-no-files-found: error
 
 - name: . . . add license
   uses: actions/upload-artifact@v2
   with:
     name: ecso
     path: plugins/ecso/LICENSE.md
+    if-no-files-found: error
 
 - name: . . . add extraParams.hxml
   uses: actions/upload-artifact@v2
   with:
     name: ecso
     path: plugins/ecso/extraParams.hxml
+    if-no-files-found: error
 
 - name: . . . add haxelib.json
   uses: actions/upload-artifact@v2
   with:
     name: ecso
     path: plugins/ecso/haxelib.json
+    if-no-files-found: error
