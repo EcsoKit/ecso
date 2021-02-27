@@ -33,7 +33,11 @@ class Plugin {
 			try {
 				plugin = eval.vm.Context.loadPlugin(getPluginPath());
 			} catch (e:String) {
-				throw '[ECSO] Failed to load plugin: $e';
+				if (e.indexOf("The operation completed successfully") < 0)
+					throw '[ECSO] Failed to load plugin: $e';
+				else
+					Sys.println("[ECSO] The plugin seems to be loaded several times. If you encounter any error after seeing this message, please file an issue at https://github.com/EcsoKit/ecso/issues.");
+				{ init: function(){}, registerContext: function(a,b,c){} }
 			}
 		} else {
 			plugin;
