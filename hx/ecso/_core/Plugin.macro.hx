@@ -17,8 +17,8 @@ class Plugin {
 		if (#if display true || #end Context.defined('display'))
 			return;
 
-		#if (haxe > "4.2.0")
-		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.0. Please update ECSO to a newer version when available at https://lib.haxe.org/p/ecso/', Context.currentPos());
+		#if (haxe > "4.2.1")
+		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.0 and 4.2.1. Please update ECSO to a newer version when available at https://lib.haxe.org/p/ecso/', Context.currentPos());
 		#elseif (haxe < "4.2.0")
 		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.0. Please update Haxe at https://haxe.org/', Context.currentPos());
 		#end
