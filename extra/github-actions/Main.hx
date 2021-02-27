@@ -102,9 +102,9 @@ class Main {
 		// }
 
 		// Hack until we figure out how to download logs
-		OS_LOCKS.set("windows", "windows-2019");
-		OS_LOCKS.set("ubuntu", "ubuntu-18.04");
-		OS_LOCKS.set("macos", "macos-10.15");
+		OS_LOCKS.set("windows", "2019");
+		OS_LOCKS.set("ubuntu", "18.04");
+		OS_LOCKS.set("macos", "10.15");
 		final locks = [
 			"windows" => [
 				"sexplib0"                    => "v0.14.0",
