@@ -41,6 +41,7 @@ class Main {
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
 	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(\w+)/g;
+	static final mainName = ~/[\r\n]name:\s*(.+)/g;
 
 	static function main() {
 		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_COMMIT_SHA/.github/workflows/main.yml');
@@ -382,6 +383,12 @@ class Main {
 		if (main) {
 			File.saveContent('$output/main.yml', script);
 		} else {
+			// Rename the workflow
+			script = mainName.map(script, reg -> {
+				var matched = reg.matched(0);
+				var name = reg.matched(1);
+				return matched.replace(name, 'Haxe $HAXE_VERSION');
+			});
 			File.saveContent('$output/haxe-$HAXE_VERSION.yml', script);
 		}
 	}
