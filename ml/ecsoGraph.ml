@@ -1226,7 +1226,7 @@ module EcsoGraph = struct
 									var system = z;
 									g.process( { system; copy; } );
 							*)
-							let e = { e with gexpr = GBlock[{ e with gexpr = e.gexpr };mk_local v' e.greal.epos] } in
+							let e = { e with gexpr = GBlock[mk_local v' e.greal.epos;{ e with gexpr = e.gexpr }] } in
 
 							(*
 								Assign the local copy everywhre the user's variable is being assigned a value.
