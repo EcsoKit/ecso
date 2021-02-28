@@ -133,11 +133,11 @@ function main() {
 					}
 				case Jvm:
 					testHaxe(Jvm);
+					function runJvm(name:String) {
+						runCommand("java", ["-jar", 'bin/$name.jar']);
+					}
 					for (level in 0...3) {
 						final args = args.concat(["-D", "jvm.dynamic-level=" + level]);
-						function runJvm(name:String) {
-							runCommand("java", ["-jar", 'bin/$name.jar']);
-						}
 						runIssues(Jvm, args, runJvm);
 						runUnits(Jvm, args, runJvm);
 						runSpecs(Jvm, args, runJvm);
