@@ -8,7 +8,7 @@ class Issue18 extends Test {
 	function testIssue18() {
 		var a = "";
 
-		a = makeBranches(100);
+		a = makeBranches(#if cpp 82 #elseif cs 24 #else 100 #end);
 
 		#if !macro
 		final g = new EntityGroup();
