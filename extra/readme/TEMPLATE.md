@@ -7,10 +7,10 @@ ecso
 `ecso` is an open-source and experimental [Entity Component System](https://en.wikipedia.org/wiki/Entity_component_system) plugin for Haxe, which enables ECS oriented compiler features and focuses on simplicity.
 
 #if haxelib
-Given the current alpha version, it is strongly advised to use `ecso` with HashLink, JavaScript, or Eval (interp). 
-
-If you have any suggestions or run into any problems, please [open an issue on GitHub](https://github.com/EcsoKit/ecso/issues).
+The current alpha version requires Haxe 4.2.0 or 4.2.1. It is strongly advised to use `ecso` with the following targets: HashLink, JavaScript, C++, C#, or Eval (interp). Other targets will be tested progressively.
 #end
+
+If you have any suggestions or run into any problems, please [open an issue #if !github on GitHub #end](https://github.com/EcsoKit/ecso/issues).
 
 #if github
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)

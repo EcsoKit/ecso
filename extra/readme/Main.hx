@@ -26,7 +26,7 @@ macro function processTemplate() {
 	final pos = Context.makePosition({ min: 0, max: template.length, file: path	});
 
 	final identifiers = [];
-	final code = ~/[\r\n]?#(if|elseif)\s+(\S+)[\r\n]?/g.map(template, function(reg:EReg) {
+	final code = ~/[\r\n ]?#(if|elseif)\s+(\S+)[\r\n ]?/g.map(template, function(reg:EReg) {
 		final matched = reg.matched(0);
 		final eif = reg.matched(1);
 		final cond = reg.matched(2);
@@ -52,9 +52,9 @@ macro function processTemplate() {
 				'}else ';
 			case _:
 				throw null;
-		}) + 'if($cond){v+="');
+		}) + 'if($cond){v+=" ');
 	});
-	final code = ~/[\r\n]?#(else|end)[\r\n]?/g.map(code, function(reg:EReg) {
+	final code = ~/[\r\n ]?#(else|end)[\r\n ]?/g.map(code, function(reg:EReg) {
 		final matched = reg.matched(0);
 		final end = reg.matched(1);
 		return shiftPositions(matched, '";}' + (switch end {
