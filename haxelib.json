@@ -6,6 +6,6 @@
 	"tags": ["ecs", "plugin"],
 	"version": "1.0.0-alpha.3",
 	"classPath": "hx",
-	"releasenote": "Initial alpha release",
+	"releasenote": "Support for Haxe 4.2.1",
 	"contributors": ["dpomier"]
 }
