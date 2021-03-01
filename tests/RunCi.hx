@@ -144,7 +144,7 @@ function main() {
 					}
 				case Cpp:
 					testHaxe(Cpp);
-					try {
+					if(FileSystem.exists("bin/cpp")) try {
 						if(systemName == "Windows")
 							runCommand("rmdir", ["/Q/S", "bin/cpp"]);
 						else
