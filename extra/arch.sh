@@ -13,6 +13,15 @@ else
 fi
 
 CMXS=$DIR/../cmxs
+HX="hx-$( haxe --version 2>&1 )"
 
-rm -r $CMXS/Windows$ARCH
-mv -T $CMXS/Windows $CMXS/Windows$ARCH
+# Remove previous build
+if [ -d "$CMXS/$HX/Windows$ARCH" ]; then
+  rm -r $CMXS/$HX/Windows$ARCH
+fi
+# Create destination directory
+if [ ! -d "$CMXS/$HX" ]; then
+  mkdir $CMXS/$HX
+fi
+
+mv -T $CMXS/Windows $CMXS/$HX/Windows$ARCH

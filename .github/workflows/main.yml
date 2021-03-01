@@ -121,8 +121,9 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.1/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.1/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
@@ -283,8 +284,9 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.1/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.1/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
@@ -414,6 +416,8 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
           make -s package_unix
+          mkdir ./plugins/ecso/cmxs/hx-4.2.1
+          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.1
           ls -l out
           ldd -v ./haxe
           ldd -v ./haxelib
@@ -638,6 +642,8 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
           make -s package_unix package_installer_mac
+          mkdir ./plugins/ecso/cmxs/hx-4.2.1
+          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.1
           ls -l out
           otool -L ./haxe
           otool -L ./haxelib

@@ -64,6 +64,7 @@ class Plugin {
 			case s:
 				s;
 		}
-		return Path.join([src, 'cmxs', system, 'plugin.cmxs']);
+		final hx = Context.definedValue("haxe");
+		return Path.join([src, 'cmxs', 'hx-$hx', system, 'plugin.cmxs']);
 	}
 }

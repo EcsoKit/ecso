@@ -38,6 +38,7 @@ class Main {
 	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
 	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
+	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
 	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(\w+)/g;
@@ -304,15 +305,31 @@ class Main {
 			return matched + "\n" + makeEcso;
 		});
 
-		// Cygcheck ecso cmxs
+		// Move binaries (Windows)
 		script = matchCygcheckExe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var head = reg.matched(1);
 			var cygcheck = reg.matched(2);
 			var haxeExe = reg.matched(3);
 			return matched
-				+ matched.replace(cygcheck, "mv -T").replace(haxeExe, "./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/Windows${ARCH}") // add architecture
-				+ matched.replace(haxeExe, "./plugins/ecso/cmxs/Windows${ARCH}/plugin.cmxs"); // check result
+				+ matched.replace(cygcheck, "mkdir").replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION')
+				+ matched.replace(cygcheck, "mv -T").replace(haxeExe, './plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}") // add architecture + move per haxe version
+				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}/plugin.cmxs"); // check result
+		});
+		// Move binaries (Mac and Linux)
+		script = matchCheckOutUnix.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var head = reg.matched(1);
+			var ls = reg.matched(2);
+			var tail = reg.matched(3);
+			var platform = switch getOS(reg) {
+				case "ubuntu": "Linux";
+				case "macos": "Mac";
+				case any: throw 'Unexpected platform $any';
+			}
+			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
+				+ matched.replace(ls, 'mv -T ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION/$platform')
+				+ matched;
 		});
 
 		// Upload artifact
@@ -322,7 +339,7 @@ class Main {
 			var action = reg.matched(2);
 			var name = reg.matched(3);
 
-			var template = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', name);
+			var template = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
 
 			return align(template, head) + matched;
 		});
