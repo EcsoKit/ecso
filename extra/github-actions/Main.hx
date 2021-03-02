@@ -7,7 +7,7 @@ using StringTools;
 /**
 	Commit ID used to download CI configuration and run logs.
  */
-final HAXE_COMMIT_SHA = "bf9ff69c0801082174f0b2b0a66faeb5356de580";
+final HAXE_COMMIT_SHA = "c455bf529491d04c0b3f7ff8cbdfc9b7dcbc6843";
 final HAXE_VERSION = "4.2.1";
 final HAXE_RUNS = [
 	"windows" => 1988061016,
@@ -274,7 +274,7 @@ class Main {
 				return matched;
 			}
 
-			final templateHaxe = File.getContent('./checkout-haxe.yml').replace('::HAXE_VERSION::', HAXE_VERSION);
+			final templateHaxe = File.getContent('./checkout-haxe.yml').replace('::HAXE_VERSION::', HAXE_COMMIT_SHA);
 			final templateEcso = File.getContent('./checkout-ecso.yml');
 
 			return align(templateHaxe, head) + align(templateEcso, head);
