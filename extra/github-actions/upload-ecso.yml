@@ -14,6 +14,12 @@
       plugins/ecso/*/ecso/_core/*.hx
     if-no-files-found: error
 
+- name: . . . generate readme
+  run: |
+    cd ${{github.workspace}}/plugins/ecso/extra/readme
+    haxe build-haxelib.hxml -D destination=../../README.md
+    cd ${{github.workspace}}
+
 - name: . . . add readme
   uses: actions/upload-artifact@v2
   with:

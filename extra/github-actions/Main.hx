@@ -335,6 +335,8 @@ class Main {
 		// Upload artifact
 		script = matchUploadArtifact.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
+			if (matched.contains("xmldoc"))
+				return matched;
 			var head = reg.matched(1);
 			var action = reg.matched(2);
 			var name = reg.matched(3);
