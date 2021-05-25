@@ -14,11 +14,6 @@
       plugins/ecso/*/ecso/_core/*.hx
     if-no-files-found: error
 
-- name: . . . generate readme
-  working-directory: ${{github.workspace}}
-  run: |
-    haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-
 - name: . . . add readme
   uses: actions/upload-artifact@v2
   with:

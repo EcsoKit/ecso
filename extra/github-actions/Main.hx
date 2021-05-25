@@ -35,7 +35,7 @@ class Main {
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
-	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
+	static final matchMakeHaxe = ~/.* ((make) .* (haxe))(?= |\n).*/g;
 	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
 	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
@@ -293,16 +293,20 @@ class Main {
 		script = matchMakeHaxelib.map(script, function(reg:EReg) {
 			var pos = reg.matchedPos();
 			var makeEcso = "";
+			var makeReadme = "";
 			matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
 				var matched = reg.matched(0);
-				var make = reg.matched(1);
-				var haxe = reg.matched(2);
+				var cmd = reg.matched(1);
+				var make = reg.matched(2);
+				var haxe = reg.matched(3);
 				makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+				makeReadme = matched.replace(cmd, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
 				return "";
 			});
-			if(makeEcso == "") throw "Fail to find haxe make";
+			if(makeEcso == "" || makeReadme == "")
+				throw "Fail to find haxe make";
 			var matched = reg.matched(0);
-			return matched + "\n" + makeEcso;
+			return matched + "\n" + makeEcso + "\n" + makeReadme;
 		});
 
 		// Move binaries (Windows)
