@@ -144,6 +144,7 @@ jobs:
           if-no-files-found: error
       
       - name: . . . generate readme
+        working-directory: ${{github.workspace}}
         run: |
           haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
@@ -311,6 +312,7 @@ jobs:
           if-no-files-found: error
       
       - name: . . . generate readme
+        working-directory: ${{github.workspace}}
         run: |
           haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
@@ -470,6 +472,7 @@ jobs:
           if-no-files-found: error
       
       - name: . . . generate readme
+        working-directory: ${{github.workspace}}
         run: |
           haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
@@ -633,6 +636,7 @@ jobs:
           if-no-files-found: error
       
       - name: . . . generate readme
+        working-directory: ${{github.workspace}}
         run: |
           haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
