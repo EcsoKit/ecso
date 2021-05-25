@@ -97,9 +97,9 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && bash opam${ARCH}/install.sh')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam init mingw "https://github.com/fdopen/opam-repository-mingw.git#opam2" --comp 4.07.0+mingw${ARCH}c --switch 4.07.0+mingw${ARCH}c --auto-setup --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam update --yes 2>&1')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.0" "csexp=1.5.1" "result=1.5" "ocaml-config=2" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "base-unix=base" "ocaml-variants=4.07.0+mingw64c" "ocaml-migrate-parsetree=2.1.0" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "cppo=1.6.7" "ocamlbuild=0.14.0" "seq=base" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.9.1" "camlp5=8.00~alpha05" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam pin add haxe . --kind=path --no-action --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam pin add ctypes 0.17.1 --yes 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.0" "csexp=1.5.1" "result=1.5" "ocaml-config=2" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "base-unix=base" "ocaml-variants=4.07.0+mingw64c" "ocaml-migrate-parsetree=2.1.0" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "cppo=1.6.7" "ocamlbuild=0.14.0" "seq=base" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.9.1" "camlp5=8.00~alpha05" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install haxe --deps-only --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam list')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'ocamlopt -v')
@@ -266,9 +266,9 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && bash opam${ARCH}/install.sh')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam init mingw "https://github.com/fdopen/opam-repository-mingw.git#opam2" --comp 4.07.0+mingw${ARCH}c --switch 4.07.0+mingw${ARCH}c --auto-setup --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam update --yes 2>&1')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.0" "csexp=1.5.1" "result=1.5" "ocaml-config=2" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "base-unix=base" "ocaml-variants=4.07.0+mingw64c" "ocaml-migrate-parsetree=2.1.0" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "cppo=1.6.7" "ocamlbuild=0.14.0" "seq=base" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.9.1" "camlp5=8.00~alpha05" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam pin add haxe . --kind=path --no-action --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam pin add ctypes 0.17.1 --yes 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.0" "csexp=1.5.1" "result=1.5" "ocaml-config=2" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.2b" "conf-libpcre=1" "base-unix=base" "ocaml-variants=4.07.0+mingw64c" "ocaml-migrate-parsetree=2.1.0" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "cppo=1.6.7" "ocamlbuild=0.14.0" "seq=base" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.9.1" "camlp5=8.00~alpha05" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam install haxe --deps-only --yes 2>&1')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'opam list')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'ocamlopt -v')
@@ -412,8 +412,8 @@ jobs:
           set -ex
           opam init # --disable-sandboxing
           opam update
-          opam install "sha=1.14" "integers=0.4.0" "ocaml-system=4.05.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "bigarray-compat=1.0.0" "ocaml=4.05.0" "ocaml-secondary-compiler=4.08.1-1" "csexp=1.5.1" "result=1.5" "ocaml-config=1" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.5" "conf-libpcre=1" "base-unix=base" "ocamlfind-secondary=1.8.1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "ocamlbuild=0.14.0" "cppo=1.6.7" "seq=0.2.2" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.8.1" "camlp5=8.00~alpha05" "conf-mbedtls=1" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.18.0" --yes 
           opam pin add haxe . --no-action
+          opam install "sha=1.14" "integers=0.4.0" "ocaml-system=4.05.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "bigarray-compat=1.0.0" "ocaml=4.05.0" "ocaml-secondary-compiler=4.08.1-1" "csexp=1.5.1" "result=1.5" "ocaml-config=1" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.5" "conf-libpcre=1" "base-unix=base" "ocamlfind-secondary=1.8.1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "ocamlbuild=0.14.0" "cppo=1.6.7" "seq=0.2.2" "base-threads=base" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.8.1" "camlp5=8.00~alpha05" "conf-mbedtls=1" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.18.0" --yes 
           opam install haxe --deps-only
           opam list
           ocamlopt -v
@@ -646,12 +646,12 @@ jobs:
           set -ex
           opam init # --disable-sandboxing
           opam update
-          opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.1" "ocaml-secondary-compiler=4.08.1-1" "csexp=1.5.1" "result=1.5" "ocaml-config=1" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.5" "conf-libpcre=1" "base-unix=base" "ocamlfind-secondary=1.8.1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "ocamlbuild=0.14.0" "cppo=1.6.7" "seq=base" "base-threads=base" "ocaml-base-compiler=4.07.1" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.8.1" "camlp5=8.00~alpha05" "conf-mbedtls=1" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 
           opam switch create 4.07.1
           eval $(opam env)
           opam env
           opam pin add ctypes 0.17.1 --yes
           opam pin add haxe . --no-action
+          opam install "sha=1.14" "integers=0.4.0" "conf-pkg-config=2" "luv=0.5.7" "conf-perl-ipc-system-simple=1" "conf-perl=1" "conf-perl-string-shellquote=1" "ocaml=4.07.1" "ocaml-secondary-compiler=4.08.1-1" "csexp=1.5.1" "result=1.5" "ocaml-config=1" "extlib=1.7.8" "base-bigarray=base" "base-bytes=base" "dune=2.8.5" "conf-libpcre=1" "base-unix=base" "ocamlfind-secondary=1.8.1" "ocaml-migrate-parsetree=2.1.0" "conf-m4=1" "xml-light=2.4" "uchar=0.0.2" "stdlib-shims=0.3.0" "ocamlbuild=0.14.0" "cppo=1.6.7" "seq=base" "base-threads=base" "ocaml-base-compiler=4.07.1" "conf-neko=1" "gen=0.5.3" "dune-configurator=2.8.5" "ppxlib=0.22.0" "sedlex=2.3" "ocamlfind=1.8.1" "camlp5=8.00~alpha05" "conf-mbedtls=1" "ppx_derivers=1.2.1" "ocaml-compiler-libs=v0.12.3" "conf-zlib=1" "sexplib0=v0.14.0" "ptmap=2.0.5" "ctypes=0.17.1" --yes 
           opam install haxe --deps-only
           opam list
           ocamlopt -v

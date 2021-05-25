@@ -33,7 +33,7 @@ class Main {
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchHaxeTests = ~/[\r\n\s]*(haxe RunCi\.hxml)([\w\W\r\n]+?(?=\sworking-directory:)\s)working-directory:\s([\w${}.\/ ]+)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
-	static final matchOpamUpdateHaxe = ~/.*(opam update[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
+	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
 	static final matchMakeHaxe = ~/.* (make) .* (haxe)(?= |\n).*/g;
 	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
@@ -281,12 +281,12 @@ class Main {
 		});
 
 		// Lock Ocaml setup
-		script = matchOpamUpdateHaxe.map(script, function(reg:EReg) {
+		script = matchOpamInstallHaxe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var update = reg.matched(1);
+			var install = reg.matched(1);
 			var lock = locks[getOS(reg)];
 			var libs = [for(lib => version in lock) '"$lib=$version"'].join(" ");
-			return matched + "\n" + matched.replace(update, 'opam install $libs --yes ');
+			return matched.replace(install, 'opam install $libs --yes ') + "\n" + matched;
 		});
 
 		// Build ecso as plugin (after haxelib)
