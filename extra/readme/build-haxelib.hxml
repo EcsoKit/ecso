@@ -1,4 +1,4 @@
 -D haxelib
 -D template=TEMPLATE.md
--D destination=../../haxelib/README.md
+-D destination=../../README.md
 --run Main

@@ -16,9 +16,7 @@
 
 - name: . . . generate readme
   run: |
-    cd ${{github.workspace}}/plugins/ecso/extra/readme
-    haxe build-haxelib.hxml -D destination=../../README.md
-    cd ${{github.workspace}}
+    haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
 
 - name: . . . add readme
   uses: actions/upload-artifact@v2

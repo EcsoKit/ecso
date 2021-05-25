@@ -82,6 +82,7 @@ macro function processTemplate() {
 	final expr = macro {
 		@:mergeBlock $b{vars}
 		$content;
+		Sys.println('Write ' + $v{Path.normalize(dest)});
 		FileSystem.createDirectory(Path.directory($v{dest}));
 		File.saveContent( $v{dest}, v );
 	}
