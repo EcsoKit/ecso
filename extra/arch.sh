@@ -13,7 +13,9 @@ else
 fi
 
 CMXS=$DIR/../cmxs
-HX="hx-$( haxe --version 2>&1 )"
+cd $DIR/../../..
+HX="hx-$( ./haxe.exe --version 2>&1 )"
+cd $DIR
 
 # Remove previous build
 if [ -d "$CMXS/$HX/Windows$ARCH" ]; then
