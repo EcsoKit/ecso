@@ -1,8 +1,10 @@
 # DO NOT EDIT. Generated from /extra/github-actions
 # TODO: support skip ci (https://github.community/t/github-actions-does-not-respect-skip-ci/17325/8)
 
-name: CI
-on: [push, pull_request]
+name: Haxe 4.2.2
+on:
+  release:
+    types: [created]
 
 jobs:
   cancel:
@@ -12,7 +14,7 @@ jobs:
     steps:
       - uses: styfle/cancel-workflow-action@0.3.1
         with:
-          workflow_id: 1610708
+          workflow_id: 0
           access_token: ${{ github.token }}
 
   windows64-build:
