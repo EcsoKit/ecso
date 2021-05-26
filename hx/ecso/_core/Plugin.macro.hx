@@ -23,7 +23,7 @@ class Plugin {
 		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.2. Please update Haxe at https://haxe.org/', Context.currentPos());
 		#end
 		if (!Context.defined("hl") && !Context.defined("js") && !Context.defined("interp") && !Context.defined("cpp") && !Context.defined("cs"))
-			Sys.println('\n[ECSO] Warning : Be aware the alpha version has not been thoroughly tested on other targets than HashLink, JavaScrip, or Eval (interp).\n                 You might hit unfriendly issues.\n');
+			Sys.println('\n[ECSO] Warning : Be aware the alpha version has not been thoroughly tested on other targets than HashLink, JavaScrip, CPP, C# or Eval (interp).\n                 You might hit unfriendly issues.\n');
 
 		plugin.init();
 	}
