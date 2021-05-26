@@ -351,7 +351,7 @@ class Main {
 				case any: throw 'Unexpected platform $any';
 			}
 			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(ls, 'mv -T ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION/$platform')
+				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
 				+ matched;
 		});
 
