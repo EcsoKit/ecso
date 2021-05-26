@@ -133,6 +133,7 @@ function main() {
 					}
 				case Jvm:
 					testHaxe(Jvm);
+					haxelibInstall("hxjava");
 					function runJvm(name:String) {
 						runCommand("java", ["-jar", 'bin/$name.jar']);
 					}
