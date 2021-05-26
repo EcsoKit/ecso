@@ -3,7 +3,7 @@ package units.issues;
 import ecso.Entity;
 
 class Issue22 extends Test {
-	function testIssueR() {
+	function testIssue22() {
 
 		final g = new EntityGroup();
 
