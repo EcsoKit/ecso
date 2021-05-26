@@ -1,1 +1,4 @@
---run Main
+# --run Main
+--main Main
+--hl Main.hl
+--cmd hl Main.hl
