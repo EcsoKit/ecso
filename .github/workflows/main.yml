@@ -1102,7 +1102,7 @@ jobs:
       - name: Test
         run: |
           # disable invalid Unicode filenames on APFS
-          echo "" > ../../../tests/sys/compile-fs.hxml
+          echo "" > ${{github.workspace}}/tests/sys/compile-fs.hxml
           haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
 
@@ -1110,7 +1110,7 @@ jobs:
       - name: Generate readme
         run: |
           # disable invalid Unicode filenames on APFS
-          echo "" > sys/compile-fs.hxml
+          echo "" > ${{github.workspace}}/tests/sys/compile-fs.hxml
           haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
         working-directory: ${{github.workspace}}
 

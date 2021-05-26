@@ -392,22 +392,26 @@ class Main {
 			var name = reg.matched(2);
 			var run = reg.matched(3);
 			var cwd = reg.matched(5);
+			function correctRelativePaths(source:String, workingDirectory:String) {
+				// Correct path to `compile-fs.hxml`
+				return matchCompileFs.map(source, function(reg:EReg) {
+					var matched = reg.matched(0);
+					var head = reg.matched(1);
+					var path = reg.matched(2);
+					var tail = reg.matched(3);
+					return matched.replace(path, '$workingDirectory/$path');
+					// return "${{github.workspace}}" + '/tests/$path$tail';
+				});
+			}
 			// Redirect tests
 			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
-			test = matchCompileFs.map(test, function(reg:EReg) {
-				// Correct path to `compile-fs.hxml`
-				var matched = reg.matched(0);
-				var head = reg.matched(1);
-				var path = reg.matched(2);
-				var tail = reg.matched(3);
-				return '$head../../../tests/$path$tail';
-			});
 			// Generate readme
 			var readme = matched.replace(name, "Generate readme").replace(cwd, "${{github.workspace}}").replace(run, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
+			// Only generate readme when
 			return if(name.contains("SauceLabs")) {
-				test;
+				correctRelativePaths(test, cwd);
 			} else {
-				test + readme;
+				correctRelativePaths(test + readme, cwd);
 			}
 		});
 
