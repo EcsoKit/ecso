@@ -132,8 +132,8 @@ function main() {
 						runSpecs(Js, args, runJs);
 					}
 				case Jvm:
-					testHaxe(Jvm);
 					haxelibInstall("hxjava");
+					testHaxe(Jvm);
 					function runJvm(name:String) {
 						runCommand("java", ["-jar", 'bin/$name.jar']);
 					}
