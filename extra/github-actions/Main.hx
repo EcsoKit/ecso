@@ -31,7 +31,7 @@ class Main {
 	static final matchCancelPrevious = ~/([\r\n]\s*)-\s*uses\s*:\s*(styfle\/cancel-workflow-action@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\workflow_id:)\workflow_id:\s([0-9]+)/gm;
 	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
-	static final matchHaxeTests = ~/[\r\n\s]*(haxe RunCi\.hxml)([\w\W\r\n]+?(?=\sworking-directory:)\s)working-directory:\s([\w${}.\/ ]+)/gm;
+	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
@@ -255,15 +255,6 @@ class Main {
 			}
 		});
 
-		// Correct path to `compile-fs.hxml`
-		script = matchCompileFs.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var path = reg.matched(2);
-			var tail = reg.matched(3);
-			return '$head../../../tests/$path$tail';
-		});
-
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
 		script = matchHaxeCheckout.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
@@ -293,20 +284,18 @@ class Main {
 		script = matchMakeHaxelib.map(script, function(reg:EReg) {
 			var pos = reg.matchedPos();
 			var makeEcso = "";
-			var makeReadme = "";
 			matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
 				var make = reg.matched(2);
 				var haxe = reg.matched(3);
 				makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
-				makeReadme = matched.replace(cmd, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
 				return "";
 			});
-			if(makeEcso == "" || makeReadme == "")
+			if(makeEcso == "")
 				throw "Fail to find haxe make";
 			var matched = reg.matched(0);
-			return matched + "\n" + makeEcso + "\n" + makeReadme;
+			return matched + "\n" + makeEcso;
 		});
 
 		// Move binaries (Windows)
@@ -365,13 +354,30 @@ class Main {
 		// Rename build jobs
 		script = script.replace("Build Haxe", "Build Haxe + Ecso");
 
-		// Redirect tests
+		// Edit tests
 		script = matchHaxeTests.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var cmd = reg.matched(1);
-			var head = reg.matched(2);
-			var cwd = reg.matched(3);
-			return matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
+			var head = reg.matched(1);
+			var name = reg.matched(2);
+			var run = reg.matched(3);
+			var cwd = reg.matched(5);
+			// Redirect tests
+			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
+			test = matchCompileFs.map(test, function(reg:EReg) {
+				// Correct path to `compile-fs.hxml`
+				var matched = reg.matched(0);
+				var head = reg.matched(1);
+				var path = reg.matched(2);
+				var tail = reg.matched(3);
+				return '$head../../../tests/$path$tail';
+			});
+			// Generate readme
+			var readme = matched.replace(name, "Generate readme").replace(cwd, "${{github.workspace}}").replace(run, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
+			return if(name.contains("SauceLabs")) {
+				test;
+			} else {
+				test + readme;
+			}
 		});
 
 		// Add test targets
