@@ -37,7 +37,7 @@ class Main {
 	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
 	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*/g;
 	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
-	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck) (\.\/haxe\.exe)(?=').*/g;
+	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
 	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
@@ -333,11 +333,11 @@ class Main {
 		script = matchCygcheckExe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var head = reg.matched(1);
-			var cygcheck = reg.matched(2);
+			var cmd = reg.matched(2);
 			var haxeExe = reg.matched(3);
 			return matched
-				+ matched.replace(cygcheck, "mkdir").replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(cygcheck, "mv -T").replace(haxeExe, './plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}") // add architecture + move per haxe version
+				+ matched.replace(cmd, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
+				+ matched.replace(cmd, 'mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}") // add architecture + move per haxe version
 				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}/plugin.cmxs"); // check result
 		});
 		// Move binaries (Mac and Linux)
