@@ -177,6 +177,7 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: win${{env.ARCH}}Binaries
+          retention-days: 1
           path: out
 
 
@@ -340,6 +341,7 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: win${{env.ARCH}}Binaries
+          retention-days: 1
           path: out
 
 
@@ -495,6 +497,7 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: linuxBinaries
+          retention-days: 1
           path: out
 
 
@@ -654,6 +657,7 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: macBinaries
+          retention-days: 1
           path: out
 
 

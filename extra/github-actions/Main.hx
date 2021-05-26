@@ -364,10 +364,11 @@ class Main {
 			var head = reg.matched(1);
 			var action = reg.matched(2);
 			var name = reg.matched(3);
+			var tab = head.substring(head.indexOf(' '), head.lastIndexOf(' ') + 1);
 
 			var template = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
 
-			return align(template, head) + matched;
+			return align(template, head) + matched.replace(name, '$name\n$tab    retention-days: 1');
 		});
 
 		// Download artifact
