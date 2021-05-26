@@ -43,6 +43,7 @@ class Main {
 	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
 	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(\w+)/g;
 	static final mainName = ~/[\r\n]name:\s*(.+)/g;
+	static final mainOn = ~/[\r\n]on:\s*(\[[\w\s,-]+\])/g;
 
 	static function main() {
 		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_COMMIT_SHA/.github/workflows/main.yml');
@@ -447,6 +448,11 @@ class Main {
 				var matched = reg.matched(0);
 				var name = reg.matched(1);
 				return matched.replace(name, 'Haxe $HAXE_VERSION');
+			});
+			script = mainOn.map(script, reg -> {
+				var matched = reg.matched(0);
+				var on = reg.matched(1);
+				return "\n" + File.getContent('./on-release.yml');
 			});
 			File.saveContent('$output/haxe-$HAXE_VERSION.yml', script);
 		}
