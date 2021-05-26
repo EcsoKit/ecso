@@ -338,7 +338,7 @@ class Main {
 			return matched
 				+ matched.replace(cmd, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
 				+ matched.replace(cmd, 'mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}") // add architecture + move per haxe version
-				+ matched.replace(cmd, 'haxe --cwd ./plugins/ecso/extra/readme build-haxelib.hxml')
+				+ matched.replace(cmd, '"out/haxe" --cwd ./plugins/ecso/extra/readme build-haxelib.hxml')
 				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}/plugin.cmxs"); // check result
 		});
 		// Move binaries (Mac and Linux)
@@ -354,7 +354,7 @@ class Main {
 			}
 			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
 				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(ls, 'haxe --cwd ./plugins/ecso/extra/readme build-haxelib.hxml')
+				+ matched.replace(ls, '"out/haxe" --cwd ./plugins/ecso/extra/readme build-haxelib.hxml')
 				+ matched;
 		});
 
