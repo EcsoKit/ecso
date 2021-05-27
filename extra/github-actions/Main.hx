@@ -354,9 +354,7 @@ class Main {
 			}
 			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
 				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(ls, 'cd out')
-				+ matched.replace(ls, 'haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml')
-				+ matched.replace(ls, 'cd ..')
+				+ matched.replace(ls, './haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
 				+ matched;
 		});
 
