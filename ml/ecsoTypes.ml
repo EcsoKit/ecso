@@ -172,8 +172,20 @@ let rec archetype_of_type t p =
 		Error.error "[ECSO] Cannot use non-anonymous structure as entity" p
 
 let eq_archetype a1 a2 =
-	let eq = is_compatible_archetype a1 a2 && is_compatible_archetype a2 a1 in
-	eq
+	let rec loop fields1 fields2 =
+		match fields1, fields2 with
+		| f1 :: rest1, f2 :: rest2 ->
+			f1.cf_name = f2.cf_name
+			&& (try shallow_eq f1.cf_type f2.cf_type with Not_found -> false)
+			&& loop rest1 rest2
+		| [], [] -> true
+	in
+	let fields1 = PMap.fold (fun field fields -> field :: fields) a1.a_components []
+	and fields2 = PMap.fold (fun field fields -> field :: fields) a2.a_components []
+	and sort_compare f1 f2 = compare f1.cf_name f2.cf_name in
+	a1.a_components == a2.a_components ||
+	List.length fields1 = List.length fields2 &&
+	loop (List.sort sort_compare fields1) (List.sort sort_compare fields2)
 
 type mutation =
 	| MutAdd of tclass_field list * tclass_field
