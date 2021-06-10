@@ -129,13 +129,8 @@ type archetype = {
 let s_archetype a =
 	"{ " ^ (String.concat ", " (PMap.foldi (fun name cf acc -> (Printf.sprintf "%s : %s" (name) (s_component_type cf)) :: acc) a.a_components [])) ^ " }"
 
-let is_compatible_archetype a1 a2 =
+let unify_archetype a1 a2 =
 	try 
-		(* Check all fields exist before trying to unify them *)
-		PMap.iter (fun name _ ->
-			PMap.find name a1.a_components; ()
-		) a2.a_components;
-		(* Try to unify the fields *)
 		PMap.iter (fun name cf2 ->
 			let cf1 = PMap.find name a1.a_components in
 			unify cf1.cf_type cf2.cf_type
@@ -147,7 +142,7 @@ let is_compatible_archetype a1 a2 =
 let foreach_compatible_archetype debug al f a =
 	List.iter
 		(fun a' ->
-			let eq = is_compatible_archetype a' a in
+			let eq = unify_archetype a' a in
 			if debug then begin
 				print_endline ("_______________________________________");
 				print_endline ("{ECSO} | Archetype match : " ^ string_of_bool eq);
