@@ -69,8 +69,11 @@ class plugin =
 
 			let print_ctxs = false in (* FIXME *)
 
-			let ctx = EvalContext.get_ctx() in
-			let ctxl = EcsoAnalyzer.fetch ctx ml in
+			let ectx = EvalContext.get_ctx() in
+			let com = ectx.curapi.get_com() in
+			detail_times := Common.raw_defined com "ecso-times";
+
+			let ctxl = with_timer ["fetch-contexts"] (fun () -> EcsoAnalyzer.fetch ectx ml) in
 
 			if print_ctxs then begin
 				let s_ctx (actx : EcsoAnalyzer.t) =
@@ -89,17 +92,17 @@ class plugin =
 				(*
 					Prepare the analyzer graph.
 				*)
-				EcsoFilterFields.run ctx ml;
+				with_timer ["filter"] (fun () -> EcsoFilterFields.run ctx ml);
 
 				(*
 					Resolve every created archetype and every mutations.
 				*)
-				EcsoArchetypeAnalyzer.run ctx;
+				with_timer ["analyzer"] (fun () -> EcsoArchetypeAnalyzer.run ctx);
 
 				(*
 					Commit every graph changes.
 				*)
-				EcsoFilterFields.commit ctx;
+				with_timer ["commit"] (fun () -> EcsoFilterFields.commit ctx);
 
 			) ctxl;
 

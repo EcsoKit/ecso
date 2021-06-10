@@ -69,12 +69,15 @@ let dynarray_exists f darr =
 	with
 		| Not_found -> false
 
+let dynarray_filter_dupplicates_into farr darr eq =
+	DynArray.iter (fun v ->
+		if not (dynarray_exists (eq v) farr) then
+			DynArray.add farr v
+	) darr
+
 let dynarray_filter_dupplicates darr eq =
 	let filtered = DynArray.create() in
-	DynArray.iter (fun v ->
-		if not (dynarray_exists (eq v) filtered) then
-			DynArray.add filtered v
-	) darr;
+	dynarray_filter_dupplicates_into filtered darr eq;
 	filtered
 
 let dynarray_map_opt f arr =
@@ -87,6 +90,14 @@ let dynarray_map_opt f arr =
 		)
 		arr;
 	mapped
+
+let detail_times = ref false
+
+let with_timer s f =
+	let timer = Timer.timer (if !detail_times then "ecso" :: s else ["ecso"]) in
+	let r = f() in
+	timer();
+	r
 
 (* Types *)
 

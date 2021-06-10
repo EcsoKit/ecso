@@ -75,6 +75,9 @@ function main() {
 			}
 
 			args = args.concat(["-D", systemName]);
+			#if ecso_times
+			args = args.concat(["--times", "-D", "ecso-times"]);
+			#end
 
 			switch test {
 				case Macro | Neko | Php | Python | Lua | Cppia | Java | Flash9:

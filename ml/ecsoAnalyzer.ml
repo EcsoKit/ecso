@@ -530,9 +530,11 @@ module EcsoArchetypeAnalyzer = struct
 					) mutl
 				) al
 			in
-			pass_mutations al additions;
-			pass_mutations al removals;
-			DynArray.to_list (dynarray_filter_dupplicates mutated_arr eq_archetype)
+			with_timer ["archetypes";"mutation";"additions"] (fun () -> pass_mutations al additions );
+			with_timer ["archetypes";"mutation";"removals"] (fun () -> pass_mutations al removals );
+			with_timer ["archetypes";"mutation";"filter"] (fun () -> 
+				DynArray.to_list (dynarray_filter_dupplicates mutated_arr eq_archetype);
+			)
 		in
 		if actx.a_global.gl_debug_mutations then begin
 			print_endline "{ECSO} | Mutation Repport";
@@ -541,7 +543,7 @@ module EcsoArchetypeAnalyzer = struct
 			print_endline "       | Initial archetypes:";
 			print_list_br "              | " s_archetype user_archetypes ~cache:true;
 		end;
-		let archetypes = pass user_archetypes [] in
+		let archetypes = with_timer ["archetypes";"mutation"] (fun () -> pass user_archetypes [] ) in
 		if actx.a_global.gl_debug_mutations then begin
 			print_endline "       | Final archetypes:";
 			print_list_br "              | " s_archetype archetypes ~cache:true;
@@ -552,8 +554,11 @@ module EcsoArchetypeAnalyzer = struct
 					if actx.a_ctx.ctx_identity_mode = IGlobal then
 						archetypes
 					else
-						(* Rename a:Int, a:String into a_int:Int, a_string:String to be able to cumulate them *)
-						GlobalizeNameFilter.run archetypes ~registry:actx.a_ctx.ctx_renaming_registry in
+						with_timer ["filter";"names"] (fun () -> 
+							(* Rename a:Int, a:String into a_int:Int, a_string:String to be able to cumulate them *)
+							GlobalizeNameFilter.run archetypes ~registry:actx.a_ctx.ctx_renaming_registry
+						)
+				in
 				let api = (actx.a_global.gl_ectx.curapi.get_com()).basic in
 				let rec cumulate al = match al with
 					| [] -> al
@@ -613,7 +618,7 @@ module EcsoArchetypeAnalyzer = struct
 						else
 							a :: cumulate al
 				in
-				let cumulated_archetypes = cumulate archetypes in
+				let cumulated_archetypes = with_timer ["archetypes";"cumulate"] (fun () -> cumulate archetypes ) in
 				if actx.a_global.gl_debug_mutations then begin
 					print_endline "       | Cumulated archetypes:";
 					print_list_br "              | " s_archetype cumulated_archetypes ~cache:true;
@@ -625,15 +630,23 @@ module EcsoArchetypeAnalyzer = struct
 	let run (actx : EcsoAnalyzer.t) : unit =
 
 		if actx.a_ctx.ctx_identity_mode = IGlobal then
-			CheckComponentGlobalization.run actx;
+			with_timer ["component-globalization"] (fun () -> 
+				CheckComponentGlobalization.run actx
+			);
 
 		let archetypes = ref[] in
-		let mutations = DynArray.create() in
-		DynArray.iter (fun id ->
-			run_expr actx (Hashtbl.find actx.a_global.gl_fields id).a_graph archetypes mutations
-		) actx.a_ctx.ctx_field_ids;
-		let unique_mutations = dynarray_filter_dupplicates mutations eq_mutation in
+		let unique_mutations = DynArray.create() in
+
+		with_timer ["archetypes";"aggregate"] (fun () -> 
+			let mutations = DynArray.create() in
+			DynArray.iter (fun id ->
+				run_expr actx (Hashtbl.find actx.a_global.gl_fields id).a_graph archetypes mutations
+			) actx.a_ctx.ctx_field_ids;
+			dynarray_filter_dupplicates_into unique_mutations mutations eq_mutation
+		);
 		
-		actx.a_ctx.ctx_archetypes <- apply_mutations actx !archetypes (DynArray.to_list unique_mutations);
+		actx.a_ctx.ctx_archetypes <- with_timer ["archetypes"] (fun () -> 
+			apply_mutations actx !archetypes (DynArray.to_list unique_mutations);
+		)
 
 end
