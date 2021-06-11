@@ -122,6 +122,9 @@ let eq_component_type ?(skip_null=false) cf1 cf2 =
 let does_unify_component commutative c1 c2 =
 	does_unify c1.cf_type c2.cf_type && (not commutative || does_unify c2.cf_type c1.cf_type)
 
+let is_optional_component cf : bool =
+	is_explicit_null cf.cf_type
+
 type archetype = {
 	mutable a_components : (string, tclass_field) PMap.t;
 }
