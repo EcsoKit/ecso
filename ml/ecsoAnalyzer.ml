@@ -583,16 +583,11 @@ module EcsoArchetypeAnalyzer = struct
 										| Exit -> true
 									in
 									let fill_one_to_another (a : archetype) (a' : archetype) =
-										PMap.iter
-											(fun name cf ->
-												if (try PMap.find name a'.a_components; true with | Not_found -> false) then begin
-													(* Propagate nullability *)
-													if is_explicit_null cf.cf_type then
-														a'.a_components <- PMap.add name cf a'.a_components
-												end else
-													a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
-											)
-											a.a_components
+										PMap.iter (fun name cf ->
+											(* Add or propagate nullability *)
+											if is_explicit_null cf.cf_type || not (PMap.mem name a'.a_components) then
+												a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
+										) a.a_components
 									in
 									if does_share_components a1 a2 then begin
 										fill_one_to_another a1 a2;
