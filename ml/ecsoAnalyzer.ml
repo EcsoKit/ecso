@@ -518,23 +518,24 @@ module EcsoArchetypeAnalyzer = struct
 		let pass al al2 =
 			let additions = List.filter (fun mut -> match mut with | MutAdd _ -> true | _ -> false) mutations in
 			let removals = List.filter (fun mut -> match mut with | MutRem _ -> true | _ -> false) mutations in
-			let mutated_arr = DynArray.of_list al in
+			let mutated_arr = ref PMap.empty in
 			let rec pass_mutations al mutl = 
 				List.iter (fun a ->
 					List.iter (fun mut ->
 						match (mutate a mut) with
 						| Some a' -> 
-							DynArray.add mutated_arr a';
+							let hash = hash_archetype a' in
+							if not (PMap.mem hash !mutated_arr) then begin
+								mutated_arr := PMap.add hash a' !mutated_arr;
 							pass_mutations [a'] mutl
+							end
 						| None -> ()
 					) mutl
 				) al
 			in
 			with_timer ["archetypes";"mutation";"additions"] (fun () -> pass_mutations al additions );
 			with_timer ["archetypes";"mutation";"removals"] (fun () -> pass_mutations al removals );
-			with_timer ["archetypes";"mutation";"filter"] (fun () -> 
-				DynArray.to_list (dynarray_filter_dupplicates mutated_arr eq_archetype);
-			)
+			al @ PMap.fold (fun a al -> a :: al) !mutated_arr []
 		in
 		if actx.a_global.gl_debug_mutations then begin
 			print_endline "{ECSO} | Mutation Repport";

@@ -132,6 +132,12 @@ type archetype = {
 let s_archetype a =
 	"{ " ^ (String.concat ", " (PMap.foldi (fun name cf acc -> (Printf.sprintf "%s : %s" (name) (s_component_type cf)) :: acc) a.a_components [])) ^ " }"
 
+let hash_archetype a =
+	let string_of_component cf = (if is_optional_component cf then "?" else "") ^ cf.cf_name ^ ":" ^ s_component_type cf in
+	let hl = List.sort compare (PMap.fold (fun cf acc -> Hashtbl.hash (string_of_component cf) :: acc) a.a_components []) in
+	Hashtbl.hash (String.concat "-" (List.map string_of_int hl))
+	(* Hashtbl.hash hl *)
+
 let unify_archetype a1 a2 =
 	try 
 		PMap.iter (fun name cf2 ->
