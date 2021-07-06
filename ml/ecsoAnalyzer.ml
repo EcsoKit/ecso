@@ -565,46 +565,45 @@ module EcsoArchetypeAnalyzer = struct
 					| [] -> al
 					| a :: al -> 
 						let prune_a = ref false in
-						let al = List.map
-							(fun a' ->
-								(* It is assumed that each component has an unique name *)
-								let cumulate_components a1 a2 =
-									let does_share_components a1 a2 =
-										if PMap.is_empty a1.a_components || PMap.is_empty a2.a_components then
-											true
-										else try begin
-											PMap.iter (fun name cf ->
-												if PMap.mem name a2.a_components then raise Exit
-											) a1.a_components;
-											PMap.iter (fun name cf ->
-												if PMap.mem name a1.a_components then raise Exit
-											) a2.a_components;
-											false
-										end with
-										| Exit -> true
-									in
-									let fill_one_to_another (a : archetype) (a' : archetype) =
-										PMap.iter (fun name cf ->
-											(* Add or propagate nullability *)
-											if is_explicit_null cf.cf_type || not (PMap.mem name a'.a_components) then
-												a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
-										) a.a_components
-									in
-									if does_share_components a1 a2 then begin
-										fill_one_to_another a1 a2;
-										fill_one_to_another a2 a1;
-										a2.a_components <- a1.a_components;
-										true,a1
-									end else
-										false,a2
-								in
-								let ps,ac = cumulate_components a a' in
-								if ps then begin
-									prune_a := true;
-									ac
-								end else a'
-							) al
+						let merge_with_a a' =
+							let fill_one_to_another (a : archetype) (a' : archetype) =
+								PMap.iter (fun name cf ->
+									(* Add or propagate nullability *)
+									if is_explicit_null cf.cf_type || not (PMap.mem name a'.a_components) then
+										a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
+								) a.a_components
+							in
+							let make_all_nallable (a : archetype) =
+								a.a_components <- PMap.map (fun cf -> { cf with cf_type = api.tnull cf.cf_type } ) a.a_components
+							in
+							(* It is assumed that each component has an unique name *)
+							if PMap.is_empty a.a_components then begin
+								prune_a := true;
+								make_all_nallable a';
+								a.a_components <- a'.a_components;
+								a'
+							end else if PMap.is_empty a'.a_components then begin
+								prune_a := true;
+								make_all_nallable a;
+								a'.a_components <- a.a_components;
+								a
+							end else try begin
+								PMap.iter (fun name cf ->
+									if PMap.mem name a'.a_components then raise Exit
+								) a.a_components;
+								PMap.iter (fun name cf ->
+									if PMap.mem name a.a_components then raise Exit
+								) a'.a_components;
+								(* Doesn't share components *)
+								a'
+							end with
+							| Exit ->
+								fill_one_to_another a' a;
+								a'.a_components <- a.a_components;
+								prune_a := true;
+								a
 						in
+						let al = List.map merge_with_a al in
 						if !prune_a then
 							cumulate al
 						else
