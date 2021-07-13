@@ -655,7 +655,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@v1
-        id: win${{env.ARCH}}Binaries
+        id: win64Binaries
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
@@ -775,7 +775,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@v1
-        id: win${{env.ARCH}}Binaries
+        id: win32Binaries
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
