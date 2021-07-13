@@ -2,6 +2,7 @@
 
 name: Haxe 4.2.2
 on:
+  workflow_dispatch:
   release:
     types: [created]
 
