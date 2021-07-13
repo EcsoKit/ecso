@@ -83,16 +83,29 @@ class Main {
 		for (build in loadManifests("./builds")) {
 			final jobs = [
 				for (workflow in build.workflows) {
-					final originalWorkflow = Http.requestUrl(workflow.url);
+					var originalWorkflow = Http.requestUrl(workflow.url);
 					final jobTab:String = {
 						final r = ~/([ \t]*)jobs\s*:[\r\n]*([ \t]*)/;
 						r.match(originalWorkflow);
 						r.matched(1) + r.matched(2);
 					}
+					// Fix job name collisions
+					inline function uniqueName(name:String):String {
+						return '$name-${workflow.haxeVersion.replace('.','-')}';
+					}
+					for (jobName in workflow.jobs) {
+						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s',"gm").map(originalWorkflow, r -> {
+							r.matched(0).replace(jobName, uniqueName(jobName));
+						});
+					}
 					for (jobName in workflow.jobs) {
 						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
 						r.match(originalWorkflow);
-						{name: '$jobName-haxe-${workflow.haxeVersion}', job: transform(r.matched(2), build, workflow)};
+						final job:Job = {
+							name: uniqueName(jobName),
+							job: transform(r.matched(2), build, workflow)
+						};
+						job;
 					}
 				}
 			];
@@ -103,7 +116,6 @@ class Main {
 			} else {
 				0;
 			});
-
 			final output = '../../.github/workflows';
 			save(File.getContent('./workflow-${build.template}.yml'), jobs, '$output/${build.template}.yml', build);
 		}
