@@ -163,13 +163,6 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: win${{env.ARCH}}Binaries
-          retention-days: 1
-          path: out
-
 
   windows-build:
     runs-on: windows-2019
@@ -328,13 +321,6 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: win${{env.ARCH}}Binaries
-          retention-days: 1
-          path: out
-
 
   linux-build:
     runs-on: ubuntu-18.04
@@ -484,13 +470,6 @@ jobs:
           name: ecso
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: linuxBinaries
-          retention-days: 1
-          path: out
 
 
   mac-build:
@@ -645,13 +624,6 @@ jobs:
           name: ecso
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: macBinaries
-          retention-days: 1
-          path: out
 
 
   windows64-test:
