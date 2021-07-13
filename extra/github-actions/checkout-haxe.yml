@@ -1,5 +1,5 @@
 - uses: actions/checkout@v2
   with:
-    repository: 'HaxeFoundation/haxe'
+    repository: '::HAXE_REPO::'
     submodules: recursive
-    ref: '::HAXE_VERSION::'
+    ref: '::HAXE_REF::'

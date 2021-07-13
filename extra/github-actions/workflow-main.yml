@@ -1,0 +1,17 @@
+# DO NOT EDIT. Generated from /extra/github-actions
+
+name: CI
+on: [push, pull_request]
+
+jobs:
+  cancel:
+    name: "Cancel previous runs"
+    runs-on: ubuntu-18.04
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.3.1
+        with:
+          workflow_id: 1610708
+          access_token: ${{ github.token }}
+
+  ::JOBS::

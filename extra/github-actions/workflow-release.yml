@@ -1,0 +1,9 @@
+# DO NOT EDIT. Generated from /extra/github-actions
+
+name: Release
+on:
+  release:
+    types: [created]
+
+jobs:
+  ::JOBS::

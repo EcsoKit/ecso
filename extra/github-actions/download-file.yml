@@ -1,0 +1,6 @@
+- uses: suisei-cn/actions-download-file@v1
+  id: ::OUTPUT_NAME::
+  name: 'Download ::URL::'
+  with:
+    url: '::URL::'
+    target: '::TARGET_FOLDER::'

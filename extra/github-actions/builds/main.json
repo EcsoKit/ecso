@@ -1,0 +1,42 @@
+{
+	"template": "main",
+	"defaults": {
+		"haxeVersion": "4.2.2",
+		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/a2f4ba95400edf10195ce2a1c87c56dc0d67111b/.github/workflows/main.yml",
+		"haxeSources": "HaxeFoundation/haxe@a2f4ba95400edf10195ce2a1c87c56dc0d67111b"
+	},
+	"workflows": [
+		{
+			"name": "win64",
+			"jobs": ["windows64-build", "windows64-test"],
+			"os": {
+				"name": "windows",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "win32",
+			"jobs": ["windows-build", "windows-test"],
+			"os": {
+				"name": "windows",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "linux64",
+			"jobs": ["linux-build", "linux-test"],
+			"os": {
+				"name": "ubuntu",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "mac",
+			"jobs": ["mac-build", "mac-test"],
+			"os": {
+				"name": "macos",
+				"version": "latest"
+			}
+		}
+	]
+}
