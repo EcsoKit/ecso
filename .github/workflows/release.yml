@@ -6,7 +6,7 @@ on:
     types: [created]
 
 jobs:
-  windows64-build-haxe-4.2.2:
+  windows64-build-haxe-4_2_2:
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -164,7 +164,7 @@ jobs:
           if-no-files-found: error
 
 
-  windows-build-haxe-4.2.2:
+  windows-build-haxe-4_2_2:
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -322,7 +322,7 @@ jobs:
           if-no-files-found: error
 
 
-  linux-build-haxe-4.2.2:
+  linux-build-haxe-4_2_2:
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -472,7 +472,7 @@ jobs:
           if-no-files-found: error
 
 
-  mac-build-haxe-4.2.2:
+  mac-build-haxe-4_2_2:
     runs-on: macos-10.15
     env:
       PLATFORM: mac
@@ -626,7 +626,7 @@ jobs:
           if-no-files-found: error
 
 
-  windows64-build-haxe-4.2.3:
+  windows64-build-haxe-4_2_3:
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -783,7 +783,7 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-  windows-build-haxe-4.2.3:
+  windows-build-haxe-4_2_3:
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -940,7 +940,7 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-  linux-build-haxe-4.2.3:
+  linux-build-haxe-4_2_3:
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -1089,7 +1089,7 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-  mac-build-haxe-4.2.3:
+  mac-build-haxe-4_2_3:
     runs-on: macos-10.15
     env:
       PLATFORM: mac
@@ -1242,7 +1242,7 @@ jobs:
           path: plugins/ecso/haxelib.json
           if-no-files-found: error
 
-  windows64-test-haxe-4.2.2:
+  windows64-test-haxe-4_2_2:
     needs: windows64-build
     runs-on: windows-2019
     env:
@@ -1361,7 +1361,7 @@ jobs:
         working-directory: ${{github.workspace}}
 
 
-  windows-test-haxe-4.2.2:
+  windows-test-haxe-4_2_2:
     needs: windows-build
     runs-on: windows-2019
     env:
@@ -1481,7 +1481,7 @@ jobs:
         working-directory: ${{github.workspace}}
 
 
-  linux-test-haxe-4.2.2:
+  linux-test-haxe-4_2_2:
     needs: linux-build
     runs-on: ubuntu-18.04
     env:
@@ -1608,7 +1608,7 @@ jobs:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
 
 
-  mac-test-haxe-4.2.2:
+  mac-test-haxe-4_2_2:
     needs: mac-build
     runs-on: macos-10.15
     env:
@@ -1713,7 +1713,7 @@ jobs:
         working-directory: ${{github.workspace}}
 
 
-  windows64-test-haxe-4.2.3:
+  windows64-test-haxe-4_2_3:
     needs: windows64-build
     runs-on: windows-2019
     env:
@@ -1832,7 +1832,7 @@ jobs:
         working-directory: ${{github.workspace}}
       
 
-  windows-test-haxe-4.2.3:
+  windows-test-haxe-4_2_3:
     needs: windows-build
     runs-on: windows-2019
     env:
@@ -1952,7 +1952,7 @@ jobs:
         working-directory: ${{github.workspace}}
       
 
-  linux-test-haxe-4.2.3:
+  linux-test-haxe-4_2_3:
     needs: linux-build
     runs-on: ubuntu-18.04
     env:
@@ -2079,7 +2079,7 @@ jobs:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
       
 
-  mac-test-haxe-4.2.3:
+  mac-test-haxe-4_2_3:
     needs: mac-build
     runs-on: macos-10.15
     env:

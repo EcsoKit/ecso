@@ -14,7 +14,7 @@ jobs:
           workflow_id: 1610708
           access_token: ${{ github.token }}
 
-  windows64-build-haxe-4.2.2:
+  windows64-build-haxe-4_2_2:
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -178,7 +178,7 @@ jobs:
           path: out
 
 
-  windows-build-haxe-4.2.2:
+  windows-build-haxe-4_2_2:
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -342,7 +342,7 @@ jobs:
           path: out
 
 
-  linux-build-haxe-4.2.2:
+  linux-build-haxe-4_2_2:
     runs-on: ubuntu-latest
     env:
       PLATFORM: linux64
@@ -498,7 +498,7 @@ jobs:
           path: out
 
 
-  mac-build-haxe-4.2.2:
+  mac-build-haxe-4_2_2:
     runs-on: macos-latest
     env:
       PLATFORM: mac
@@ -658,7 +658,7 @@ jobs:
           path: out
 
 
-  windows64-test-haxe-4.2.2:
+  windows64-test-haxe-4_2_2:
     needs: windows64-build
     runs-on: windows-latest
     env:
@@ -774,7 +774,7 @@ jobs:
         working-directory: ${{github.workspace}}
 
 
-  windows-test-haxe-4.2.2:
+  windows-test-haxe-4_2_2:
     needs: windows-build
     runs-on: windows-latest
     env:
@@ -891,7 +891,7 @@ jobs:
         working-directory: ${{github.workspace}}
 
 
-  linux-test-haxe-4.2.2:
+  linux-test-haxe-4_2_2:
     needs: linux-build
     runs-on: ubuntu-latest
     env:
@@ -1015,7 +1015,7 @@ jobs:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
 
 
-  mac-test-haxe-4.2.2:
+  mac-test-haxe-4_2_2:
     needs: mac-build
     runs-on: macos-latest
     env:
