@@ -1,4 +1,4 @@
-- uses: suisei-cn/actions-download-file@0602fa5
+- uses: suisei-cn/actions-download-file@0602fa521a4810cf565a77c8bb896382a163450a
   id: ::OUTPUT_NAME::
   name: 'Download ::URL::'
   with:
