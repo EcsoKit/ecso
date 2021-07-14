@@ -38,8 +38,8 @@ class Main {
 	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
-	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*/g;
-	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
+	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*\n/g;
+	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*\n/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
 	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
@@ -182,23 +182,35 @@ class Main {
 			});
 		}
 
-		// Build ecso as plugin (after haxelib)
-		script = matchMakeHaxelib.map(script, function(reg:EReg) {
-			var pos = reg.matchedPos();
-			var makeEcso = "";
-			matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+		if (manifest.haxeDownload == null) {
+			// Build ecso as plugin (after haxelib)
+			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+				var pos = reg.matchedPos();
+				var makeEcso = "";
+				matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+					var matched = reg.matched(0);
+					var cmd = reg.matched(1);
+					var make = reg.matched(2);
+					var haxe = reg.matched(3);
+					makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+					return "";
+				});
+				if (makeEcso == "")
+					throw "Fail to find haxe make";
 				var matched = reg.matched(0);
-				var cmd = reg.matched(1);
-				var make = reg.matched(2);
+				return matched + makeEcso;
+			});
+		} else {
+			// Build ecso instead of haxe/haxelib
+			script = matchMakeHaxe.map(script, function(reg:EReg) {
+				var matched = reg.matched(0);
 				var haxe = reg.matched(3);
-				makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+				return matched.replace(haxe, "PLUGIN=ecso plugin");
+			});
+			script = matchMakeHaxelib.map(script, function(reg:EReg) {
 				return "";
 			});
-			if (makeEcso == "")
-				throw "Fail to find haxe make";
-			var matched = reg.matched(0);
-			return matched + "\n" + makeEcso;
-		});
+		}
 
 		// Move binaries (Windows)
 		script = matchCygcheckExe.map(script, function(reg:EReg) {
