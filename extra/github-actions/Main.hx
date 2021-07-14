@@ -39,7 +39,7 @@ class Main {
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*\n/g;
-	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*\n/g;
+	static final matchMakeHaxelib = ~/.* ((opam config exec -- make) .* (haxelib))(?= |\n).*\n/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
 	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
@@ -200,16 +200,25 @@ class Main {
 				var matched = reg.matched(0);
 				return matched + makeEcso;
 			});
+
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Haxe + Ecso");
 		} else {
 			// Build ecso instead of haxe/haxelib
 			script = matchMakeHaxe.map(script, function(reg:EReg) {
 				var matched = reg.matched(0);
+				var cmd = reg.matched(1);
 				var haxe = reg.matched(3);
-				return matched.replace(haxe, "PLUGIN=ecso plugin");
+				return matched.replace(cmd, "mkdir ./haxe") + matched.replace(haxe, "PLUGIN=ecso plugin");
 			});
 			script = matchMakeHaxelib.map(script, function(reg:EReg) {
-				return "";
+				var matched = reg.matched(0);
+				var cmd = reg.matched(1);
+				return matched.replace(cmd, "mkdir ./haxelib");
 			});
+			
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Ecso");
 		}
 
 		// Move binaries (Windows)
@@ -292,9 +301,6 @@ class Main {
 
 		// Match build kind
 		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.haxeDownload != null ? 'true' : 'false');
-
-		// Rename build jobs
-		script = script.replace("Build Haxe", "Build Haxe + Ecso");
 
 		// Edit tests
 		script = matchHaxeTests.map(script, function(reg:EReg) {
