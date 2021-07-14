@@ -1275,7 +1275,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
-          target: win${{env.ARCH}}Binaries
+          target: ${{github.workspace}}/win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1395,7 +1395,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
-          target: win${{env.ARCH}}Binaries
+          target: ${{github.workspace}}/win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1524,7 +1524,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
-          target: linuxBinaries
+          target: ${{github.workspace}}/linuxBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1641,7 +1641,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
-          target: macBinaries
+          target: ${{github.workspace}}/macBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1746,7 +1746,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
-          target: win${{env.ARCH}}Binaries
+          target: ${{github.workspace}}/win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1866,7 +1866,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
-          target: win${{env.ARCH}}Binaries
+          target: ${{github.workspace}}/win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1995,7 +1995,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
-          target: linuxBinaries
+          target: ${{github.workspace}}/linuxBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -2112,7 +2112,7 @@ jobs:
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'
-          target: macBinaries
+          target: ${{github.workspace}}/macBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}

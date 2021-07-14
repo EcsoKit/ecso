@@ -269,7 +269,7 @@ class Main {
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)
 					.replace('::OUTPUT_NAME::', 'haxe_bin')
-					.replace('::TARGET_FOLDER::', name); // manifest.os.arch == null ? name : name.replace("${{env.ARCH}}", ""+manifest.os.arch)
+					.replace('::TARGET_FOLDER::', "${{github.workspace}}/" + name);
 			}
 
 			return align(template, head) + align(downloadHaxe, head);
