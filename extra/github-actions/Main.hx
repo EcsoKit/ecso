@@ -232,7 +232,6 @@ class Main {
 				+ matched.replace(cmd,
 					'mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}' +
 					"/Windows${ARCH}") // add architecture + move per haxe version
-				+ matched.replace(cmd, 'haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
 				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-${manifest.haxeVersion}' + "/Windows${ARCH}/plugin.cmxs"); // check result
 		});
 		// Move binaries (Mac and Linux)
@@ -248,7 +247,6 @@ class Main {
 			}
 			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}')
 				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}')
-				+ matched.replace(ls, './haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
 				+ matched;
 		});
 
@@ -321,16 +319,7 @@ class Main {
 			}
 			// Redirect tests
 			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
-			// Generate readme
-			var readme = matched.replace(name, "Generate readme")
-				.replace(cwd, "${{github.workspace}}")
-				.replace(run, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
-			// Only generate readme when
-			return if (name.contains("SauceLabs")) {
-				correctRelativePaths(test, cwd);
-			} else {
-				correctRelativePaths(test + readme, cwd);
-			}
+			return correctRelativePaths(test, cwd);
 		});
 
 		// Add test targets

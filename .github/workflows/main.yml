@@ -121,7 +121,6 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
@@ -285,7 +284,6 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
@@ -418,7 +416,6 @@ jobs:
           make -s package_unix
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.2
-          ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
           ls -l out
           ldd -v ./haxe
           ldd -v ./haxelib
@@ -601,7 +598,6 @@ jobs:
           make -s package_unix package_installer_mac
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.2
-          ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
           ls -l out
           otool -L ./haxe
           otool -L ./haxelib
@@ -768,12 +764,6 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
 
 
-      - name: Generate readme
-        shell: pwsh
-        run: haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-        working-directory: ${{github.workspace}}
-
-
   windows-test-4-2-2:
     needs: windows-build-4-2-2
     runs-on: windows-latest
@@ -883,12 +873,6 @@ jobs:
         shell: pwsh
         run: haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
-
-
-      - name: Generate readme
-        shell: pwsh
-        run: haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-        working-directory: ${{github.workspace}}
 
 
   linux-test-4-2-2:
@@ -1001,12 +985,6 @@ jobs:
         run: haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
 
-
-      - name: Generate readme
-        if: success() && !(matrix.SAUCE && matrix.SAUCE_ACCESS_KEY)
-        run: haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-        working-directory: ${{github.workspace}}
-
       - name: Test (with SauceLabs)
         if: matrix.target == 'js' && success() && matrix.SAUCE && matrix.SAUCE_ACCESS_KEY
         run: haxe RunCi.hxml
@@ -1107,13 +1085,5 @@ jobs:
           echo "" > ${{github.workspace}}/tests/sys/compile-fs.hxml
           haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
-
-
-      - name: Generate readme
-        run: |
-          # disable invalid Unicode filenames on APFS
-          echo "" > ${{github.workspace}}/tests/sys/compile-fs.hxml
-          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-        working-directory: ${{github.workspace}}
 
 
