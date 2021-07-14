@@ -15,6 +15,7 @@
 				"arch": 64
 			},
 			"haxeDownload": "https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/",
+			"nekoDownload": "https://build.haxe.org/builds/neko/windows64/neko_latest.zip",
 			"libraries": {
 				"base-bigarray"               : "base",
 				"base-bytes"                  : "base",
@@ -66,6 +67,7 @@
 				"arch": 32
 			},
 			"haxeDownload": "https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/",
+			"nekoDownload": "https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip",
 			"libraries": {
 				"base-bigarray"               : "base",
 				"base-bytes"                  : "base",
@@ -116,6 +118,7 @@
 				"version": "18.04"
 			},
 			"haxeDownload": "https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/",
+			"nekoDownload": "https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz",
 			"libraries": {
 				"base-bigarray"               : "base",
 				"base-bytes"                  : "base",
@@ -171,6 +174,7 @@
 				"version": "10.15"
 			},
 			"haxeDownload": "https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/",
+			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz",
 			"libraries": {
 				"base-bigarray"               : "base",
 				"base-bytes"                  : "base",

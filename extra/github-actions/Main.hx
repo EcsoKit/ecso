@@ -20,6 +20,7 @@ typedef JobManifest = {
 	jobs:Array<String>,
 	os:{name:String, version:String, ?arch:Int},
 	?haxeDownload:String,
+	?nekoDownload:String,
 	haxeSources:String,
 	githubWorkflow:String,
 	?libraries:DynamicAccess<String>
@@ -178,6 +179,18 @@ class Main {
 				matched.replace(install, 'opam install $libs --yes ') + "\n" + matched;
 			}
 		});
+
+		// Lock Neko version
+		if (manifest.nekoDownload != null) {
+			script = ~/(https?:\/\/\S+\/(neko_latest\.(zip|tar\.gz))\/?)\s/gm.map(script, function(reg:EReg) {
+				final matched = reg.matched(0);
+				final url = reg.matched(1);
+				final file = reg.matched(2);
+				final ext = reg.matched(3);
+				final full:Bool = manifest.nekoDownload.startsWith("http");
+				return matched.replace(url, full ? manifest.nekoDownload : url.replace(file, manifest.nekoDownload));
+			});
+		}
 
 		// Build ecso as plugin (after haxelib)
 		script = matchMakeHaxelib.map(script, function(reg:EReg) {
