@@ -119,10 +119,10 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
       - name: Upload Ecso
@@ -282,10 +282,10 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -f Makefile.win echo_package_files package_bin package_installer_win package_choco 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
       - name: Upload Ecso
@@ -416,6 +416,7 @@ jobs:
           make -s package_unix
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.2
+          ldd -v ./plugins/ecso/cmxs/hx-4.2.2/plugin.cmxs
           ls -l out
           ldd -v ./haxe
           ldd -v ./haxelib
@@ -598,6 +599,7 @@ jobs:
           make -s package_unix package_installer_mac
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.2
+          otool -L ./plugins/ecso/cmxs/hx-4.2.2/plugin.cmxs
           ls -l out
           otool -L ./haxe
           otool -L ./haxelib

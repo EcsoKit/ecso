@@ -40,8 +40,9 @@ class Main {
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*\n/g;
 	static final matchMakeHaxelib = ~/.* ((opam config exec -- make) .* (haxelib))(?= |\n).*\n/g;
-	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
-	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
+	static final matchMakePackage = ~/.* make .* (package_unix|package_bin).*\n/g;
+	static final matchBuildCheck = ~/.* (cygcheck|ldd|otool) .*(haxe|haxelib).*\n/gm;
+	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(.+)/g;
 
@@ -182,7 +183,10 @@ class Main {
 			});
 		}
 
+		// Build
 		if (manifest.haxeDownload == null) {
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Haxe + Ecso");
 			// Build ecso as plugin (after haxelib)
 			script = matchMakeHaxelib.map(script, function(reg:EReg) {
 				var pos = reg.matchedPos();
@@ -200,54 +204,53 @@ class Main {
 				var matched = reg.matched(0);
 				return matched + makeEcso;
 			});
-
-			// Rename build jobs
-			script = script.replace("Build Haxe", "Build Haxe + Ecso");
 		} else {
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Ecso");
 			// Build ecso instead of haxe/haxelib
 			script = matchMakeHaxe.map(script, function(reg:EReg) {
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
 				var haxe = reg.matched(3);
-				return matched.replace(cmd, "mkdir ./haxe") + matched.replace(haxe, "PLUGIN=ecso plugin");
+				return matched.replace(haxe, "PLUGIN=ecso plugin");
 			});
 			script = matchMakeHaxelib.map(script, function(reg:EReg) {
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
-				return matched.replace(cmd, "mkdir ./haxelib");
+				return "";
 			});
-			
-			// Rename build jobs
-			script = script.replace("Build Haxe", "Build Ecso");
+			script = matchMakePackage.map(script, function(reg:EReg) {
+				return "";
+			});
+			script = matchBuildCheck.map(script, function(reg:EReg) {
+				return "";
+			});
 		}
 
-		// Move binaries (Windows)
-		script = matchCygcheckExe.map(script, function(reg:EReg) {
+		// Move binaries
+		script = matchCheckOut.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var cmd = reg.matched(2);
-			var haxeExe = reg.matched(3);
-			return matched
-				+ matched.replace(cmd, 'mkdir ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}')
-				+ matched.replace(cmd,
-					'mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}' +
-					"/Windows${ARCH}") // add architecture + move per haxe version
-				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-${manifest.haxeVersion}' + "/Windows${ARCH}/plugin.cmxs"); // check result
-		});
-		// Move binaries (Mac and Linux)
-		script = matchCheckOutUnix.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var ls = reg.matched(2);
-			var tail = reg.matched(3);
-			var platform = switch manifest.os.name {
+			var cmd = reg.matched(1);
+			final platform = switch manifest.os.name {
 				case "ubuntu": "Linux";
 				case "macos": "Mac";
-				case any: throw 'Unexpected platform $any';
+				case "windows": "Windows";
+				case _: throw false;
 			}
-			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}')
-				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-${manifest.haxeVersion}')
-				+ matched;
+			final location = './plugins/ecso/cmxs/$platform';
+			final destination = './plugins/ecso/cmxs/hx-${manifest.haxeVersion}';
+			final moveEcso = if (manifest.os.name == "windows") {
+				matched.replace(cmd, 'mv -T $location $destination/' + "Windows${ARCH}");
+			} else {
+				matched.replace(cmd, 'mv $location $destination');
+			}
+			final checkEcso = matched.replace(cmd, switch manifest.os.name {
+				case "windows": 'cygcheck $destination/' + "Windows${ARCH}/plugin.cmxs";
+				case "ubuntu": 'ldd -v $destination/plugin.cmxs';
+				case "macos": 'otool -L $destination/plugin.cmxs';
+				case _: throw false;
+			});
+			return matched.replace(cmd, 'mkdir $destination') + moveEcso + checkEcso + matched;
 		});
 
 		// Upload artifact
