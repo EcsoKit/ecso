@@ -50,7 +50,7 @@ class Main {
 	static final mainOn = ~/[\r\n]on:\s*(\[[\w\s,-]+\])/g;
 
 	static function loadManifests(folder:String):Array<BuildManifest> {
-		final manifests:Map<String,BuildManifest> = [];
+		final manifests:Map<String, BuildManifest> = [];
 		return [
 			for (file in FileSystem.readDirectory(folder)) {
 				final data = Json.parse(~/^\s*\/\/.*/gm.replace(File.getContent('$folder/$file'), ''));
@@ -66,7 +66,7 @@ class Main {
 							Reflect.setField(workflow, field, defaultValue);
 				}
 				// Merge
-				if(manifests.exists(manifest.template)) {
+				if (manifests.exists(manifest.template)) {
 					final targetManifest = manifests[manifest.template];
 					for (workflow in manifest.workflows)
 						targetManifest.workflows.push(workflow);
@@ -91,10 +91,10 @@ class Main {
 					}
 					// Fix job name collisions
 					inline function uniqueName(name:String):String {
-						return '$name-${workflow.haxeVersion.replace('.','-')}';
+						return '$name-${workflow.haxeVersion.replace('.', '-')}';
 					}
 					for (jobName in workflow.jobs) {
-						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s',"gm").map(originalWorkflow, r -> {
+						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
 							r.matched(0).replace(jobName, uniqueName(jobName));
 						});
 					}
@@ -239,7 +239,7 @@ class Main {
 			var tab = head.substring(head.indexOf(' '), head.lastIndexOf(' ') + 1);
 
 			var uploadEcso = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
-			var uploadHaxe = if(manifest.haxeDownload == null) {
+			var uploadHaxe = if (manifest.haxeDownload == null) {
 				matched.replace(name, '$name\n$tab    retention-days: 1');
 			} else {
 				'';
@@ -264,7 +264,7 @@ class Main {
 					case "ubuntu" | "macos": 'tar.gz';
 					case _: throw false;
 				}
-				if(!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains('.$ext'))
+				if (!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains('.$ext'))
 					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension $ext';
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)
@@ -296,7 +296,6 @@ class Main {
 					var path = reg.matched(2);
 					var tail = reg.matched(3);
 					return matched.replace(path, '$workingDirectory/$path');
-					// return "${{github.workspace}}" + '/tests/$path$tail';
 				});
 			}
 			// Redirect tests
