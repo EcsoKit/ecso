@@ -166,7 +166,7 @@ class Main {
 				matched;
 			} else {
 				var libs = [for (lib => version in manifest.libraries) '"$lib=$version"'].join(" ");
-				matched.replace(install, 'opam install $libs --yes ') + "\n" + matched;
+				matched.replace(install, 'opam install $libs --yes --assume-depexts ') + "\n" + matched;
 			}
 		});
 
