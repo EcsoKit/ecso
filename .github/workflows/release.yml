@@ -1271,7 +1271,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.zip
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
@@ -1391,7 +1391,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.zip
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
@@ -1520,7 +1520,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.tar.gz
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
@@ -1637,7 +1637,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.tar.gz
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
@@ -1742,7 +1742,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.zip
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
@@ -1862,7 +1862,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.zip
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
@@ -1991,7 +1991,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.tar.gz
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
@@ -2108,7 +2108,7 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: haxe_bin.tar.gz
+        id: haxe_bin
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'

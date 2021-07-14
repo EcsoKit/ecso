@@ -259,17 +259,16 @@ class Main {
 			var downloadHaxe = if (manifest.haxeDownload == null) {
 				matched.substr(head.length).replace(head, '\n');
 			} else {
-				final file = switch manifest.os.name {
-					case "windows": 'haxe_bin.zip';
-					case "ubuntu": 'haxe_bin.tar.gz';
-					case "macos": 'haxe_bin.tar.gz';
+				final ext = switch manifest.os.name {
+					case "windows": 'zip';
+					case "ubuntu" | "macos": 'tar.gz';
 					case _: throw false;
 				}
-				if(!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains(Path.extension(file)))
-					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension ${Path.extension(file)}';
+				if(!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains('.$ext'))
+					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension $ext';
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)
-					.replace('::OUTPUT_NAME::', file)
+					.replace('::OUTPUT_NAME::', 'haxe_bin')
 					.replace('::TARGET_FOLDER::', name); // manifest.os.arch == null ? name : name.replace("${{env.ARCH}}", ""+manifest.os.arch)
 			}
 
