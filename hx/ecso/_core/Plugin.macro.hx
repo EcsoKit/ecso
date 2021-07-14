@@ -17,11 +17,6 @@ class Plugin {
 		if (#if display true || #end Context.defined('display'))
 			return;
 
-		#if (haxe > "4.2.2")
-		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.2. Please update ECSO to a newer version when available at https://lib.haxe.org/p/ecso/', Context.currentPos());
-		#elseif (haxe < "4.2.2")
-		Context.fatalError('[ECSO] The alpha version only supports Haxe 4.2.2. Please update Haxe at https://haxe.org/', Context.currentPos());
-		#end
 		if (!Context.defined("hl") && !Context.defined("js") && !Context.defined("interp") && !Context.defined("cpp") && !Context.defined("cs"))
 			Sys.println('\n[ECSO] Warning : Be aware the alpha version has not been thoroughly tested on other targets than HashLink, JavaScrip, CPP, C# or Eval (interp).\n                 You might hit unfriendly issues.\n');
 
@@ -29,10 +24,13 @@ class Plugin {
 	}
 
 	static function get_plugin():EcsoPluginApi {
+		final path = getPluginPath();
 		return if (plugin == null) {
 			try {
-				plugin = eval.vm.Context.loadPlugin(getPluginPath());
+				plugin = eval.vm.Context.loadPlugin(path);
 			} catch (e:String) {
+				if (!sys.FileSystem.exists(path))
+					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")}.', Context.currentPos());
 				throw '[ECSO] Failed to load plugin: $e';
 			}
 		} else {
