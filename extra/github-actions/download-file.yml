@@ -3,4 +3,4 @@
   name: 'Download ::URL::'
   with:
     url: '::URL::'
-    target: '::TARGET_FOLDER::'
+    target: ::TARGET_FOLDER::
