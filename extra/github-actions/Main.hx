@@ -33,22 +33,17 @@ typedef Job = {
 
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
-	static final matchCancelPrevious = ~/([\r\n]\s*)-\s*uses\s*:\s*(styfle\/cancel-workflow-action@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\workflow_id:)\workflow_id:\s([0-9]+)/gm;
 	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
-	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
 	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*/g;
 	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
 	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
 	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
-	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
 	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(.+)/g;
-	static final mainName = ~/[\r\n]name:\s*(.+)/g;
-	static final mainOn = ~/[\r\n]on:\s*(\[[\w\s,-]+\])/g;
 
 	static function loadManifests(folder:String):Array<BuildManifest> {
 		final manifests:Map<String, BuildManifest> = [];
@@ -138,11 +133,6 @@ class Main {
 			var matched = reg.matched(0);
 			var os = reg.matched(1).toLowerCase();
 			var version = reg.matched(2);
-			// return if (os == manifest.os.name) {
-			// 	matched.replace(version, manifest.os.version);
-			// } else {
-			// 	throw 'OS ${}';
-			// }
 			return matched.replace(os, manifest.os.name).replace(version, manifest.os.version);
 		});
 
@@ -343,13 +333,6 @@ class Main {
 			} else {
 				matched;
 			}
-		});
-
-		// Disable Windows 32 tests
-		script = matchWin32Test.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var br = reg.matched(1);
-			return matched + "if: ${{ false }}" + br;
 		});
 
 		return script;
