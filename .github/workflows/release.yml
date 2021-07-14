@@ -1254,18 +1254,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/windows64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win64.zip (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./win${{env.ARCH}}Binaries
-          curl -sSL https://build.haxe.org/builds/haxe/windows64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
-      - name: 'Download https://build.haxe.org/builds/haxe/windows64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win64.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win64.zip (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./win${{env.ARCH}}Binaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/windows64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win64.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1380,18 +1380,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/windows/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win.zip (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./win${{env.ARCH}}Binaries
-          curl -sSL https://build.haxe.org/builds/haxe/windows/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
-      - name: 'Download https://build.haxe.org/builds/haxe/windows/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win.zip (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./win${{env.ARCH}}Binaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/windows/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1515,18 +1515,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/linux64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-linux64.tar.gz (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./linuxBinaries
-          curl -sSL https://build.haxe.org/builds/haxe/linux64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz -o ./linuxBinaries/haxe_bin.tar.gz
-      - name: 'Download https://build.haxe.org/builds/haxe/linux64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-linux64.tar.gz -o ./linuxBinaries/haxe_bin.tar.gz
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-linux64.tar.gz (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./linuxBinaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/linux64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-linux64.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1638,18 +1638,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/mac/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-osx.tar.gz (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./macBinaries
-          curl -sSL https://build.haxe.org/builds/haxe/mac/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz -o ./macBinaries/haxe_bin.tar.gz
-      - name: 'Download https://build.haxe.org/builds/haxe/mac/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-osx.tar.gz -o ./macBinaries/haxe_bin.tar.gz
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-osx.tar.gz (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./macBinaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/mac/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-osx.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1749,18 +1749,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/windows64/haxe_2021-07-01_4.2_bugfix_1385eda.zip (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win64.zip (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./win${{env.ARCH}}Binaries
-          curl -sSL https://build.haxe.org/builds/haxe/windows64/haxe_2021-07-01_4.2_bugfix_1385eda.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
-      - name: 'Download https://build.haxe.org/builds/haxe/windows64/haxe_2021-07-01_4.2_bugfix_1385eda.zip (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win64.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win64.zip (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./win${{env.ARCH}}Binaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/windows64/haxe_2021-07-01_4.2_bugfix_1385eda.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win64.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1875,18 +1875,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/windows/haxe_2021-07-01_4.2_bugfix_1385eda.zip (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win.zip (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./win${{env.ARCH}}Binaries
-          curl -sSL https://build.haxe.org/builds/haxe/windows/haxe_2021-07-01_4.2_bugfix_1385eda.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
-      - name: 'Download https://build.haxe.org/builds/haxe/windows/haxe_2021-07-01_4.2_bugfix_1385eda.zip (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win.zip -o ./win${{env.ARCH}}Binaries/haxe_bin.zip
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win.zip (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./win${{env.ARCH}}Binaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/windows/haxe_2021-07-01_4.2_bugfix_1385eda.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-win.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -2010,18 +2010,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/linux64/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-linux64.tar.gz (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./linuxBinaries
-          curl -sSL https://build.haxe.org/builds/haxe/linux64/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz -o ./linuxBinaries/haxe_bin.tar.gz
-      - name: 'Download https://build.haxe.org/builds/haxe/linux64/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-linux64.tar.gz -o ./linuxBinaries/haxe_bin.tar.gz
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-linux64.tar.gz (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./linuxBinaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/linux64/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-linux64.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -2133,18 +2133,18 @@ jobs:
         with:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
-      - name: 'Download https://build.haxe.org/builds/haxe/mac/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz (Unix)'
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-osx.tar.gz (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
           mkdir ./macBinaries
-          curl -sSL https://build.haxe.org/builds/haxe/mac/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz -o ./macBinaries/haxe_bin.tar.gz
-      - name: 'Download https://build.haxe.org/builds/haxe/mac/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz (Windows)'
+          curl -sSL https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-osx.tar.gz -o ./macBinaries/haxe_bin.tar.gz
+      - name: 'Download https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-osx.tar.gz (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
           $DOWNLOADDIR="./macBinaries"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://build.haxe.org/builds/haxe/mac/haxe_2021-07-01_4.2_bugfix_1385eda.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.2.3/downloads/haxe-4.2.3-osx.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}

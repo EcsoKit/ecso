@@ -14,7 +14,7 @@
 				"version": "2019",
 				"arch": 64
 			},
-			"haxeDownload": "https://build.haxe.org/builds/haxe/windows64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip",
+			"haxeDownload": "https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win64.zip",
 			"nekoDownload": "https://build.haxe.org/builds/neko/windows64/neko_latest.zip",
 			"libraries": {
 				"base-bigarray"              : "base",
@@ -66,7 +66,7 @@
 				"version": "2019",
 				"arch": 32
 			},
-			"haxeDownload": "https://build.haxe.org/builds/haxe/windows/haxe_2021-05-14_4.2_bugfix_a2f4ba9.zip",
+			"haxeDownload": "https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-win.zip",
 			"nekoDownload": "https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip",
 			"libraries": {
 				"base-bigarray"              : "base",
@@ -117,7 +117,7 @@
 				"name": "ubuntu",
 				"version": "18.04"
 			},
-			"haxeDownload": "https://build.haxe.org/builds/haxe/linux64/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz",
+			"haxeDownload": "https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-linux64.tar.gz",
 			"nekoDownload": "https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz",
 			"libraries": {
 				"base-bigarray"              : "base",
@@ -173,7 +173,7 @@
 				"name": "macos",
 				"version": "10.15"
 			},
-			"haxeDownload": "https://build.haxe.org/builds/haxe/mac/haxe_2021-05-14_4.2_bugfix_a2f4ba9.tar.gz",
+			"haxeDownload": "https://haxe.org/website-content/downloads/4.2.2/downloads/haxe-4.2.2-osx.tar.gz",
 			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz",
 			"libraries": {
 				"base-bigarray"              : "base",
