@@ -1271,11 +1271,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: win64Binaries
+        id: haxe_bin.zip
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win64.zip/'
-          target: ''
+          target: win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1391,11 +1391,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: win32Binaries
+        id: haxe_bin.zip
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-win.zip/'
-          target: ''
+          target: win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1520,11 +1520,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: linuxBinaries
+        id: haxe_bin.tar.gz
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-linux64.tar.gz/'
-          target: ''
+          target: linuxBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1637,11 +1637,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: macBinaries
+        id: haxe_bin.tar.gz
         name: 'Download https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.2/haxe-4.2.2-osx.tar.gz/'
-          target: ''
+          target: macBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1742,11 +1742,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: win64Binaries
+        id: haxe_bin.zip
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win64.zip/'
-          target: ''
+          target: win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1862,11 +1862,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: win32Binaries
+        id: haxe_bin.zip
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-win.zip/'
-          target: ''
+          target: win${{env.ARCH}}Binaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -1991,11 +1991,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: linuxBinaries
+        id: haxe_bin.tar.gz
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-linux64.tar.gz/'
-          target: ''
+          target: linuxBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
@@ -2108,11 +2108,11 @@ jobs:
           name: ecso
           path: ${{github.workspace}}/plugins/ecso/
       - uses: suisei-cn/actions-download-file@0602fa5
-        id: macBinaries
+        id: haxe_bin.tar.gz
         name: 'Download https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'
         with:
           url: 'https://haxe.org/download/file/4.2.3/haxe-4.2.3-osx.tar.gz/'
-          target: ''
+          target: macBinaries
 
       - name: Install Neko using snapshot from S3 (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}

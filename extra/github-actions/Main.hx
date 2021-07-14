@@ -261,8 +261,8 @@ class Main {
 			} else {
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)
-					.replace('::OUTPUT_NAME::', manifest.os.arch == null ? name : name.replace("${{env.ARCH}}", ""+manifest.os.arch))
-					.replace('::TARGET_FOLDER::', '');
+					.replace('::OUTPUT_NAME::', 'haxe_bin.zip')
+					.replace('::TARGET_FOLDER::', name); // manifest.os.arch == null ? name : name.replace("${{env.ARCH}}", ""+manifest.os.arch)
 			}
 
 			return align(template, head) + align(downloadHaxe, head);
