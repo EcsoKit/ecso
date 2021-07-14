@@ -271,8 +271,8 @@ class Main {
 					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension $ext';
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)
-					.replace('::OUTPUT_NAME::', 'haxe_bin')
-					.replace('::TARGET_FOLDER::', "${{github.workspace}}/" + name);
+					.replace('::OUTPUT_NAME::', 'haxe_bin.$ext')
+					.replace('::TARGET_FOLDER::', './$name');
 			}
 
 			return align(template, head) + align(downloadHaxe, head);

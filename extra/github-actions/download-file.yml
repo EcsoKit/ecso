@@ -1,6 +1,12 @@
-- uses: suisei-cn/actions-download-file@0602fa521a4810cf565a77c8bb896382a163450a
-  id: ::OUTPUT_NAME::
-  name: 'Download ::URL::'
-  with:
-    url: '::URL::'
-    target: ::TARGET_FOLDER::
+- name: 'Download ::URL:: (Unix)'
+  if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+  run: |
+    mkdir ::TARGET_FOLDER::
+    curl -sSL ::URL:: -o ::TARGET_FOLDER::/::OUTPUT_NAME::
+- name: 'Download ::URL:: (Windows)'
+  if: ${{ startsWith(env.PLATFORM, 'windows') }}
+  shell: pwsh
+  run: |
+    $DOWNLOADDIR="::TARGET_FOLDER::"
+    new-item -Name $DOWNLOADDIR -ItemType directory
+    Invoke-WebRequest ::URL:: -OutFile $DOWNLOADDIR/::OUTPUT_NAME::
