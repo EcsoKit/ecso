@@ -43,14 +43,14 @@ class Plugin {
 		final src = here.directory().directory().directory().directory();
 		final system = switch Sys.systemName() {
 			case "Windows":
-				final wmic = new sys.io.Process("WMIC OS GET osarchitecture /value");
+				final wmic = new sys.io.Process("sigcheck.exe " + Sys.executablePath());
 				final arch = switch wmic.stdout.readAll().toString() {
-					case v if (v.indexOf("64") >= 0):
+					case v if (v.indexOf("64-bit") >= 0):
 						"64";
-					case v if (v.indexOf("32") >= 0):
+					case v if (v.indexOf("32-bit") >= 0):
 						"32";
 					case _:
-						Context.warning("{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues", Context.currentPos());
+						Context.warning('{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues with the following info:\n$v', Context.currentPos());
 						"64";
 				}
 				wmic.close();
