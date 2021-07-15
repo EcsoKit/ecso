@@ -107,6 +107,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- mkdir ./out 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
@@ -259,6 +260,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- mkdir ./out 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.2')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}')
@@ -382,6 +384,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
+          mkdir ./out
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.2
           ldd -v ./plugins/ecso/cmxs/hx-4.2.2/Linux/plugin.cmxs
@@ -554,6 +557,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
+          mkdir ./out
           mkdir ./plugins/ecso/cmxs/hx-4.2.2
           mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.2
           otool -L ./plugins/ecso/cmxs/hx-4.2.2/Mac/plugin.cmxs
@@ -705,6 +709,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- mkdir ./out 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.3')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}')
@@ -856,6 +861,7 @@ jobs:
         run: |
           Set-PSDebug -Trace 1
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- make -s -f Makefile.win -j`nproc` PLUGIN=ecso plugin 2>&1')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && opam config exec -- mkdir ./out 2>&1')
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.3')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}')
@@ -978,6 +984,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
+          mkdir ./out
           mkdir ./plugins/ecso/cmxs/hx-4.2.3
           mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.3
           ldd -v ./plugins/ecso/cmxs/hx-4.2.3/Linux/plugin.cmxs
@@ -1149,6 +1156,7 @@ jobs:
           set -ex
           eval $(opam env)
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
+          mkdir ./out
           mkdir ./plugins/ecso/cmxs/hx-4.2.3
           mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.3
           otool -L ./plugins/ecso/cmxs/hx-4.2.3/Mac/plugin.cmxs

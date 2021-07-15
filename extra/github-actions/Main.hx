@@ -40,7 +40,7 @@ class Main {
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
 	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*\n/g;
 	static final matchMakeHaxelib = ~/.* ((opam config exec -- make) .* (haxelib))(?= |\n).*\n/g;
-	static final matchMakePackage = ~/.* make .* (package_unix|package_bin).*\n/g;
+	static final matchMakePackage = ~/.* (make .* (package_unix|package_bin)( +\w+)*)(?= |\n).*\n/g;
 	static final matchBuildCheck = ~/.* (cygcheck|ldd|otool) .*(haxe|haxelib).*\n/gm;
 	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
@@ -220,7 +220,9 @@ class Main {
 				return "";
 			});
 			script = matchMakePackage.map(script, function(reg:EReg) {
-				return "";
+				final matched = reg.matched(0);
+				final cmd = reg.matched(1);
+				return matched.replace(cmd, "mkdir ./out");
 			});
 			script = matchBuildCheck.map(script, function(reg:EReg) {
 				return "";
