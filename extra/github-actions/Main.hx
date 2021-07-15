@@ -33,6 +33,7 @@ typedef Job = {
 
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
+	static final matchXmldocTasks = ~/([\r\n]\s*)-\s*name:[\w\s]+xmldoc[\w\s]+\s*:\s*[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
@@ -345,6 +346,11 @@ class Main {
 			} else {
 				matched;
 			}
+		});
+
+		//Remove xmldoc generation
+		script = matchXmldocTasks.map(script, function(reg:EReg) {
+			return "";
 		});
 
 		return script;

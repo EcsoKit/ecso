@@ -396,23 +396,6 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: Build xmldoc
-        run: |
-          set -ex
-          make -s xmldoc
-          cat >extra/doc/info.json <<EOL
-            {
-              "commit": "$GITHUB_SHA",
-              "branch": "${{ steps.extract_branch.outputs.branch }}"
-            }
-          EOL
-
-      - name: Upload xmldoc artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: xmldoc
-          path: extra/doc
-
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
@@ -995,23 +978,6 @@ jobs:
         id: extract_branch
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      
-      - name: Build xmldoc
-        run: |
-          set -ex
-          make -s xmldoc
-          cat >extra/doc/info.json <<EOL
-            {
-              "commit": "$GITHUB_SHA",
-              "branch": "${{ steps.extract_branch.outputs.branch }}"
-            }
-          EOL
-      
-      - name: Upload xmldoc artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: xmldoc
-          path: extra/doc
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
