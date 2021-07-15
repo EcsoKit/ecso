@@ -49,7 +49,7 @@ class Plugin {
 						"64";
 					case v if (v.indexOf("32-bit") >= 0):
 						"32";
-					case _:
+					case v:
 						Context.warning('{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues with the following info:\n$v', Context.currentPos());
 						"64";
 				}
