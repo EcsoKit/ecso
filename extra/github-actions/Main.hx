@@ -27,8 +27,9 @@ typedef JobManifest = {
 }
 
 typedef Job = {
+	id:String,
 	name:String,
-	job:String
+	script:String
 }
 
 class Main {
@@ -100,16 +101,17 @@ class Main {
 						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
 						r.match(originalWorkflow);
 						final job:Job = {
-							name: uniqueName(jobName),
-							job: transform(r.matched(2), build, workflow)
+							id: uniqueName(jobName),
+							name: 'Haxe ${workflow.haxeVersion} / $jobName',
+							script: transform(r.matched(2), build, workflow)
 						};
 						job;
 					}
 				}
 			];
-			jobs.sort((a, b) -> if (a.name.contains("build") && b.name.contains("test")) {
+			jobs.sort((a, b) -> if (a.id.contains("build") && b.id.contains("test")) {
 				-1;
-			} else if (a.name.contains("test") && b.name.contains("build")) {
+			} else if (a.id.contains("test") && b.id.contains("build")) {
 				1;
 			} else {
 				0;
@@ -124,7 +126,7 @@ class Main {
 			var r = ~/\n([ \t]*)::JOBS::/;
 			r.match(template) ? r.matched(1) : "";
 		}
-		final yml = template.replace('::JOBS::', jobs.map(j -> '${j.name}:\n${j.job}').join(JOB_TAB));
+		final yml = template.replace('::JOBS::', jobs.map(j -> '${j.id}:\n${JOB_TAB+JOB_TAB}name: ${j.name}\n${j.script}').join(JOB_TAB));
 		FileSystem.createDirectory(Path.directory(output));
 		File.saveContent(output, yml);
 	}
