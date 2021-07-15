@@ -246,8 +246,8 @@ class Main {
 			}
 			final checkEcso = matched.replace(cmd, switch manifest.os.name {
 				case "windows": 'cygcheck $destination/' + "Windows${ARCH}/plugin.cmxs";
-				case "ubuntu": 'ldd -v $destination/plugin.cmxs';
-				case "macos": 'otool -L $destination/plugin.cmxs';
+				case "ubuntu": 'ldd -v $destination/$platform/plugin.cmxs';
+				case "macos": 'otool -L $destination/$platform/plugin.cmxs';
 				case _: throw false;
 			});
 			return matched.replace(cmd, 'mkdir $destination') + moveEcso + checkEcso + matched;
