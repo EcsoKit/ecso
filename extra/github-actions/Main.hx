@@ -17,7 +17,7 @@ typedef JobManifest = {
 	haxeVersion:String,
 	url:String,
 	jobs:Array<String>,
-	os:{name:String, version:String, ?arch:Int},
+	os:{name:String, version:String},
 	?haxeDownload:String,
 	?nekoDownload:String,
 	?development:Bool,
