@@ -168,7 +168,8 @@ class Main {
 				matched;
 			} else {
 				var libs = [for (lib => version in manifest.libraries) '"$lib=$version"'].join(" ");
-				matched.replace(install, 'opam install $libs --yes --assume-depexts ') + "\n" + matched;
+				final assumeDepExts = manifest.os.name == "ubuntu" ? '--assume-depexts ' : '';
+				matched.replace(install, 'opam install $libs --yes $assumeDepExts') + "\n" + matched;
 			}
 		});
 
