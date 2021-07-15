@@ -21,6 +21,7 @@ typedef JobManifest = {
 	os:{name:String, version:String, ?arch:Int},
 	?haxeDownload:String,
 	?nekoDownload:String,
+	?development:Bool,
 	haxeSources:String,
 	githubWorkflow:String,
 	?libraries:DynamicAccess<String>
@@ -303,8 +304,8 @@ class Main {
 			return align(template, head) + align(downloadHaxe, head);
 		});
 
-		// Match build kind
-		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.haxeDownload != null ? 'true' : 'false');
+		// Force release/dev modes
+		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.development != null ? '${!manifest.development}' : 'true');
 
 		// Edit tests
 		script = matchHaxeTests.map(script, function(reg:EReg) {
