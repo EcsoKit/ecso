@@ -7,7 +7,7 @@ on:
 
 jobs:
   windows64-build-4-2-2:
-    name: "Haxe 4.2.2" / "windows64-build"
+    name: Haxe 4.2.2 / windows64-build
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -161,7 +161,7 @@ jobs:
 
 
   windows-build-4-2-2:
-    name: "Haxe 4.2.2" / "windows-build"
+    name: Haxe 4.2.2 / windows-build
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -315,7 +315,7 @@ jobs:
 
 
   linux-build-4-2-2:
-    name: "Haxe 4.2.2" / "linux-build"
+    name: Haxe 4.2.2 / linux-build
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -445,7 +445,7 @@ jobs:
 
 
   mac-build-4-2-2:
-    name: "Haxe 4.2.2" / "mac-build"
+    name: Haxe 4.2.2 / mac-build
     runs-on: macos-10.15
     env:
       PLATFORM: mac
@@ -596,7 +596,7 @@ jobs:
 
 
   windows64-build-4-2-3:
-    name: "Haxe 4.2.3" / "windows64-build"
+    name: Haxe 4.2.3 / windows64-build
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -749,7 +749,7 @@ jobs:
           if-no-files-found: error
 
   windows-build-4-2-3:
-    name: "Haxe 4.2.3" / "windows-build"
+    name: Haxe 4.2.3 / windows-build
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -902,7 +902,7 @@ jobs:
           if-no-files-found: error
 
   linux-build-4-2-3:
-    name: "Haxe 4.2.3" / "linux-build"
+    name: Haxe 4.2.3 / linux-build
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -1031,7 +1031,7 @@ jobs:
           if-no-files-found: error
 
   mac-build-4-2-3:
-    name: "Haxe 4.2.3" / "mac-build"
+    name: Haxe 4.2.3 / mac-build
     runs-on: macos-10.15
     env:
       PLATFORM: mac
@@ -1181,7 +1181,7 @@ jobs:
           if-no-files-found: error
 
   windows64-test-4-2-2:
-    name: "Haxe 4.2.2" / "windows64-test"
+    name: Haxe 4.2.2 / windows64-test
     needs: windows64-build-4-2-2
     runs-on: windows-2019
     env:
@@ -1301,7 +1301,7 @@ jobs:
 
 
   windows-test-4-2-2:
-    name: "Haxe 4.2.2" / "windows-test"
+    name: Haxe 4.2.2 / windows-test
     needs: windows-build-4-2-2
     runs-on: windows-2019
     env:
@@ -1422,7 +1422,7 @@ jobs:
 
 
   linux-test-4-2-2:
-    name: "Haxe 4.2.2" / "linux-test"
+    name: Haxe 4.2.2 / linux-test
     needs: linux-build-4-2-2
     runs-on: ubuntu-18.04
     env:
@@ -1550,7 +1550,7 @@ jobs:
 
 
   mac-test-4-2-2:
-    name: "Haxe 4.2.2" / "mac-test"
+    name: Haxe 4.2.2 / mac-test
     needs: mac-build-4-2-2
     runs-on: macos-10.15
     env:
@@ -1654,7 +1654,7 @@ jobs:
 
 
   windows64-test-4-2-3:
-    name: "Haxe 4.2.3" / "windows64-test"
+    name: Haxe 4.2.3 / windows64-test
     needs: windows64-build-4-2-3
     runs-on: windows-2019
     env:
@@ -1774,7 +1774,7 @@ jobs:
       
 
   windows-test-4-2-3:
-    name: "Haxe 4.2.3" / "windows-test"
+    name: Haxe 4.2.3 / windows-test
     needs: windows-build-4-2-3
     runs-on: windows-2019
     env:
@@ -1895,7 +1895,7 @@ jobs:
       
 
   linux-test-4-2-3:
-    name: "Haxe 4.2.3" / "linux-test"
+    name: Haxe 4.2.3 / linux-test
     needs: linux-build-4-2-3
     runs-on: ubuntu-18.04
     env:
@@ -2023,7 +2023,7 @@ jobs:
       
 
   mac-test-4-2-3:
-    name: "Haxe 4.2.3" / "mac-test"
+    name: Haxe 4.2.3 / mac-test
     needs: mac-build-4-2-3
     runs-on: macos-10.15
     env:

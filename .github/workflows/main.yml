@@ -15,7 +15,7 @@ jobs:
           access_token: ${{ github.token }}
 
   windows64-build-4-2-2:
-    name: "Haxe 4.2.2" / "windows64-build"
+    name: Haxe 4.2.2 / windows64-build
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -179,7 +179,7 @@ jobs:
 
 
   windows-build-4-2-2:
-    name: "Haxe 4.2.2" / "windows-build"
+    name: Haxe 4.2.2 / windows-build
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -343,7 +343,7 @@ jobs:
 
 
   linux-build-4-2-2:
-    name: "Haxe 4.2.2" / "linux-build"
+    name: Haxe 4.2.2 / linux-build
     runs-on: ubuntu-latest
     env:
       PLATFORM: linux64
@@ -483,7 +483,7 @@ jobs:
 
 
   mac-build-4-2-2:
-    name: "Haxe 4.2.2" / "mac-build"
+    name: Haxe 4.2.2 / mac-build
     runs-on: macos-latest
     env:
       PLATFORM: mac
@@ -644,7 +644,7 @@ jobs:
 
 
   windows64-test-4-2-2:
-    name: "Haxe 4.2.2" / "windows64-test"
+    name: Haxe 4.2.2 / windows64-test
     needs: windows64-build-4-2-2
     runs-on: windows-latest
     env:
@@ -755,7 +755,7 @@ jobs:
 
 
   windows-test-4-2-2:
-    name: "Haxe 4.2.2" / "windows-test"
+    name: Haxe 4.2.2 / windows-test
     needs: windows-build-4-2-2
     runs-on: windows-latest
     env:
@@ -867,7 +867,7 @@ jobs:
 
 
   linux-test-4-2-2:
-    name: "Haxe 4.2.2" / "linux-test"
+    name: Haxe 4.2.2 / linux-test
     needs: linux-build-4-2-2
     runs-on: ubuntu-latest
     env:
@@ -986,7 +986,7 @@ jobs:
 
 
   mac-test-4-2-2:
-    name: "Haxe 4.2.2" / "mac-test"
+    name: Haxe 4.2.2 / mac-test
     needs: mac-build-4-2-2
     runs-on: macos-latest
     env:
