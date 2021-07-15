@@ -1,4 +1,4 @@
 # --run Main
 --main Main
---hl Main.hl
---cmd hl Main.hl
+--neko Main.n
+--cmd neko Main.n

@@ -1,289 +1,143 @@
+import haxe.Json;
+import haxe.io.Path;
+import haxe.DynamicAccess;
 import sys.FileSystem;
 import sys.Http;
 import sys.io.File;
 
 using StringTools;
 
-/**
-	Commit ID used to download CI configuration and run logs.
- */
-final HAXE_RUNS = [
-	"windows" => 1988061016,
-	"ubuntu" => 1988060957,
-	"macos" => 1988061091
-];
-final HAXE_COMMIT_SHA = "a2f4ba95400edf10195ce2a1c87c56dc0d67111b";
-final HAXE_VERSION = "4.2.2";
+typedef BuildManifest = {
+	template:String,
+	workflows:Array<JobManifest>
+}
 
-/**
-	Workflow ID of the ECSO's CI. 
- */
-final WORKFLOW_ID = "1610708";
+typedef JobManifest = {
+	name:String,
+	haxeVersion:String,
+	url:String,
+	jobs:Array<String>,
+	os:{name:String, version:String},
+	?haxeDownload:String,
+	?nekoDownload:String,
+	?development:Bool,
+	haxeSources:String,
+	githubWorkflow:String,
+	?libraries:DynamicAccess<String>
+}
 
-/**
-	Version locks of OCaml packages.
-	Will be filled from `LOGS_URL` for the non-existing entries.
- */
-final OS_LOCKS : Map<String,String> = [];
+typedef Job = {
+	id:String,
+	name:String,
+	script:String
+}
 
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
-	static final matchCancelPrevious = ~/([\r\n]\s*)-\s*uses\s*:\s*(styfle\/cancel-workflow-action@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\workflow_id:)\workflow_id:\s([0-9]+)/gm;
-	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
+	static final matchXmldocTasks = ~/([\r\n]\s*)-\s*name:[\w\s]+xmldoc[\w\s]+\s*:\s*[\w\W]+?(?=\n\n|\n\s*-)/gm;
+	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([a-zA-Z${}.]+)/gm;
 	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
 	static final matchOpamInstallHaxe = ~/.*(opam install haxe[a-zA-Z -]*)(?=[0-9]| |\n).*/g;
-	static final matchOpamPackages = ~/\s*-\s*install\s+(\S+)\s+(\S+)\s*\n/g;
-	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*/g;
-	static final matchMakeHaxelib = ~/.* (make) .* (haxelib)(?= |\n).*/g;
-	static final matchCygcheckExe = ~/([\r\n]\s*).* (cygcheck (\.\/haxe\.exe))(?=').*/g;
-	static final matchCheckOutUnix = ~/([\r\n] *)(ls -l out)( *)/g;
+	static final matchMakeHaxe = ~/.* ((opam config exec -- make) .* (haxe))(?= |\n).*\n/g;
+	static final matchMakeHaxelib = ~/.* ((opam config exec -- make) .* (haxelib))(?= |\n).*\n/g;
+	static final matchMakePackage = ~/.* (make .* (package_unix|package_bin)( +\w+)*)(?= |\n).*\n/g;
+	static final matchBuildCheck = ~/.* (cygcheck|ldd|otool) .*(haxe|haxelib).*\n/gm;
+	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
-	static final matchWin32Test = ~/\s+windows-test\s*:(\s*)/gm;
-	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(\w+)/g;
-	static final mainName = ~/[\r\n]name:\s*(.+)/g;
-	static final mainOn = ~/[\r\n]on:\s*(\[[\w\s,-]+\])/g;
+	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(.+)/g;
 
-	static function main() {
-		var script = Http.requestUrl('https://raw.githubusercontent.com/HaxeFoundation/haxe/$HAXE_COMMIT_SHA/.github/workflows/main.yml');
-		var output = '../../.github/workflows';
-		var locks = new Map<String,Map<String,String>>();
-		// for(jobOS => jobID in HAXE_RUNS) {
-			// // var logsURL = 'https://api.github.com/repos/HaxeFoundation/haxe/actions/jobs/$jobID/logs';
-			// var logsURL = 'https://github.com/HaxeFoundation/haxe/commit/$HAXE_COMMIT_SHA/checks/$jobID/logs';
-			// Sys.println('Download logs from $logsURL');
-			// var http = new sys.Http(logsURL);
-			// http.addParameter("accept", "application/vnd.github.v3+json");
-			// http.addParameter("owner", "HaxeFoundation");
-			// http.addParameter("repo", "haxe");
-			// http.addParameter("job_id", "" + jobID);
-			// // http.addParameter("filter", "latest");
-			// // http.addParameter("per_page", "100");
-			// // http.addParameter("page", "1");
-			// http.onData = function(data:String) {
-			// 	trace("got logs");
-			// }
-			// http.onBytes = function(data) {
-			// 	trace("got bytes");
-			// }
-			// http.onError = function(error) {
-			// 	trace("got error", error);
-			// }
-			// http.onStatus = function(status) {
-			// 	trace("got status", status, http.responseHeaders.get("Location:"));
-			// }
-			// http.request(false);
-			// var logs = Http.requestUrl(logsURL);
-			// var lock = new Map<String,String>();
-			// locks.set(jobOS, lock);
-
-			// // Get Ocaml's package versions
-			// matchOpamPackages.map(logs, function(reg:EReg) {
-			// 	var lib = reg.matched(1);
-			// 	var version = reg.matched(2);
-			// 	if (!lock.exists(lib))
-			// 		lock.set(lib, version);
-			// 	else if (lock.get(lib) != version)
-			// 		Sys.println('Override $lib version $version with ${lock.get(lib)}');
-			// 	return "";
-			// });
-			
-			// // Get OS Version
-			// ~/Operating System\s+([A-Za-z_ -]+)\s+([0-9]+ |[0-9]+\.[0-9]+)/g.map(logs, function(reg:EReg) {
-			// 	var os = reg.matched(1).toLowerCase();
-			// 	var version = reg.matched(2);
-			// 	os = if(os.contains(jobOS)) {
-			// 		jobOS;
-			// 	} else {
-			// 		throw 'Unrecognized OS $os';
-			// 	}
-			// 	OS_LOCKS.set(os, version);
-			// 	return "";
-			// });
-		// }
-
-		// Hack until we figure out how to download logs
-		OS_LOCKS.set("windows", "2019");
-		OS_LOCKS.set("ubuntu", "18.04");
-		OS_LOCKS.set("macos", "10.15");
-		final locks = [
-			"windows" => [
-				"base-bigarray"               => "base",
-				"base-bytes"                  => "base",
-				"base-threads"                => "base",
-				"base-unix"                   => "base",
-				"camlp5"                      => "8.00~alpha05",
-				"conf-libpcre"                => "1",
-				"conf-neko"                   => "1",
-				"conf-perl"                   => "1",
-				"conf-perl-ipc-system-simple" => "1",
-				"conf-perl-string-shellquote" => "1",
-				"conf-pkg-config"             => "2",
-				"conf-zlib"                   => "1",
-				"cppo"                        => "1.6.7",
-				"csexp"                       => "1.5.1",
-				"ctypes"                      => "0.17.1",
-				"dune"                        => "2.8.2b",
-				"dune-configurator"           => "2.8.5",
-				"extlib"                      => "1.7.8",
-				"gen"                         => "0.5.3",
-				"integers"                    => "0.4.0",
-				"luv"                         => "0.5.7",
-				"ocaml"                       => "4.07.0",
-				"ocaml-compiler-libs"         => "v0.12.3",
-				"ocaml-config"                => "2",
-				"ocaml-migrate-parsetree"     => "2.1.0",
-				"ocaml-variants"              => "4.07.0+mingw64c",
-				"ocamlbuild"                  => "0.14.0",
-				"ocamlfind"                   => "1.9.1",
-				"ppx_derivers"                => "1.2.1",
-				"ppxlib"                      => "0.22.0",
-				"ptmap"                       => "2.0.5",
-				"result"                      => "1.5",
-				"sedlex"                      => "2.3",
-				"seq"                         => "base",
-				"sexplib0"                    => "v0.14.0",
-				"sha"                         => "1.14",
-				"stdlib-shims"                => "0.3.0",
-				"uchar"                       => "0.0.2",
-				"xml-light"                   => "2.4",
-			],
-			"ubuntu" => [
-				"base-bigarray"               => "base",
-				"base-bytes"                  => "base",
-				"base-threads"                => "base",
-				"base-unix"                   => "base",
-				"bigarray-compat"             => "1.0.0",
-				"camlp5"                      => "8.00~alpha05",
-				"conf-libpcre"                => "1",
-				"conf-m4"                     => "1",
-				"conf-mbedtls"                => "1",
-				"conf-neko"                   => "1",
-				"conf-perl"                   => "1",
-				"conf-perl-ipc-system-simple" => "1",
-				"conf-perl-string-shellquote" => "1",
-				"conf-pkg-config"             => "2",
-				"conf-zlib"                   => "1",
-				"cppo"                        => "1.6.7",
-				"csexp"                       => "1.5.1",
-				"ctypes"                      => "0.18.0",
-				"dune"                        => "2.8.5",
-				"dune-configurator"           => "2.8.5",
-				"extlib"                      => "1.7.8",
-				"gen"                         => "0.5.3",
-				"integers"                    => "0.4.0",
-				"luv"                         => "0.5.7",
-				"ocaml"                       => "4.05.0",
-				"ocaml-compiler-libs"         => "v0.12.3",
-				"ocaml-config"                => "1",
-				"ocaml-migrate-parsetree"     => "2.1.0",
-				"ocaml-secondary-compiler"    => "4.08.1-1",
-				"ocaml-system"                => "4.05.0",
-				"ocamlbuild"                  => "0.14.0",
-				"ocamlfind"                   => "1.8.1",
-				"ocamlfind-secondary"         => "1.8.1",
-				"ppx_derivers"                => "1.2.1",
-				"ppxlib"                      => "0.22.0",
-				"ptmap"                       => "2.0.5",
-				"result"                      => "1.5",
-				"sedlex"                      => "2.3",
-				"seq"                         => "0.2.2",
-				"sexplib0"                    => "v0.14.0",
-				"sha"                         => "1.14",
-				"stdlib-shims"                => "0.3.0",
-				"uchar"                       => "0.0.2",
-				"xml-light"                   => "2.4",
-			],
-			"macos" => [
-				"base-bigarray"               => "base",
-				"base-bytes"                  => "base",
-				"base-threads"                => "base",
-				"base-unix"                   => "base",
-				"camlp5"                      => "8.00~alpha05",
-				"conf-libpcre"                => "1",
-				"conf-m4"                     => "1",
-				"conf-mbedtls"                => "1",
-				"conf-neko"                   => "1",
-				"conf-perl"                   => "1",
-				"conf-perl-ipc-system-simple" => "1",
-				"conf-perl-string-shellquote" => "1",
-				"conf-pkg-config"             => "2",
-				"conf-zlib"                   => "1",
-				"cppo"                        => "1.6.7",
-				"csexp"                       => "1.5.1",
-				"ctypes"                      => "0.17.1",
-				"dune"                        => "2.8.5",
-				"dune-configurator"           => "2.8.5",
-				"extlib"                      => "1.7.8",
-				"gen"                         => "0.5.3",
-				"integers"                    => "0.4.0",
-				"luv"                         => "0.5.7",
-				"ocaml"                       => "4.07.1",
-				"ocaml-base-compiler"         => "4.07.1",
-				"ocaml-compiler-libs"         => "v0.12.3",
-				"ocaml-config"                => "1",
-				"ocaml-migrate-parsetree"     => "2.1.0",
-				"ocaml-secondary-compiler"    => "4.08.1-1",
-				"ocamlbuild"                  => "0.14.0",
-				"ocamlfind"                   => "1.8.1",
-				"ocamlfind-secondary"         => "1.8.1",
-				"ppx_derivers"                => "1.2.1",
-				"ppxlib"                      => "0.22.0",
-				"ptmap"                       => "2.0.5",
-				"result"                      => "1.5",
-				"sedlex"                      => "2.3",
-				"seq"                         => "base",
-				"sexplib0"                    => "v0.14.0",
-				"sha"                         => "1.14",
-				"stdlib-shims"                => "0.3.0",
-				"uchar"                       => "0.0.2",
-				"xml-light"                   => "2.4",
-			]
+	static function loadManifests(folder:String):Array<BuildManifest> {
+		final manifests:Map<String, BuildManifest> = [];
+		return [
+			for (file in FileSystem.readDirectory(folder)) {
+				final data = Json.parse(~/^\s*\/\/.*/gm.replace(File.getContent('$folder/$file'), ''));
+				final manifest:BuildManifest = {
+					template: data.template,
+					workflows: data.workflows
+				}
+				// Load defaults
+				for (field in Reflect.fields(data.defaults)) {
+					final defaultValue = Reflect.field(data.defaults, field);
+					for (workflow in manifest.workflows)
+						if (!Reflect.hasField(workflow, field))
+							Reflect.setField(workflow, field, defaultValue);
+				}
+				// Merge
+				if (manifests.exists(manifest.template)) {
+					final targetManifest = manifests[manifest.template];
+					for (workflow in manifest.workflows)
+						targetManifest.workflows.push(workflow);
+					continue;
+				} else {
+					manifests.set(manifest.template, manifest);
+					manifest;
+				}
+			}
 		];
-
-		gen( script, output, locks, true );
-		gen( script, output, locks, false );
 	}
 
-	static function gen(script : String, output : String, locks:Map<String,Map<String,String>>, main : Bool) {
-
-		function getOS(from:EReg):String {
-			final left = from.matchedLeft();
-			final idx = left.lastIndexOf("runs-on:");
-			if(idx < 0) throw 'Failed to get the OS of the current match ${from.matched(0)}';
-			return if(matchRunnerOS.match(left.substr(idx))) {
-				return matchRunnerOS.matched(1).toLowerCase();
+	static function main() {
+		for (build in loadManifests("./builds")) {
+			final jobs = [
+				for (workflow in build.workflows) {
+					var originalWorkflow = Http.requestUrl(workflow.url);
+					final jobTab:String = {
+						final r = ~/([ \t]*)jobs\s*:[\r\n]*([ \t]*)/;
+						r.match(originalWorkflow);
+						r.matched(1) + r.matched(2);
+					}
+					// Fix job name collisions
+					inline function uniqueName(name:String):String {
+						return '$name-${workflow.haxeVersion.replace('.', '-')}';
+					}
+					for (jobName in workflow.jobs) {
+						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
+							r.matched(0).replace(jobName, uniqueName(jobName));
+						});
+					}
+					for (jobName in workflow.jobs) {
+						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
+						r.match(originalWorkflow);
+						final job:Job = {
+							id: uniqueName(jobName),
+							name: 'Haxe ${workflow.haxeVersion} / $jobName',
+							script: transform(r.matched(2), build, workflow)
+						};
+						job;
+					}
+				}
+			];
+			jobs.sort((a, b) -> if (a.id.contains("build") && b.id.contains("test")) {
+				-1;
+			} else if (a.id.contains("test") && b.id.contains("build")) {
+				1;
 			} else {
-				throw 'Failed to match "runs-on:" withing $left';
-			}
+				0;
+			});
+			final output = '../../.github/workflows';
+			save(File.getContent('./workflow-${build.template}.yml'), jobs, '$output/${build.template}.yml', build);
 		}
+	}
 
+	static function save(template:String, jobs:Array<Job>, output:String, build:BuildManifest) {
+		final JOB_TAB = {
+			var r = ~/\n([ \t]*)::JOBS::/;
+			r.match(template) ? r.matched(1) : "";
+		}
+		final yml = template.replace('::JOBS::', jobs.map(j -> '${j.id}:\n${JOB_TAB+JOB_TAB}name: ${j.name}\n${j.script}').join(JOB_TAB));
+		FileSystem.createDirectory(Path.directory(output));
+		File.saveContent(output, yml);
+	}
+
+	static function transform(script:String, build:BuildManifest, manifest:JobManifest) {
 		// Lock Runner OS
 		script = matchRunnerOS.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var os = reg.matched(1).toLowerCase();
 			var version = reg.matched(2);
-			return if(version == "latest") {
-				matched.replace('latest', OS_LOCKS.get(os));
-			} else {
-				matched;
-			}
-		});
-
-		// Update cancelling previous run
-		script = matchCancelPrevious.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var action = reg.matched(2);
-			var workflowId = reg.matched(3);
-			return if (main) {
-				// Replace workflow id for cancelling previous run
-				matched.replace(workflowId, WORKFLOW_ID);
-			} else {
-				// Remove workflow id
-				matched.replace(workflowId, "0");
-			}
+			return matched.replace(os, manifest.os.name).replace(version, manifest.os.version);
 		});
 
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
@@ -296,7 +150,13 @@ class Main {
 				return matched;
 			}
 
-			final templateHaxe = File.getContent('./checkout-haxe.yml').replace('::HAXE_VERSION::', HAXE_COMMIT_SHA);
+			final template = File.getContent('./checkout-haxe.yml');
+			final templateHaxe = switch manifest.haxeSources.split('@') {
+				case [repo, ref]: template.replace('::HAXE_REPO::', repo).replace('::HAXE_REF::', ref);
+				case [repo]: template.replace('::HAXE_REPO::', repo).replace('::HAXE_REF::', '');
+				case _: throw 'Invalid Haxe Sources ${manifest.haxeSources}';
+			}
+
 			final templateEcso = File.getContent('./checkout-ecso.yml');
 
 			return align(templateHaxe, head) + align(templateEcso, head);
@@ -306,56 +166,97 @@ class Main {
 		script = matchOpamInstallHaxe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var install = reg.matched(1);
-			var lock = locks[getOS(reg)];
-			var libs = [for(lib => version in lock) '"$lib=$version"'].join(" ");
-			return matched.replace(install, 'opam install $libs --yes ') + "\n" + matched;
+			return if (manifest.libraries == null) {
+				matched;
+			} else {
+				var libs = [for (lib => version in manifest.libraries) '"$lib=$version"'].join(" ");
+				final assumeDepExts = manifest.os.name == "ubuntu" ? '--assume-depexts ' : '';
+				matched.replace(install, 'opam install $libs --yes $assumeDepExts') + "\n" + matched;
+			}
 		});
 
-		// Build ecso as plugin (after haxelib)
-		script = matchMakeHaxelib.map(script, function(reg:EReg) {
-			var pos = reg.matchedPos();
-			var makeEcso = "";
-			matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+		// Lock Neko version
+		if (manifest.nekoDownload != null) {
+			script = ~/(https?:\/\/\S+\/(neko_latest\.(zip|tar\.gz))\/?)\s/gm.map(script, function(reg:EReg) {
+				final matched = reg.matched(0);
+				final url = reg.matched(1);
+				final file = reg.matched(2);
+				final ext = reg.matched(3);
+				final full:Bool = manifest.nekoDownload.startsWith("http");
+				return matched.replace(url, full ? manifest.nekoDownload : url.replace(file, manifest.nekoDownload));
+			});
+		}
+
+		// Build
+		if (manifest.haxeDownload == null) {
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Haxe + Ecso");
+			// Build ecso as plugin (after haxelib)
+			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+				var pos = reg.matchedPos();
+				var makeEcso = "";
+				matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+					var matched = reg.matched(0);
+					var cmd = reg.matched(1);
+					var make = reg.matched(2);
+					var haxe = reg.matched(3);
+					makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+					return "";
+				});
+				if (makeEcso == "")
+					throw "Fail to find haxe make";
+				var matched = reg.matched(0);
+				return matched + makeEcso;
+			});
+		} else {
+			// Rename build jobs
+			script = script.replace("Build Haxe", "Build Ecso");
+			// Build ecso instead of haxe/haxelib
+			script = matchMakeHaxe.map(script, function(reg:EReg) {
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
-				var make = reg.matched(2);
 				var haxe = reg.matched(3);
-				makeEcso = matched.replace(haxe, "PLUGIN=ecso plugin");
+				return matched.replace(haxe, "PLUGIN=ecso plugin");
+			});
+			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+				var matched = reg.matched(0);
+				var cmd = reg.matched(1);
 				return "";
 			});
-			if(makeEcso == "")
-				throw "Fail to find haxe make";
-			var matched = reg.matched(0);
-			return matched + "\n" + makeEcso;
-		});
+			script = matchMakePackage.map(script, function(reg:EReg) {
+				final matched = reg.matched(0);
+				final cmd = reg.matched(1);
+				return matched.replace(cmd, "mkdir ./out");
+			});
+			script = matchBuildCheck.map(script, function(reg:EReg) {
+				return "";
+			});
+		}
 
-		// Move binaries (Windows)
-		script = matchCygcheckExe.map(script, function(reg:EReg) {
+		// Move binaries
+		script = matchCheckOut.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var cmd = reg.matched(2);
-			var haxeExe = reg.matched(3);
-			return matched
-				+ matched.replace(cmd, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(cmd, 'mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}") // add architecture + move per haxe version
-				+ matched.replace(cmd, 'haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
-				+ matched.replace(haxeExe, './plugins/ecso/cmxs/hx-$HAXE_VERSION' + "/Windows${ARCH}/plugin.cmxs"); // check result
-		});
-		// Move binaries (Mac and Linux)
-		script = matchCheckOutUnix.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var head = reg.matched(1);
-			var ls = reg.matched(2);
-			var tail = reg.matched(3);
-			var platform = switch getOS(reg) {
+			var cmd = reg.matched(1);
+			final platform = switch manifest.os.name {
 				case "ubuntu": "Linux";
 				case "macos": "Mac";
-				case any: throw 'Unexpected platform $any';
+				case "windows": "Windows";
+				case _: throw false;
 			}
-			return matched.replace(ls, 'mkdir ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(ls, 'mv ./plugins/ecso/cmxs/$platform ./plugins/ecso/cmxs/hx-$HAXE_VERSION')
-				+ matched.replace(ls, './haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml')
-				+ matched;
+			final location = './plugins/ecso/cmxs/$platform';
+			final destination = './plugins/ecso/cmxs/hx-${manifest.haxeVersion}';
+			final moveEcso = if (manifest.os.name == "windows") {
+				matched.replace(cmd, 'mv -T $location $destination/' + "Windows${ARCH}");
+			} else {
+				matched.replace(cmd, 'mv $location $destination');
+			}
+			final checkEcso = matched.replace(cmd, switch manifest.os.name {
+				case "windows": 'cygcheck $destination/' + "Windows${ARCH}/plugin.cmxs";
+				case "ubuntu": 'ldd -v $destination/$platform/plugin.cmxs';
+				case "macos": 'otool -L $destination/$platform/plugin.cmxs';
+				case _: throw false;
+			});
+			return matched.replace(cmd, 'mkdir $destination') + moveEcso + checkEcso + matched;
 		});
 
 		// Upload artifact
@@ -368,9 +269,14 @@ class Main {
 			var name = reg.matched(3);
 			var tab = head.substring(head.indexOf(' '), head.lastIndexOf(' ') + 1);
 
-			var template = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
+			var uploadEcso = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
+			var uploadHaxe = if (manifest.haxeDownload == null) {
+				matched.replace(name, '$name\n$tab    retention-days: 1');
+			} else {
+				'';
+			};
 
-			return align(template, head) + matched.replace(name, '$name\n$tab    retention-days: 1');
+			return align(uploadEcso, head) + uploadHaxe;
 		});
 
 		// Download artifact
@@ -381,12 +287,27 @@ class Main {
 			var name = reg.matched(3);
 
 			var template = File.getContent('./download-ecso.yml').replace('::ARTIFACT_NAME::', name);
+			var downloadHaxe = if (manifest.haxeDownload == null) {
+				matched.substr(head.length).replace(head, '\n');
+			} else {
+				final ext = switch manifest.os.name {
+					case "windows": 'zip';
+					case "ubuntu" | "macos": 'tar.gz';
+					case _: throw false;
+				}
+				if (!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains('.$ext'))
+					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension $ext';
+				File.getContent('./download-file.yml')
+					.replace('::URL::', manifest.haxeDownload)
+					.replace('::OUTPUT_NAME::', 'haxe_bin.$ext')
+					.replace('::TARGET_FOLDER::', './$name');
+			}
 
-			return align(template, head) + matched;
+			return align(template, head) + align(downloadHaxe, head);
 		});
 
-		// Rename build jobs
-		script = script.replace("Build Haxe", "Build Haxe + Ecso");
+		// Force release/dev modes
+		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.development != null ? '${!manifest.development}' : 'true');
 
 		// Edit tests
 		script = matchHaxeTests.map(script, function(reg:EReg) {
@@ -403,19 +324,11 @@ class Main {
 					var path = reg.matched(2);
 					var tail = reg.matched(3);
 					return matched.replace(path, '$workingDirectory/$path');
-					// return "${{github.workspace}}" + '/tests/$path$tail';
 				});
 			}
 			// Redirect tests
 			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
-			// Generate readme
-			var readme = matched.replace(name, "Generate readme").replace(cwd, "${{github.workspace}}").replace(run, "haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml");
-			// Only generate readme when
-			return if(name.contains("SauceLabs")) {
-				correctRelativePaths(test, cwd);
-			} else {
-				correctRelativePaths(test + readme, cwd);
-			}
+			return correctRelativePaths(test, cwd);
 		});
 
 		// Add test targets
@@ -438,31 +351,12 @@ class Main {
 			}
 		});
 
-		// Disable Windows 32 tests
-		script = matchWin32Test.map(script, function(reg:EReg) {
-			var matched = reg.matched(0);
-			var br = reg.matched(1);
-			return matched + "if: ${{ false }}" + br;
+		// Remove xmldoc generation
+		script = matchXmldocTasks.map(script, function(reg:EReg) {
+			return "";
 		});
 
-		// Save
-		FileSystem.createDirectory(output);
-		if (main) {
-			File.saveContent('$output/main.yml', script);
-		} else {
-			// Rename the workflow
-			script = mainName.map(script, reg -> {
-				var matched = reg.matched(0);
-				var name = reg.matched(1);
-				return matched.replace(name, 'Haxe $HAXE_VERSION');
-			});
-			script = mainOn.map(script, reg -> {
-				var matched = reg.matched(0);
-				var on = reg.matched(1);
-				return "\n" + File.getContent('./on-release.yml');
-			});
-			File.saveContent('$output/haxe-$HAXE_VERSION.yml', script);
-		}
+		return script;
 	}
 
 	static function align(value:String, head:String):String {

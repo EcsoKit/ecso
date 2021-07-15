@@ -1,0 +1,47 @@
+{
+	"template": "main",
+	"defaults": {
+		"development": true,
+		"haxeVersion": "4.2.3",
+		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/1385eda48e60387e349282d26347b28d0b2768ca/.github/workflows/main.yml",
+		"haxeSources": "HaxeFoundation/haxe@1385eda48e60387e349282d26347b28d0b2768ca"
+	},
+	"workflows": [
+		{
+			"name": "win64",
+			"nekoDownload": "https://build.haxe.org/builds/neko/windows64/neko_latest.zip",
+			"jobs": ["windows64-build", "windows64-test"],
+			"os": {
+				"name": "windows",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "win32",
+			"nekoDownload": "https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip",
+			"jobs": ["windows-build", "windows-test"],
+			"os": {
+				"name": "windows",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "linux64",
+			"nekoDownload": "https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz",
+			"jobs": ["linux-build", "linux-test"],
+			"os": {
+				"name": "ubuntu",
+				"version": "latest"
+			}
+		},
+		{
+			"name": "mac",
+			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz",
+			"jobs": ["mac-build", "mac-test"],
+			"os": {
+				"name": "macos",
+				"version": "latest"
+			}
+		}
+	]
+}
