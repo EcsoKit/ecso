@@ -1,4 +1,3 @@
-import haxe.display.Protocol.FileParams;
 import haxe.Json;
 import haxe.io.Path;
 import haxe.DynamicAccess;
@@ -349,7 +348,7 @@ class Main {
 			}
 		});
 
-		//Remove xmldoc generation
+		// Remove xmldoc generation
 		script = matchXmldocTasks.map(script, function(reg:EReg) {
 			return "";
 		});
