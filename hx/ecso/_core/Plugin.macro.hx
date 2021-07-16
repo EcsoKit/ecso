@@ -31,30 +31,23 @@ class Plugin {
 			} catch (e:String) {
 				if (!sys.FileSystem.exists(path))
 					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")}.', Context.currentPos());
+				if (Sys.systemName() == "Windows" && !try32) {
+					try32 = true;
+					return get_plugin();
+				}
 				throw '[ECSO] Failed to load plugin: $e';
 			}
 		} else {
 			plugin;
 		}
 	}
-
+	static var try32 = false;
 	static function getPluginPath():String {
 		final here = ((?p:PosInfos) -> p.fileName)();
 		final src = here.directory().directory().directory().directory();
 		final system = switch Sys.systemName() {
 			case "Windows":
-				final wmic = new sys.io.Process("sigcheck.exe " + Sys.executablePath());
-				final arch = switch wmic.stdout.readAll().toString() {
-					case v if (v.indexOf("64-bit") >= 0):
-						"64";
-					case v if (v.indexOf("32-bit") >= 0):
-						"32";
-					case v:
-						Context.warning('{ECSO} failed to resolve your processor architecture - please report this at https://github.com/EcsoKit/ecso/issues with the following info:\n$v', Context.currentPos());
-						"64";
-				}
-				wmic.close();
-				'Windows$arch';
+				'Windows${try32 ? "32" : "64"}';
 			case s:
 				s;
 		}
