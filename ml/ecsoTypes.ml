@@ -198,6 +198,14 @@ type mutation =
 	| MutAdd of tclass_field list * tclass_field
 	| MutRem of tclass_field list * int
 
+type related_mutation = {
+	rm_evolutions : mutation_value list;
+	rm_base : tclass_field list;
+}
+and mutation_value =
+	| MutValueAdd of tclass_field
+	| MutValueRem of int
+
 let s_mutation mut =
 	let pmap_of_fl fl = 
 		let rec loop fl pm = match fl with

@@ -498,39 +498,118 @@ module EcsoArchetypeAnalyzer = struct
 	
 	let apply_mutations (actx : EcsoAnalyzer.t) user_archetypes mutations : archetype list =
 		let api = (actx.a_global.gl_ectx.curapi.get_com()).basic in
-		let mutate a mut =
-			let has_component a cf = PMap.mem cf.cf_name a.a_components in
-			let match_mutation_base a base =
-				(List.length base = 0) ||
-				List.for_all (fun cf -> PMap.mem cf.cf_name a.a_components (* && eq_component_type (PMap.find cf.cf_name a.a_components) cf *)) base
-			in
-			match mut with
-			| MutAdd(base,cf) ->
-				if not (has_component a cf) && match_mutation_base a base then
-					Some { a with a_components = PMap.add cf.cf_name cf a.a_components }
-				else
-					None
-			| MutRem(base,i) ->
-				if match_mutation_base a base then
-					Some { a with a_components = PMap.remove (List.nth base i).cf_name a.a_components }
-				else
-					None
+		let match_mutation_base a base =
+			List.length base = 0 ||
+			List.for_all (fun cf -> PMap.mem cf.cf_name a.a_components) base
 		in
+		let has_component a cf = PMap.mem cf.cf_name a.a_components in
+
+		let list_filter_map f l =
+			let rec loop l acc = match l with
+				| [] -> acc
+				| x :: l -> match f x with
+					| Some x -> loop l (x :: acc)
+					| None -> loop l acc
+			in loop l []
+		in
+		(* convert mutation format *)
+		let convert_mutl mutl = 
+			let get_base mut = match mut with | MutAdd(base,_) | MutRem(base,_) -> base in
+			let same_base mut mut' = match get_base mut, get_base mut' with
+				| base,base' when (List.length base = List.length base') ->
+					List.for_all (fun cf' -> List.exists (fun cf -> cf.cf_name = cf'.cf_name) base) base'
+				| _,_ -> false
+			in
+			(* group mutations with identical bases *)
+			let grouped_mutl : (mutation list) list = 
+				let rec loop mutl groups = match mutl with
+					| [] -> groups
+					| mut :: mutl ->
+						let group = ref [mut] in
+						let mutl = list_filter_map (fun mut' ->
+							if same_base mut mut' then begin
+								group := mut' :: !group;
+								None
+							end else
+								Some mut'
+						) mutl in
+						loop mutl (!group :: groups)
+				in
+				loop mutl []
+			in
+			(* ensure we don't get grandparents for parents by sorting first *)
+			let grouped_mutl = List.sort (fun a b -> 
+				let a = List.hd a in
+				let b = List.hd b in
+				if List.length (get_base a) < List.length (get_base b) then 1
+				else if List.length (get_base a) > List.length (get_base b) then -1
+				else 0
+			) grouped_mutl in
+
+			let rec loop grouped_mutl rml =
+				match grouped_mutl with
+				| [] -> rml
+				| grouped_mut :: grouped_mutl ->
+					let base = get_base (List.hd grouped_mut) in
+					let evolutions = List.map (fun mut -> (match mut with | MutAdd(_,cf) -> MutValueAdd(cf) | MutRem(_,i) -> MutValueRem(i))) grouped_mut in
+					let node = {
+						rm_base = base;
+						rm_evolutions = evolutions;
+					} in
+					loop grouped_mutl (node :: rml)
+			in
+			loop grouped_mutl []
+		in 
 		let pass al al2 =
 			let additions = List.filter (fun mut -> match mut with | MutAdd _ -> true | _ -> false) mutations in
 			let removals = List.filter (fun mut -> match mut with | MutRem _ -> true | _ -> false) mutations in
 			let mutated_arr = ref PMap.empty in
-			let rec pass_mutations al mutl = 
+			let pass_mutations al mutl =
+				let mutl = convert_mutl mutl in
+				let mutate a mut : (archetype list) option = with_timer ["archetypes";"mutation";"mutate"] (fun () ->
+					if match_mutation_base a mut.rm_base then begin
+						let al = list_filter_map (fun evolution -> match evolution with
+								| MutValueAdd(cf) ->
+									if not (has_component a cf) then
+										Some { a with a_components = PMap.add cf.cf_name cf a.a_components }
+									else
+										None
+								| MutValueRem(i) ->
+									Some { a with a_components = PMap.remove (List.nth mut.rm_base i).cf_name a.a_components }
+							) mut.rm_evolutions
+						in
+						Some al
+					end else
+						None
+				) in
 				List.iter (fun a ->
 					List.iter (fun mut ->
-						match (mutate a mut) with
-						| Some a' -> 
-							let hash = hash_archetype a' in
-							if not (PMap.mem hash !mutated_arr) then begin
-								mutated_arr := PMap.add hash a' !mutated_arr;
-							pass_mutations [a'] mutl
-							end
-						| None -> ()
+						let rec transverse_relatives a mut =
+							match (mutate a mut) with
+							| Some [] -> ()
+							| Some al' ->
+								let al' =  with_timer ["archetypes";"mutation";"filter"] (fun () -> 
+									List.filter (fun a' ->
+										let hash = hash_archetype a' in
+										if not (PMap.mem hash !mutated_arr) then begin
+											mutated_arr := PMap.add hash a' !mutated_arr;
+											true
+										end else
+											false
+									) al'
+								) in
+								let chains = with_timer ["archetypes";"mutation";"chains"] (fun () -> ChainTbl.init_filter al' (fun a -> a.a_components) )in
+								let extended_al' =  with_timer ["archetypes";"mutation";"extends"] (fun () -> 
+									ChainTbl.map_starts (fun cf ->
+										{ a_components = PMap.add cf.cf_name cf a.a_components }
+									) chains
+								) in
+								List.iter (fun a' ->
+									List.iter (transverse_relatives a') mutl
+								) extended_al'
+							| None -> ()
+						in
+						transverse_relatives a mut
 					) mutl
 				) al
 			in
