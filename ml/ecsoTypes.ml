@@ -162,12 +162,15 @@ let foreach_compatible_archetype debug al f a =
 		)
 		al
 
+let mk_archetype (components : (string, tclass_field) PMap.t) : archetype =
+	{ a_components = components; }
+
 let rec archetype_of_type t p =
 	match fetch_type t with
 	| TType (td, tparams) ->
 		archetype_of_type td.t_type p
 	| TAnon a ->
-		{ a_components = a.a_fields; }
+		mk_archetype a.a_fields
 	| TDynamic _
 	| TMono { tm_type = None }
 	| TAbstract ({ a_path = [],"Any" }, []) ->
@@ -307,4 +310,190 @@ module EcsoContext = struct
 	let is_api_foreach (ctx : t) (fa : tfield_access) : bool =
 		does_match_api ctx fa ctx.ctx_group.eg_foreach
 
+end
+
+module ChainTbl = struct
+
+	type 'a t = {
+		chain_starts : ('a chain_node) list;
+		indexor : 'a indexor;
+	}
+
+	and 'a indexor = ((string, 'a chain_node) PMap.t) ref
+
+	and 'a chain_node = {
+		key : string;
+		item : 'a;
+		mutable next : 'a chain_node;
+		mutable size : int ref; (* amount of chained nodes for transversal iterations *)
+	}
+
+	let transverse_chain (f : 'a -> unit) (from : 'a chain_node) = 
+		let rec loop node remaining nl =
+			match remaining with 
+			| 0 -> ()
+			| _ ->
+				f node.item;
+				loop node.next (remaining - 1) nl
+		in
+		loop from !(from.size) []
+
+	let transverse_starts (f : 'a chain_node -> unit) (c : 'a t) =
+		let rec loop nl = match nl with | [] -> () | n :: nl -> 
+			f n;
+			loop nl
+		in
+		loop c.chain_starts
+
+	let map_starts (f : 'a -> 'x) (c : 'a t) : 'x list =
+		let list = ref [] in
+		transverse_starts (fun v -> list := (f v.item) :: !list) c;
+		!list
+	
+	(*
+		`list_of_chain chain` is `0; 1; ...; (len-1)`.
+	*)
+	let list_of_chain (chain : 'a chain_node) : (string * 'a) list = 
+		let rec loop node remaining nl =
+			match remaining with
+			| 0 -> nl
+			| _ ->
+				(node.key,node.item) :: loop node.next (remaining - 1) nl
+		in
+		loop chain !(chain.size) []
+	
+	let s_chain (chain : 'a chain_node) =
+		let nl = list_of_chain chain in
+		let s = TPrinting.Printer.s_list "-" (fun (k,_) -> k) nl in
+		s ^ ":" ^ string_of_int !(chain.size)
+
+	let fill (m : (string,'a) PMap.t) (nl : ('a chain_node) list) (indexor : 'a indexor) =
+		let fold key item (node : ('a chain_node) option) =
+			let chain =
+				if PMap.mem key !indexor then begin
+					let node = PMap.find key !indexor in
+					node
+				end else begin
+					let rec node = {
+						key = key;
+						item = item;
+						next = node;
+						size = ref 1;
+					} in
+					indexor := PMap.add key node !indexor;
+					node
+				end
+			in
+			match node with
+			| Some node when not (node.size == chain.size) (* ref comparison *) ->
+				(* connect chains *)
+				let new_size = !(node.size) + !(chain.size) in
+				let size_ref = node.size in
+				let transversal_update (from : 'a chain_node) : 'a chain_node =
+					let rec loop node remaining =
+						node.size <- size_ref;
+						match remaining with 
+						| 1 -> node
+						| _ -> loop node.next (remaining - 1)
+					in
+					loop from !(from.size);
+				in
+				let prev = transversal_update chain in
+
+				(* chain with previous *)
+				prev.next <- node.next;
+				node.next <- chain;
+				
+				(* update size value *)
+				size_ref := new_size;
+				
+				Some chain
+			| _ ->
+				(* single for now *)
+				Some chain
+		in
+		match PMap.foldi fold m None with
+			| Some node ->
+				node :: nl
+			| None ->
+				nl (* is an empty archetypes *)
+
+	(*
+		`unload_filter f c` returns a list containing every chain of `c` such as `f c0; f c1; ...; f cN`.
+		
+		It is the opposite of `init_filter xl f`.
+	*)
+	let unload_filter (f : (string,'a) PMap.t -> 'b) (c : 'a t) : 'b list = 
+		let rec loop nl acc =
+			match nl with
+			| n :: nl when PMap.mem n.key !(c.indexor) -> begin
+				let nodes = list_of_chain n in
+				let m = ref PMap.empty in
+				List.iter (fun (key,item) ->
+					(* De-index each chain's node *)
+					c.indexor := PMap.remove key !(c.indexor);
+					m := PMap.add key item !m;
+				) nodes;
+				loop nl (f !m :: acc)
+			end
+			| _ -> acc
+		in
+		loop c.chain_starts []
+	
+	let create (_ : unit) : 'a t =
+		{
+			indexor = ref PMap.empty;
+			chain_starts = [];
+		}
+
+
+	(*
+		`init_filter xl f` is `init (List.map f xl)`.
+	*)
+	let init_filter (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) : 'a t =
+		let rec loop l nl indexor = match l with
+			| [] -> nl
+			| x :: l -> loop l (fill (f x) nl indexor) indexor
+		in
+		let idx = ref PMap.empty in {
+			indexor = idx;
+			chain_starts = loop xl [] idx;
+		}
+	
+	(*
+		`init ml` is `List.fold_right add ml (create())`.
+	*)
+	let init (ml : ((string, 'a) PMap.t) list) : 'a t =
+		init_filter ml (fun m -> m)
+	
+	(*
+		`add m c` returns a table containing the same chains as `c`, plus the new chains produced by `m`.
+		
+		If an element of `m` was already chained in `c`, the elements of `m` links with the existing chain.
+		Otherwise, a new chain for `m` is pruduced.
+	*)
+	let add (m : (string, 'a) PMap.t) (c : 'a t) : tclass_field t =
+		{
+			indexor = c.indexor;
+			chain_starts = fill m c.chain_starts c.indexor;
+		}
+
+	(*
+		`add_list_filter ml f c` is `add_list (List.map f xl) c`.
+	*)
+	let add_list_filter (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) (c : 'a t) : 'a t =
+		let rec loop l nl indexor = match l with
+			| [] -> nl
+			| x :: l -> loop l (fill (f x) nl indexor) indexor
+		in {
+			indexor = c.indexor;
+			chain_starts = loop xl [] c.indexor;
+		}
+
+	(*
+		`add_list ml c` is `List.fold_right add ml c`.
+	*)
+	let add_list (ml : ((string, 'a) PMap.t) list) (c : 'a t) : 'a t =
+		add_list_filter ml (fun m -> m) c
+	
 end

@@ -497,6 +497,7 @@ module EcsoArchetypeAnalyzer = struct
 		loop g
 	
 	let apply_mutations (actx : EcsoAnalyzer.t) user_archetypes mutations : archetype list =
+		let api = (actx.a_global.gl_ectx.curapi.get_com()).basic in
 		let mutate a mut =
 			let has_component a cf = PMap.mem cf.cf_name a.a_components in
 			let match_mutation_base a base =
@@ -550,7 +551,7 @@ module EcsoArchetypeAnalyzer = struct
 			print_list_br "              | " s_archetype archetypes ~cache:true;
 		end;
 		let archetypes = match actx.a_ctx.ctx_storage_mode with
-			| AoS (_,MCumulated,_) ->
+			| AoS (_,MCumulated,_) -> with_timer ["archetypes";"cumulate"] (fun () -> 
 				let archetypes =
 					if actx.a_ctx.ctx_identity_mode = IGlobal then
 						archetypes
@@ -560,61 +561,59 @@ module EcsoArchetypeAnalyzer = struct
 							GlobalizeNameFilter.run archetypes ~registry:actx.a_ctx.ctx_renaming_registry
 						)
 				in
-				let api = (actx.a_global.gl_ectx.curapi.get_com()).basic in
-				let rec cumulate al = match al with
-					| [] -> al
-					| a :: al -> 
-						let prune_a = ref false in
-						let merge_with_a a' =
-							let fill_one_to_another (a : archetype) (a' : archetype) =
-								PMap.iter (fun name cf ->
-									(* Add or propagate nullability *)
-									if is_explicit_null cf.cf_type || not (PMap.mem name a'.a_components) then
-										a'.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a'.a_components
-								) a.a_components
-							in
-							let make_all_nallable (a : archetype) =
-								a.a_components <- PMap.map (fun cf -> { cf with cf_type = api.tnull cf.cf_type } ) a.a_components
-							in
-							(* It is assumed that each component has an unique name *)
-							if PMap.is_empty a.a_components then begin
-								prune_a := true;
-								make_all_nallable a';
-								a.a_components <- a'.a_components;
-								a'
-							end else if PMap.is_empty a'.a_components then begin
-								prune_a := true;
-								make_all_nallable a;
-								a'.a_components <- a.a_components;
-								a
-							end else try begin
-								PMap.iter (fun name cf ->
-									if PMap.mem name a'.a_components then raise Exit
-								) a.a_components;
-								PMap.iter (fun name cf ->
-									if PMap.mem name a.a_components then raise Exit
-								) a'.a_components;
-								(* Doesn't share components *)
-								a'
-							end with
-							| Exit ->
-								fill_one_to_another a' a;
-								a'.a_components <- a.a_components;
-								prune_a := true;
-								a
-						in
-						let al = List.map merge_with_a al in
-						if !prune_a then
-							cumulate al
-						else
-							a :: cumulate al
+				
+				let is_from_mutation cf =
+					List.exists (fun mut ->
+						(* It is assumed that each component has an unique name *)
+						match mut with
+						| MutAdd (base,cf') ->
+							cf.cf_name = cf'.cf_name
+						| MutRem (base,i) ->
+							let cf' = List.nth base i in
+							cf.cf_name = cf'.cf_name
+					) mutations
 				in
-				let cumulated_archetypes = with_timer ["archetypes";"cumulate"] (fun () -> cumulate archetypes ) in
+				
+				let edit_archetype (a : archetype) (with_components : (string, tclass_field) PMap.t) : unit =
+					PMap.iter (fun name cf ->
+						if is_explicit_null cf.cf_type then
+							(* Propagate nullability *)
+							a.a_components <- PMap.add name cf a.a_components
+						else if not (PMap.mem name a.a_components) || is_from_mutation cf then
+							(* Apply nullability for mutated or missing field *)
+							a.a_components <- PMap.add name { cf with cf_type = api.tnull cf.cf_type } a.a_components
+					) with_components
+				in
+
+				let cumulated_archetypes = 
+					let chained_components = ChainTbl.init_filter archetypes (fun a -> a.a_components) in
+					ref (ChainTbl.unload_filter mk_archetype chained_components)
+				in
+
+				(* Re-link with user's archetypes *)
+				let linked_archetypes = 
+					let missings = ref [] in
+					List.iter (fun ua ->
+						let present = ref false in
+						cumulated_archetypes := List.map (fun ca ->
+							if unify_archetype ca ua then begin
+								edit_archetype ua ca.a_components;
+								present := true;
+								ua
+							end else ca
+						) !cumulated_archetypes;
+						if not !present then
+							missings := ua :: !missings
+					) user_archetypes;
+					(!missings)@(!cumulated_archetypes)
+				in
+				
 				if actx.a_global.gl_debug_mutations then begin
 					print_endline "       | Cumulated archetypes:";
-					print_list_br "              | " s_archetype cumulated_archetypes ~cache:true;
+					print_list_br "              | " s_archetype linked_archetypes ~cache:true;
 				end;
-				cumulated_archetypes
+				linked_archetypes
+			)
 		in
 		archetypes
 
