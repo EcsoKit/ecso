@@ -27,8 +27,12 @@ function main() {
 		changeDirectory(unitsDir);
 		final issues = getIssues();
 		infoMsg('Going to test issues $issues');
+		final timeout = switch target {
+			case Cpp | Cs: 0xFFFFFF;
+			case _: 5.0;
+		}
 		for (issue in issues) {
-			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])), 5.0);
+			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])), timeout);
 			if (run != null)
 				run("units");
 		}
