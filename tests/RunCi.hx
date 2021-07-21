@@ -28,7 +28,7 @@ function main() {
 		final issues = getIssues();
 		infoMsg('Going to test issues $issues');
 		for (issue in issues) {
-			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])));
+			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue'])), 5.0);
 			if (run != null)
 				run("units");
 		}

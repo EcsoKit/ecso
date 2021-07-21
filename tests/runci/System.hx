@@ -53,8 +53,10 @@ function commandResult(cmd:String, args:Array<String>):{
 	If the command exits with non-zero code, exit the whole script with the same code.
 	If `useRetry` is `true`, the command will be re-run if it exits with non-zero code (3 trials).
 	It is useful for running network-dependent commands.
+
+	@param timeout Default timeout of 300 seconds (5 minutes).
  */
-function runCommand(cmd:String, ?args:Array<String>, useRetry:Bool = false, allowFailure:Bool = false):Void {
+function runCommand(cmd:String, ?args:Array<String>, useRetry:Bool = false, allowFailure:Bool = false, timeout = 300.000):Void {
 	var trials = useRetry ? 3 : 1;
 	var exitCode:Int = 1;
 	var cmdStr = cmd + (args == null ? '' : ' $args');
@@ -64,9 +66,13 @@ function runCommand(cmd:String, ?args:Array<String>, useRetry:Bool = false, allo
 
 		var t = Timer.stamp();
 		exitCode = Sys.command(cmd, args);
-		var dt = Math.round(Timer.stamp() - t);
+		var fdt = Timer.stamp() - t;
+		var dt = Math.round(fdt);
 
-		if (exitCode == 0) {
+		if (fdt > timeout) {
+			failMsg('Command timeout that exited with $exitCode in ${fdt}s (max ${timeout}s): $cmdStr');
+			trials = 0;
+		} else if (exitCode == 0) {
 			successMsg('Command exited with $exitCode in ${dt}s: $cmdStr');
 			return;
 		} else
