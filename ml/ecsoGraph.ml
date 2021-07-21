@@ -1248,7 +1248,7 @@ module EcsoGraph = struct
 								let assign_copy e =
 									let assign_copy _ = mk_local_assign v' { e with gexpr = e.gexpr } in
 									let original _ = { e with gexpr = e.gexpr } in
-									e.gexpr <- GBlock[assign_copy();original()]
+									e.gexpr <- GBlock[assign_copy()(* ;original() *)]
 								in
 								(* This is a bit hacky, not sure it covers every cases *)
 								let follow_locals e =
