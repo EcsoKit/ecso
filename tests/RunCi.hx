@@ -17,7 +17,7 @@ function main() {
 		if (isCi()) {
 			Sys.putEnv("TEST", Std.string(target));
 			changeDirectory(Path.join([repoDir, "../../tests"]));
-			runCommand("haxe", ["RunCi.hxml"]);
+			runCommand("haxe", ["RunCi.hxml"], 0xFFFFFF);
 		}
 	}
 
