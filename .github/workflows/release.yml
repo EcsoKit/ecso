@@ -128,9 +128,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -273,9 +272,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -394,9 +392,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -536,9 +533,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -681,9 +677,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -825,9 +820,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -945,9 +939,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
@@ -1086,9 +1079,8 @@ jobs:
         run: |
           cd plugins/ecso
           git config --local user.name "[bot]"
-          git commit -m "update readme" README.md
+          git commit -m --allow-empty "update readme" README.md
       - uses: ad-m/github-push-action@master
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
