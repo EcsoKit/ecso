@@ -137,7 +137,8 @@ jobs:
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
         run: |
-          git commit -m "update readme" plugins/ecso/README.md
+          cd plugins/ecso
+          git commit -m "update readme" README.md
           git push
       
       - name: Upload Ecso
@@ -287,7 +288,8 @@ jobs:
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
         run: |
-          git commit -m "update readme" plugins/ecso/README.md
+          cd plugins/ecso
+          git commit -m "update readme" README.md
           git push
       
       - name: Upload Ecso
@@ -413,7 +415,8 @@ jobs:
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
         run: |
-          git commit -m "update readme" plugins/ecso/README.md
+          cd plugins/ecso
+          git commit -m "update readme" README.md
           git push
       
       - name: Upload Ecso
@@ -560,7 +563,8 @@ jobs:
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
         run: |
-          git commit -m "update readme" plugins/ecso/README.md
+          cd plugins/ecso
+          git commit -m "update readme" README.md
           git push
       
       - name: Upload Ecso
