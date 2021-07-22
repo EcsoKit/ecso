@@ -143,14 +143,21 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
+        working-directory: out
         run: |
-          haxe --cwd plugins/ecso/extra/readme build-github.hxml
+          haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
           if-no-files-found: error
+      
+      - name: . . . push readme (github)
+        if: ${{ 'github' == 'github' }}
+        run: |
+          git commit -m "update readme" plugins/ecso/README.md
+          git push
       
       - name: . . . add license
         uses: actions/upload-artifact@v2
@@ -311,14 +318,21 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
+        working-directory: out
         run: |
-          haxe --cwd plugins/ecso/extra/readme build-github.hxml
+          haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
           if-no-files-found: error
+      
+      - name: . . . push readme (github)
+        if: ${{ 'github' == 'github' }}
+        run: |
+          git commit -m "update readme" plugins/ecso/README.md
+          git push
       
       - name: . . . add license
         uses: actions/upload-artifact@v2
@@ -455,14 +469,21 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
+        working-directory: out
         run: |
-          haxe --cwd plugins/ecso/extra/readme build-github.hxml
+          haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
           if-no-files-found: error
+      
+      - name: . . . push readme (github)
+        if: ${{ 'github' == 'github' }}
+        run: |
+          git commit -m "update readme" plugins/ecso/README.md
+          git push
       
       - name: . . . add license
         uses: actions/upload-artifact@v2
@@ -620,14 +641,21 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
+        working-directory: out
         run: |
-          haxe --cwd plugins/ecso/extra/readme build-github.hxml
+          haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
           if-no-files-found: error
+      
+      - name: . . . push readme (github)
+        if: ${{ 'github' == 'github' }}
+        run: |
+          git commit -m "update readme" plugins/ecso/README.md
+          git push
       
       - name: . . . add license
         uses: actions/upload-artifact@v2
