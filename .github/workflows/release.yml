@@ -115,32 +115,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -148,22 +129,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -279,32 +278,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -312,22 +292,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -419,32 +417,13 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -452,22 +431,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -580,32 +577,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.2/Mac/plugin.cmxs
           ls -l out
 
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -613,22 +591,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -744,32 +740,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -777,22 +754,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -907,32 +902,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -940,22 +916,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -1046,32 +1040,13 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -1079,22 +1054,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
@@ -1206,32 +1199,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.3/Mac/plugin.cmxs
           ls -l out
       
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
+      - name: Generate readme (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: |
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-          if-no-files-found: error
-      
-      - name: . . . add readme
-        run: |
-          ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
+      - name: Generate readme (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -1239,22 +1213,40 @@ jobs:
           git commit -m "update readme" plugins/ecso/README.md
           git push
       
-      - name: . . . add license
+      - name: Upload Ecso
         uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            plugins/ecso/*/ecso/*.hx
+            plugins/ecso/*/ecso/_core/*.hx
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: plugins/ecso/README.md
+          if-no-files-found: error
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/LICENSE.md
           if-no-files-found: error
       
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/extraParams.hxml
           if-no-files-found: error
       
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/haxelib.json
