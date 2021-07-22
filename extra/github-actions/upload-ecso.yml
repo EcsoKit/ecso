@@ -15,7 +15,10 @@
     if-no-files-found: error
 
 - name: . . . add readme
-  uses: actions/upload-artifact@v2
+  run: |
+    haxe --cwd plugins/ecso/extra/readme build-::README_ID::.hxml
+
+- uses: actions/upload-artifact@v2
   with:
     name: ecso
     path: plugins/ecso/README.md

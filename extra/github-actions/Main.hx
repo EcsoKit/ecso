@@ -32,6 +32,7 @@ typedef Job = {
 	script:String
 }
 
+@:nullSafety
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
 	static final matchXmldocTasks = ~/([\r\n]\s*)-\s*name:[\w\s]+xmldoc[\w\s]+\s*:\s*[\w\W]+?(?=\n\n|\n\s*-)/gm;
@@ -58,6 +59,7 @@ class Main {
 					workflows: data.workflows
 				}
 				// Load defaults
+				@:nullSafety(Off)
 				for (field in Reflect.fields(data.defaults)) {
 					final defaultValue = Reflect.field(data.defaults, field);
 					for (workflow in manifest.workflows)
@@ -65,8 +67,8 @@ class Main {
 							Reflect.setField(workflow, field, defaultValue);
 				}
 				// Merge
-				if (manifests.exists(manifest.template)) {
-					final targetManifest = manifests[manifest.template];
+				final targetManifest = manifests[manifest.template];
+				if (targetManifest != null) {
 					for (workflow in manifest.workflows)
 						targetManifest.workflows.push(workflow);
 					continue;
@@ -169,6 +171,7 @@ class Main {
 			return if (manifest.libraries == null) {
 				matched;
 			} else {
+				@:nullSafety(Off) 
 				var libs = [for (lib => version in manifest.libraries) '"$lib=$version"'].join(" ");
 				final assumeDepExts = manifest.os.name == "ubuntu" ? '--assume-depexts ' : '';
 				matched.replace(install, 'opam install $libs --yes $assumeDepExts') + "\n" + matched;
@@ -269,7 +272,9 @@ class Main {
 			var name = reg.matched(3);
 			var tab = head.substring(head.indexOf(' '), head.lastIndexOf(' ') + 1);
 
-			var uploadEcso = File.getContent('./upload-ecso.yml').replace('::ARTIFACT_NAME::', "ecso");
+			var uploadEcso = File.getContent('./upload-ecso.yml')
+				.replace('::ARTIFACT_NAME::', "ecso")
+				.replace('::README_ID::', manifest.development == null || !manifest.development ? 'haxelib' : 'github');
 			var uploadHaxe = if (manifest.haxeDownload == null) {
 				matched.replace(name, '$name\n$tab    retention-days: 1');
 			} else {
@@ -295,7 +300,8 @@ class Main {
 					case "ubuntu" | "macos": 'tar.gz';
 					case _: throw false;
 				}
-				if (!Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop().contains('.$ext'))
+				final file = Path.removeTrailingSlashes(manifest.haxeDownload).split('/').pop();
+				if (file == null || !file.contains('.$ext'))
 					throw 'Extention of the file to download ${manifest.haxeDownload} doesn\'t match the expected extension $ext';
 				File.getContent('./download-file.yml')
 					.replace('::URL::', manifest.haxeDownload)

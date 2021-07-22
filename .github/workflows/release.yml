@@ -132,7 +132,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -286,7 +289,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -416,7 +422,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -567,7 +576,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -721,7 +733,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -874,7 +889,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -1003,7 +1021,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
@@ -1153,7 +1174,10 @@ jobs:
           if-no-files-found: error
       
       - name: . . . add readme
-        uses: actions/upload-artifact@v2
+        run: |
+          haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - uses: actions/upload-artifact@v2
         with:
           name: ecso
           path: plugins/ecso/README.md
