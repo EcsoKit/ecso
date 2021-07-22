@@ -127,8 +127,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -267,8 +271,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -383,8 +391,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -520,8 +532,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -660,8 +676,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -799,8 +819,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -914,8 +938,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -1050,8 +1078,12 @@ jobs:
         if: ${{ 'haxelib' == 'github' }}
         run: |
           cd plugins/ecso
+          git config --local user.name "[bot]"
           git commit -m "update readme" README.md
-          git push
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
