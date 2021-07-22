@@ -4,7 +4,7 @@
 
 - name: Generate readme (Windows)
   if: ${{ startsWith(env.PLATFORM, 'windows') }}
-  run: ./haxe.exe --cwd plugins/ecso/extra/readme build-::README_ID::.hxml
+  run: haxe.exe --cwd plugins/ecso/extra/readme build-::README_ID::.hxml
 
 - name: . . . push readme (github)
   if: ${{ '::README_ID::' == 'github' }}

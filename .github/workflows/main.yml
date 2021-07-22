@@ -132,7 +132,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
@@ -287,7 +287,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
@@ -418,7 +418,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}
@@ -570,7 +570,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-github.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'github' == 'github' }}

@@ -121,7 +121,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -265,7 +265,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -385,7 +385,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -526,7 +526,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -670,7 +670,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -813,7 +813,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -932,7 +932,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
@@ -1072,7 +1072,7 @@ jobs:
       
       - name: Generate readme (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
       - name: . . . push readme (github)
         if: ${{ 'haxelib' == 'github' }}
