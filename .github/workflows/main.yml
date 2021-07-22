@@ -471,7 +471,8 @@ jobs:
       - name: . . . add readme
         run: |
           ls
-          /haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
+          ldd -v ./haxe
+          ./haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
         with:
