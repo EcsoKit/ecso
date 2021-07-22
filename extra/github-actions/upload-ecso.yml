@@ -16,37 +16,12 @@
   uses: actions/upload-artifact@v2
   with:
     name: ecso
-    path: plugins/ecso/**/*.cmxs
-    if-no-files-found: error
-
-- uses: actions/upload-artifact@v2
-  with:
-    name: ecso
     path: |
+      plugins/ecso/**/*.cmxs
       plugins/ecso/*/ecso/*.hx
       plugins/ecso/*/ecso/_core/*.hx
-    if-no-files-found: error
-
-- uses: actions/upload-artifact@v2
-  with:
-    name: ecso
-    path: plugins/ecso/README.md
-    if-no-files-found: error
-
-- uses: actions/upload-artifact@v2
-  with:
-    name: ecso
-    path: plugins/ecso/LICENSE.md
-    if-no-files-found: error
-
-- uses: actions/upload-artifact@v2
-  with:
-    name: ecso
-    path: plugins/ecso/extraParams.hxml
-    if-no-files-found: error
-
-- uses: actions/upload-artifact@v2
-  with:
-    name: ecso
-    path: plugins/ecso/haxelib.json
+      plugins/ecso/README.md
+      plugins/ecso/LICENSE.md
+      plugins/ecso/extraParams.hxml
+      plugins/ecso/haxelib.json
     if-no-files-found: error
