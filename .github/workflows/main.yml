@@ -144,7 +144,9 @@ jobs:
       
       - name: . . . add readme
         run: |
+          ls
           cd out
+          ls
           haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
@@ -319,7 +321,9 @@ jobs:
       
       - name: . . . add readme
         run: |
+          ls
           cd out
+          ls
           haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
@@ -470,7 +474,9 @@ jobs:
       
       - name: . . . add readme
         run: |
+          ls
           cd out
+          ls
           haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
@@ -642,7 +648,9 @@ jobs:
       
       - name: . . . add readme
         run: |
+          ls
           cd out
+          ls
           haxe --cwd ../plugins/ecso/extra/readme build-github.hxml
       
       - uses: actions/upload-artifact@v2
