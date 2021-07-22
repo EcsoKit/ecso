@@ -17,9 +17,7 @@
 - name: . . . add readme
   run: |
     ls
-    cd out
-    ls
-    haxe --cwd ../plugins/ecso/extra/readme build-::README_ID::.hxml
+    /haxe --cwd ../plugins/ecso/extra/readme build-::README_ID::.hxml
 
 - uses: actions/upload-artifact@v2
   with:
