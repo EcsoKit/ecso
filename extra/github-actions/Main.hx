@@ -270,7 +270,7 @@ class Main {
 			var head = reg.matched(1);
 			var action = reg.matched(2);
 			var name = reg.matched(3);
-			var tab = head.substring(head.indexOf(' '), head.lastIndexOf(' ') + 1);
+			var tab = head.substr(head.lastIndexOf('\n') + 1);
 
 			var uploadEcso = File.getContent('./upload-ecso.yml')
 				.replace('::ARTIFACT_NAME::', "ecso")
