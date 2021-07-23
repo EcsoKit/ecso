@@ -1,5 +1,5 @@
 {
-	"template": "main",
+	"template": "ci",
 	"defaults": {
 		"development": true,
 		"haxeVersion": "4.2.3",

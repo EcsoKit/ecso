@@ -115,24 +115,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -259,24 +248,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -379,24 +357,13 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -520,24 +487,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.2/Mac/plugin.cmxs
           ls -l out
 
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -664,24 +620,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -807,24 +752,13 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -926,24 +860,13 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
@@ -1066,24 +989,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.3/Mac/plugin.cmxs
           ls -l out
       
-      - name: Generate readme (Unix)
+      - name: Generate README (Unix)
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
       
-      - name: Generate readme (Windows)
+      - name: Generate README (Windows)
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: . . . push readme (github)
-        if: ${{ 'haxelib' == 'github' }}
-        run: |
-          cd plugins/ecso
-          git config --local user.name "[bot]"
-          git commit --allow-empty -m "update readme" README.md
-      - uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
       
       - name: Upload Ecso
         uses: actions/upload-artifact@v2

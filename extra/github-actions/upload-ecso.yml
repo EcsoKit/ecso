@@ -1,21 +1,10 @@
-- name: Generate readme (Unix)
+- name: Generate README (Unix)
   if: ${{ !startsWith(env.PLATFORM, 'windows') }}
   run: ./haxe --cwd plugins/ecso/extra/readme build-::README_ID::.hxml
 
-- name: Generate readme (Windows)
+- name: Generate README (Windows)
   if: ${{ startsWith(env.PLATFORM, 'windows') }}
   run: haxe.exe --cwd plugins/ecso/extra/readme build-::README_ID::.hxml
-
-- name: . . . push readme (github)
-  if: ${{ '::README_ID::' == 'github' }}
-  run: |
-    cd plugins/ecso
-    git config --local user.name "[bot]"
-    git commit --allow-empty -m "update readme" README.md
-- uses: ad-m/github-push-action@master
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    branch: ${{ github.ref }}
 
 - name: Upload Ecso
   uses: actions/upload-artifact@v2

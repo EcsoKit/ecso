@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  readme:
+    name: Update README
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.2.3
+
+      - run: |
+          haxe --cwd extra/readme build-github.hxml
+          git config --local user.name "[bot]"
+          git commit --allow-empty -m "update readme" README.md
+
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
