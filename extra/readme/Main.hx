@@ -95,6 +95,7 @@ macro function processTemplate() {
 			case ghEnv:
 				final out = File.append(ghEnv);
 				out.writeString('\nECSO_README_CHANGED=$changed\n');
+				out.close();
 		}
 	}
 	return expr;
