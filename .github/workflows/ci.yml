@@ -5,7 +5,7 @@ on: [push, pull_request]
 
 jobs:
   cancel:
-    name: "Cancel previous runs"
+    name: Cancel previous runs
     runs-on: ubuntu-18.04
     timeout-minutes: 3
     steps:
@@ -126,55 +126,33 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
+      - name: Generate README (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - name: Generate README (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-      
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
           path: |
+            plugins/ecso/**/*.cmxs
             plugins/ecso/*/ecso/*.hx
             plugins/ecso/*/ecso/_core/*.hx
+            plugins/ecso/README.md
+            plugins/ecso/LICENSE.md
+            plugins/ecso/extraParams.hxml
+            plugins/ecso/haxelib.json
           if-no-files-found: error
       
-      - name: . . . add readme
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
-      
-      - name: . . . add license
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/LICENSE.md
-          if-no-files-found: error
-      
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/extraParams.hxml
-          if-no-files-found: error
-      
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/haxelib.json
-          if-no-files-found: error
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: win${{env.ARCH}}Binaries
-      
           retention-days: 1
           path: out
       
@@ -291,55 +269,33 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
+      - name: Generate README (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - name: Generate README (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-      
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
           path: |
+            plugins/ecso/**/*.cmxs
             plugins/ecso/*/ecso/*.hx
             plugins/ecso/*/ecso/_core/*.hx
+            plugins/ecso/README.md
+            plugins/ecso/LICENSE.md
+            plugins/ecso/extraParams.hxml
+            plugins/ecso/haxelib.json
           if-no-files-found: error
       
-      - name: . . . add readme
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
-      
-      - name: . . . add license
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/LICENSE.md
-          if-no-files-found: error
-      
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/extraParams.hxml
-          if-no-files-found: error
-      
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/haxelib.json
-          if-no-files-found: error
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: win${{env.ARCH}}Binaries
-      
           retention-days: 1
           path: out
       
@@ -432,55 +388,33 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       
+      - name: Generate README (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - name: Generate README (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-      
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
           path: |
+            plugins/ecso/**/*.cmxs
             plugins/ecso/*/ecso/*.hx
             plugins/ecso/*/ecso/_core/*.hx
+            plugins/ecso/README.md
+            plugins/ecso/LICENSE.md
+            plugins/ecso/extraParams.hxml
+            plugins/ecso/haxelib.json
           if-no-files-found: error
       
-      - name: . . . add readme
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
-      
-      - name: . . . add license
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/LICENSE.md
-          if-no-files-found: error
-      
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/extraParams.hxml
-          if-no-files-found: error
-      
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/haxelib.json
-          if-no-files-found: error
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: linuxBinaries
-      
           retention-days: 1
           path: out
       
@@ -594,55 +528,33 @@ jobs:
           otool -L ./haxe
           otool -L ./haxelib
       
+      - name: Generate README (Unix)
+        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
+        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
+      - name: Generate README (Windows)
+        if: ${{ startsWith(env.PLATFORM, 'windows') }}
+        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
+      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-      
-      - name: . . . add sources
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
           path: |
+            plugins/ecso/**/*.cmxs
             plugins/ecso/*/ecso/*.hx
             plugins/ecso/*/ecso/_core/*.hx
+            plugins/ecso/README.md
+            plugins/ecso/LICENSE.md
+            plugins/ecso/extraParams.hxml
+            plugins/ecso/haxelib.json
           if-no-files-found: error
       
-      - name: . . . add readme
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/README.md
-          if-no-files-found: error
-      
-      - name: . . . add license
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/LICENSE.md
-          if-no-files-found: error
-      
-      - name: . . . add extraParams.hxml
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/extraParams.hxml
-          if-no-files-found: error
-      
-      - name: . . . add haxelib.json
-        uses: actions/upload-artifact@v2
-        with:
-          name: ecso
-          path: plugins/ecso/haxelib.json
-          if-no-files-found: error
       
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: macBinaries
-      
           retention-days: 1
           path: out
       
