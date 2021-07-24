@@ -24,6 +24,7 @@ jobs:
           git commit --allow-empty -m "update readme" README.md
 
       - uses: ad-m/github-push-action@master
+        if: ${{ env.ECSO_README_CHANGED == 'true' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}

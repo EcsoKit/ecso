@@ -80,9 +80,22 @@ macro function processTemplate() {
 	final expr = macro {
 		@:mergeBlock $b{vars}
 		$content;
-		Sys.println('Write ' + $v{Path.normalize(dest)});
-		FileSystem.createDirectory(Path.directory($v{dest}));
-		File.saveContent( $v{dest}, v );
+		final changed = if(!FileSystem.exists($v{dest}) || v != File.getContent($v{dest})) {
+			Sys.println('Write ' + $v{Path.normalize(dest)});
+			FileSystem.createDirectory(Path.directory($v{dest}));
+			File.saveContent( $v{dest}, v );
+			true;
+		} else {
+			Sys.println('Nothing to update at ' + $v{Path.normalize(dest)});
+			false;
+		}
+		
+		switch Sys.getEnv('GITHUB_ENV') {
+			case null:
+			case ghEnv:
+				final out = File.append(ghEnv);
+				out.writeString('\nECSO_README_CHANGED=$changed\n');
+		}
 	}
 	return expr;
 }
