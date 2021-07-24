@@ -31,11 +31,19 @@ class Plugin {
 			} catch (e:String) {
 				if (!sys.FileSystem.exists(path))
 					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")}.', Context.currentPos());
-				if (Sys.systemName() == "Windows" && !try32) {
-					try32 = true;
-					return get_plugin();
+				final hint = switch Sys.systemName() {
+					case "Windows" if (!try32):
+						try32 = true;
+						return get_plugin();
+					case "Windows":
+						'Haxe 32-bit is not yet supported, make sure to use an official 64-bit version of Haxe from https://haxe.org/download/.';
+					case "Linux":
+						'On Linux distributions, the installed Haxe package may not be supported by Ecso, make sure to use the official Linux Haxe Binaries from https://haxe.org/download/.';
+					case _:
+						null;
 				}
-				throw '[ECSO] Failed to load plugin: $e';
+				// Linux Software Packages
+				throw '[ECSO] Failed to load plugin: $e' + (hint != null ? '\nHint: $hint' : '');
 			}
 		} else {
 			plugin;
