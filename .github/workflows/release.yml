@@ -19,6 +19,13 @@ jobs:
         run: |
           haxe --cwd extra/readme build-haxelib.hxml
     
+      - name: Generate CHANGELOG
+        if: ${{ github.event.release != null && github.event.release.body != '' }}
+        run: |
+          cat << EOF > CHANGELOG.md
+          ${{ github.event.release.body }}
+          EOF
+    
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
