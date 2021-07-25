@@ -30,19 +30,18 @@ class Plugin {
 				plugin = eval.vm.Context.loadPlugin(path);
 			} catch (e:String) {
 				if (!sys.FileSystem.exists(path))
-					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")}.', Context.currentPos());
+					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")} on ${getSystem()}.', Context.currentPos());
 				final hint = switch Sys.systemName() {
 					case "Windows" if (!try32):
 						try32 = true;
 						return get_plugin();
-					case "Windows":
+					case "Windows" if (try32):
 						'Haxe 32-bit is not yet supported, make sure to use an official 64-bit version of Haxe from https://haxe.org/download/.';
 					case "Linux":
 						'On Linux distributions, the installed Haxe package may not be supported by Ecso, make sure to use the official Linux Haxe Binaries from https://haxe.org/download/.';
 					case _:
 						null;
 				}
-				// Linux Software Packages
 				throw '[ECSO] Failed to load plugin: $e' + (hint != null ? '\nHint: $hint' : '');
 			}
 		} else {
@@ -53,13 +52,15 @@ class Plugin {
 	static function getPluginPath():String {
 		final here = ((?p:PosInfos) -> p.fileName)();
 		final src = here.directory().directory().directory().directory();
-		final system = switch Sys.systemName() {
+		final hx = Context.definedValue("haxe");
+		return Path.join([src, 'cmxs', 'hx-$hx', getSystem(), 'plugin.cmxs']);
+	}
+	static function getSystem():String {
+		return switch Sys.systemName() {
 			case "Windows":
 				'Windows${try32 ? "32" : "64"}';
 			case s:
 				s;
 		}
-		final hx = Context.definedValue("haxe");
-		return Path.join([src, 'cmxs', 'hx-$hx', system, 'plugin.cmxs']);
 	}
 }
