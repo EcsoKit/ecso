@@ -96,7 +96,7 @@ class Main {
 					}
 					for (jobName in workflow.jobs) {
 						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
-							r.matched(0).replace(jobName, uniqueName(jobName));
+							r.matched(0).replace(jobName, '[packaging, ${uniqueName(jobName)}]');
 						});
 					}
 					for (jobName in workflow.jobs) {
@@ -117,6 +117,11 @@ class Main {
 				1;
 			} else {
 				0;
+			});
+			jobs.unshift({
+				id: 'packaging',
+				name: 'Prepare package',
+				script: align(File.getContent('./packaging-job.yml'), '    ') + '\n'
 			});
 			final output = '../../.github/workflows';
 			save(File.getContent('./workflow-${build.template}.yml'), jobs, '$output/${build.template}.yml', build);
@@ -272,9 +277,7 @@ class Main {
 			var name = reg.matched(3);
 			var tab = head.substr(head.lastIndexOf('\n') + 1);
 
-			var uploadEcso = File.getContent('./upload-ecso.yml')
-				.replace('::ARTIFACT_NAME::', "ecso")
-				.replace('::README_ID::', 'haxelib');
+			var uploadEcso = File.getContent('./upload-cmxs.yml');
 			var uploadHaxe = if (manifest.haxeDownload == null) {
 				matched.replace(name, '$name\n$tab    retention-days: 1');
 			} else {

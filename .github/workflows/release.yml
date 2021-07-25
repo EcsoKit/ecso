@@ -6,6 +6,32 @@ on:
     types: [created]
 
 jobs:
+  packaging:
+    name: Prepare package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.2.3
+    
+      - name: Generate README
+        run: |
+          haxe --cwd extra/readme build-haxelib.hxml
+    
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v2
+        with:
+          name: ecso
+          path: |
+            */ecso/*.hx
+            */ecso/_core/*.hx
+            README.md
+            LICENSE.md
+            extraParams.hxml
+            haxelib.json
+          if-no-files-found: error
+    
   windows64-build-4-2-2:
     name: Haxe 4.2.2 / windows64-build
     runs-on: windows-2019
@@ -115,26 +141,11 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -248,26 +259,11 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.2/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
 
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -357,26 +353,11 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -487,26 +468,11 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.2/Mac/plugin.cmxs
           ls -l out
 
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -620,26 +586,11 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -752,26 +703,11 @@ jobs:
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -860,26 +796,11 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
@@ -989,32 +910,17 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.2.3/Mac/plugin.cmxs
           ls -l out
       
-      - name: Generate README (Unix)
-        if: ${{ !startsWith(env.PLATFORM, 'windows') }}
-        run: ./haxe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
-      - name: Generate README (Windows)
-        if: ${{ startsWith(env.PLATFORM, 'windows') }}
-        run: haxe.exe --cwd plugins/ecso/extra/readme build-haxelib.hxml
-      
       - name: Upload Ecso
         uses: actions/upload-artifact@v2
         with:
           name: ecso
-          path: |
-            plugins/ecso/**/*.cmxs
-            plugins/ecso/*/ecso/*.hx
-            plugins/ecso/*/ecso/_core/*.hx
-            plugins/ecso/README.md
-            plugins/ecso/LICENSE.md
-            plugins/ecso/extraParams.hxml
-            plugins/ecso/haxelib.json
+          path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
 
   windows64-test-4-2-2:
     name: Haxe 4.2.2 / windows64-test
-    needs: windows64-build-4-2-2
+    needs: [packaging, windows64-build-4-2-2]
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -1134,7 +1040,7 @@ jobs:
 
   windows-test-4-2-2:
     name: Haxe 4.2.2 / windows-test
-    needs: windows-build-4-2-2
+    needs: [packaging, windows-build-4-2-2]
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -1255,7 +1161,7 @@ jobs:
 
   linux-test-4-2-2:
     name: Haxe 4.2.2 / linux-test
-    needs: linux-build-4-2-2
+    needs: [packaging, linux-build-4-2-2]
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -1383,7 +1289,7 @@ jobs:
 
   mac-test-4-2-2:
     name: Haxe 4.2.2 / mac-test
-    needs: mac-build-4-2-2
+    needs: [packaging, mac-build-4-2-2]
     runs-on: macos-10.15
     env:
       PLATFORM: mac
@@ -1487,7 +1393,7 @@ jobs:
 
   windows64-test-4-2-3:
     name: Haxe 4.2.3 / windows64-test
-    needs: windows64-build-4-2-3
+    needs: [packaging, windows64-build-4-2-3]
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -1607,7 +1513,7 @@ jobs:
 
   windows-test-4-2-3:
     name: Haxe 4.2.3 / windows-test
-    needs: windows-build-4-2-3
+    needs: [packaging, windows-build-4-2-3]
     runs-on: windows-2019
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -1728,7 +1634,7 @@ jobs:
 
   linux-test-4-2-3:
     name: Haxe 4.2.3 / linux-test
-    needs: linux-build-4-2-3
+    needs: [packaging, linux-build-4-2-3]
     runs-on: ubuntu-18.04
     env:
       PLATFORM: linux64
@@ -1856,7 +1762,7 @@ jobs:
 
   mac-test-4-2-3:
     name: Haxe 4.2.3 / mac-test
-    needs: mac-build-4-2-3
+    needs: [packaging, mac-build-4-2-3]
     runs-on: macos-10.15
     env:
       PLATFORM: mac

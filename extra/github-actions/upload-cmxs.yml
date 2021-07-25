@@ -1,0 +1,6 @@
+- name: Upload Ecso
+  uses: actions/upload-artifact@v2
+  with:
+    name: ecso
+    path: plugins/ecso/**/*.cmxs
+    if-no-files-found: error

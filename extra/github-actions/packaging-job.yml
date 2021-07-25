@@ -1,0 +1,23 @@
+runs-on: ubuntu-latest
+steps:
+  - uses: actions/checkout@v2
+  - uses: krdlab/setup-haxe@v1
+    with:
+      haxe-version: 4.2.3
+
+  - name: Generate README
+    run: |
+      haxe --cwd extra/readme build-haxelib.hxml
+
+  - name: Upload Ecso
+    uses: actions/upload-artifact@v2
+    with:
+      name: ecso
+      path: |
+        */ecso/*.hx
+        */ecso/_core/*.hx
+        README.md
+        LICENSE.md
+        extraParams.hxml
+        haxelib.json
+      if-no-files-found: error
