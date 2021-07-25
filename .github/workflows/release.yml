@@ -35,6 +35,7 @@ jobs:
             */ecso/_core/*.hx
             README.md
             LICENSE.md
+            CHANGELOG.md
             extraParams.hxml
             haxelib.json
           if-no-files-found: error
