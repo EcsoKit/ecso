@@ -1,7 +1,11 @@
 # DO NOT EDIT. Generated from /extra/github-actions
 
 name: CI
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    tags-ignore:
+      - '*'
 
 jobs:
   cancel:
