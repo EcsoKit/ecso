@@ -427,11 +427,11 @@ module ChainTbl = struct
 				nl (* is an empty archetypes *)
 
 	(*
-		`unload_filter f c` returns a list containing every chain of `c` such as `f c0; f c1; ...; f cN`.
+		`unload_map f c` returns a list containing every chain of `c` such as `f c0; f c1; ...; f cN`.
 		
-		It is the opposite of `init_filter xl f`.
+		It is the opposite of `init_map xl f`.
 	*)
-	let unload_filter (f : (string,'a) PMap.t -> 'b) (c : 'a t) : 'b list = 
+	let unload_map (f : (string,'a) PMap.t -> 'b) (c : 'a t) : 'b list = 
 		let rec loop nl acc =
 			match nl with
 			| n :: nl when PMap.mem n.key !(c.indexor) -> begin
@@ -456,9 +456,9 @@ module ChainTbl = struct
 
 
 	(*
-		`init_filter xl f` is `init (List.map f xl)`.
+		`init_map xl f` is `init (List.map f xl)`.
 	*)
-	let init_filter (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) : 'a t =
+	let init_map (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) : 'a t =
 		let rec loop l nl indexor = match l with
 			| [] -> nl
 			| x :: l -> loop l (fill (f x) nl indexor) indexor
@@ -472,7 +472,7 @@ module ChainTbl = struct
 		`init ml` is `List.fold_right add ml (create())`.
 	*)
 	let init (ml : ((string, 'a) PMap.t) list) : 'a t =
-		init_filter ml (fun m -> m)
+		init_map ml (fun m -> m)
 	
 	(*
 		`add m c` returns a table containing the same chains as `c`, plus the new chains produced by `m`.
@@ -487,9 +487,9 @@ module ChainTbl = struct
 		}
 
 	(*
-		`add_list_filter ml f c` is `add_list (List.map f xl) c`.
+		`add_list_map ml f c` is `add_list (List.map f xl) c`.
 	*)
-	let add_list_filter (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) (c : 'a t) : 'a t =
+	let add_list_map (xl : 'x list) (f : 'x -> (string, 'a) PMap.t) (c : 'a t) : 'a t =
 		let rec loop l nl indexor = match l with
 			| [] -> nl
 			| x :: l -> loop l (fill (f x) nl indexor) indexor
@@ -502,6 +502,6 @@ module ChainTbl = struct
 		`add_list ml c` is `List.fold_right add ml c`.
 	*)
 	let add_list (ml : ((string, 'a) PMap.t) list) (c : 'a t) : 'a t =
-		add_list_filter ml (fun m -> m) c
+		add_list_map ml (fun m -> m) c
 	
 end

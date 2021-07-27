@@ -598,7 +598,7 @@ module EcsoArchetypeAnalyzer = struct
 											false
 									) al'
 								) in
-								let chains = with_timer ["archetypes";"mutation";"chains"] (fun () -> ChainTbl.init_filter al' (fun a -> a.a_components) )in
+								let chains = with_timer ["archetypes";"mutation";"chains"] (fun () -> ChainTbl.init_map al' (fun a -> a.a_components) )in
 								let extended_al' =  with_timer ["archetypes";"mutation";"extends"] (fun () -> 
 									ChainTbl.map_starts (fun cf ->
 										{ a_components = PMap.add cf.cf_name cf a.a_components }
@@ -665,8 +665,8 @@ module EcsoArchetypeAnalyzer = struct
 				in
 
 				let cumulated_archetypes = 
-					let chained_components = ChainTbl.init_filter archetypes (fun a -> a.a_components) in
-					ref (ChainTbl.unload_filter mk_archetype chained_components)
+					let chained_components = ChainTbl.init_map archetypes (fun a -> a.a_components) in
+					ref (ChainTbl.unload_map mk_archetype chained_components)
 				in
 
 				(* Re-link with user's archetypes *)
