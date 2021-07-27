@@ -336,12 +336,12 @@ module ChainTbl = struct
 		mutable size : int ref; (* amount of chained nodes for transversal iterations *)
 	}
 
-	let transverse_chain (f : 'a -> unit) (from : 'a chain_node) = 
+	let transverse_chain (f : string * 'a -> unit) (from : 'a chain_node) = 
 		let rec loop node remaining nl =
 			match remaining with 
 			| 0 -> ()
 			| _ ->
-				f node.item;
+				f (node.key,node.item);
 				loop node.next (remaining - 1) nl
 		in
 		loop from !(from.size) []
@@ -352,6 +352,9 @@ module ChainTbl = struct
 			loop nl
 		in
 		loop c.chain_starts
+	
+	let iter (f : string * 'a -> unit) (c : 'a t) =
+		transverse_starts (transverse_chain f) c
 
 	let map_starts (f : 'a -> 'x) (c : 'a t) : 'x list =
 		let list = ref [] in
