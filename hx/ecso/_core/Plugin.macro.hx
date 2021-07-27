@@ -29,19 +29,22 @@ class Plugin {
 			try {
 				plugin = eval.vm.Context.loadPlugin(path);
 			} catch (e:String) {
-				if (!sys.FileSystem.exists(path))
-					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")} on ${getSystem()}.', Context.currentPos());
-				final hint = switch Sys.systemName() {
-					case "Windows" if (!try32):
+				var exists = sys.FileSystem.exists(path);
+				final hint = switch getSystem() {
+					case "Windows64":
 						try32 = true;
-						return get_plugin();
-					case "Windows" if (try32):
+						if (sys.FileSystem.exists(getPluginPath()))
+							return get_plugin();
+						null;
+					case "Windows32":
 						'Haxe 32-bit is not yet supported, make sure to use an official 64-bit version of Haxe from https://haxe.org/download/.';
 					case "Linux":
 						'On Linux distributions, the installed Haxe package may not be supported by Ecso, make sure to use the official Linux Haxe Binaries from https://haxe.org/download/.';
 					case _:
 						null;
 				}
+				if (!exists)
+					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")} on ${Sys.systemName()}.', Context.currentPos());
 				throw '[ECSO] Failed to load plugin: $e' + (hint != null ? '\nHint: $hint' : '');
 			}
 		} else {
