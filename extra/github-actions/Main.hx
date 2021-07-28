@@ -118,13 +118,15 @@ class Main {
 			} else {
 				0;
 			});
+			final template = File.getContent('./workflow-${build.template}.yml');
+			final needs = template.contains('::CANCEL_PREVIOUS::') ? 'cancel' : '';
 			jobs.unshift({
 				id: 'packaging',
 				name: 'Prepare package',
-				script: align(File.getContent('./packaging-job.yml'), '    ') + '\n'
+				script: align(File.getContent('./packaging-job.yml').replace('::NEEDS::', needs), '    ') + '\n'
 			});
 			final output = '../../.github/workflows';
-			save(File.getContent('./workflow-${build.template}.yml'), jobs, '$output/${build.template}.yml', build);
+			save(template, jobs, '$output/${build.template}.yml', build);
 		}
 	}
 
