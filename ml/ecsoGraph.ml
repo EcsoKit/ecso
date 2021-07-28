@@ -712,20 +712,16 @@ module EcsoGraph = struct
 					else match List.hd r_list with
 					| (name,opt,t) ->
 						let required_archetype = archetype_of_type t p in
-						let required_archetype =
-							if ctx.ctx_identity_mode = IGlobal then
-								required_archetype
-							else begin
-								print_endline ("{ECSO} Non unique component is not supported yet.");
-								(* FIXME: to make this work we would have to change
-										  any requirement typed as Unknown into Dynamic,
-										  as well as finding a solution to connect
-										  both x_A:A and x_B:B with the renamed `x_Dynamic`.
-								*)
-								assert false;
-								List.nth (EcsoFilters.GlobalizeNameFilter.run [required_archetype] ~registry:ctx.ctx_renaming_registry) 0
-							end
-						in
+						if not (ctx.ctx_identity_mode = IGlobal) then begin
+							print_endline ("{ECSO} Non unique component is not supported yet.");
+							(* FIXME: to make this work we would have to change
+										any requirement typed as Unknown into Dynamic,
+										as well as finding a solution to connect
+										both x_A:A and x_B:B with the renamed `x_Dynamic`.
+							*)
+							assert false;
+							EcsoFilters.GlobalizeNameFilter.run_archetype ctx.ctx_renaming_registry required_archetype
+						end;
 						let list_iterations = ref [] in
 						begin foreach_compatible_archetype ctx.ctx_debug_archetype_eq ctx.ctx_archetypes
 							(fun archetype ->

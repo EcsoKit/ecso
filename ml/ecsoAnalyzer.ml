@@ -568,7 +568,8 @@ module EcsoArchetypeAnalyzer = struct
 				let mutl = convert_mutl mutl in
 				let mutate a mut : (archetype list) option = with_timer ["archetypes";"mutation";"mutate"] (fun () ->
 					if match_mutation_base a mut.rm_base then begin
-						let al = list_filter_map (fun evolution -> match evolution with
+						let al = 
+							list_filter_map (fun evolution -> match evolution with
 								| MutValueAdd(cf) ->
 									if not (has_component a cf) then
 										Some { a with a_components = PMap.add cf.cf_name cf a.a_components }
@@ -647,15 +648,10 @@ module EcsoArchetypeAnalyzer = struct
 		end;
 		let archetypes = match actx.a_ctx.ctx_storage_mode with
 			| AoS (_,MCumulated,_) -> with_timer ["archetypes";"cumulate"] (fun () -> 
-				let archetypes =
-					if actx.a_ctx.ctx_identity_mode = IGlobal then
-						archetypes
-					else
-						with_timer ["filter";"names"] (fun () -> 
-							(* Rename a:Int, a:String into a_int:Int, a_string:String to be able to cumulate them *)
-							GlobalizeNameFilter.run archetypes ~registry:actx.a_ctx.ctx_renaming_registry
-						)
-				in
+				if not (actx.a_ctx.ctx_identity_mode = IGlobal) then
+					with_timer ["filter";"names"] (fun () -> 
+						GlobalizeNameFilter.run_archetypes actx.a_ctx.ctx_renaming_registry archetypes
+					);
 				
 				let is_from_mutation cf =
 					List.exists (fun mut ->
