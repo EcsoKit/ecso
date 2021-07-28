@@ -582,8 +582,31 @@ module EcsoArchetypeAnalyzer = struct
 					end else
 						None
 				) in
-				List.iter (fun a ->
-					List.iter (fun mut ->
+				match actx.a_ctx.ctx_storage_mode with
+				| AoS (_,MCumulated,_) ->
+					assert (actx.a_ctx.ctx_identity_mode = IGlobal); (* TODO: mutations are not yet prefiltered *)
+					(* bypass the mutation process by relying on the cumulation phase *)
+					List.iter (fun a -> List.iter (fun mut ->
+						let rec loop a mut =
+							if match_mutation_base a mut.rm_base then begin
+								let fl =
+									List.fold_left (fun acc evolution -> match evolution with
+										| MutValueAdd(cf) -> PMap.add cf.cf_name cf acc
+										| MutValueRem(i) -> acc (* rely on the cumulation phase *)
+									) a.a_components mut.rm_evolutions
+								in
+								let a' = mk_archetype fl in
+								let hash = hash_archetype a' in
+								if not (PMap.mem hash !mutated_arr) then begin
+									mutated_arr := PMap.add hash a' !mutated_arr;
+									List.iter (loop a') mutl
+								end
+							end
+						in loop a mut
+					) mutl ) al
+				| _ ->
+					(* slow route *)
+					List.iter (fun a -> List.iter (fun mut ->
 						let rec transverse_relatives a mut =
 							match (mutate a mut) with
 							| Some [] -> ()
@@ -604,8 +627,7 @@ module EcsoArchetypeAnalyzer = struct
 							| None -> ()
 						in
 						transverse_relatives a mut
-					) mutl
-				) al
+					) mutl ) al
 			in
 			with_timer ["archetypes";"mutation";"additions"] (fun () -> pass_mutations al additions );
 			with_timer ["archetypes";"mutation";"removals"] (fun () -> pass_mutations al removals );
