@@ -91,6 +91,12 @@ let dynarray_map_opt f arr =
 		arr;
 	mapped
 
+let pmap_of_fl fl = 
+	let rec loop fl pm = match fl with
+		| [] -> pm
+		| f :: fl -> loop fl (PMap.add f.cf_name f pm)
+	in loop fl PMap.empty
+
 let detail_times = ref false
 
 let with_timer s f =
@@ -206,13 +212,23 @@ and mutation_value =
 	| MutValueAdd of tclass_field
 	| MutValueRem of int
 
-let s_mutation mut =
-	let pmap_of_fl fl = 
-		let rec loop fl pm = match fl with
-			| [] -> pm
-			| f :: fl -> loop fl (PMap.add f.cf_name f pm)
-		in loop fl PMap.empty
+let s_related_mutation mut =
+	let s_base cl =
+		let s c = c.cf_name ^ ":" ^ TPrinting.Printer.s_type c.cf_type in
+		let rec loop cl = match cl with | [] -> "" | [c] -> s c | c :: cl -> s c ^ "-" ^ loop cl in loop cl
 	in
+	let s_mutation_value v base =
+		match v with
+		| MutValueAdd cf -> "+" ^ cf.cf_name
+		| MutValueRem idx -> "-" ^ (List.nth base idx).cf_name
+	in
+	let s_evolutions el =
+		let s e = s_mutation_value e mut.rm_base in
+		let rec loop el = match el with | [] -> "" | [e] -> s e | e :: el -> s e ^ loop el in loop el
+	in
+	"{" ^ s_base mut.rm_base ^ "} " ^ s_evolutions mut.rm_evolutions
+
+let s_mutation mut =
 	let s_base fl = TPrinting.Printer.s_type (TAnon { a_fields = pmap_of_fl fl; a_status = ref Closed; }) in
 	match mut with
 	| MutAdd (base,cf) -> "MutAdd(" ^ s_base base ^ " + " ^ cf.cf_name ^ " : " ^ s_component_type cf ^ ")"
