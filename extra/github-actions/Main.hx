@@ -133,7 +133,9 @@ class Main {
 			var r = ~/\n([ \t]*)::JOBS::/;
 			r.match(template) ? r.matched(1) : "";
 		}
-		final yml = template.replace('::JOBS::', jobs.map(j -> '${j.id}:\n${JOB_TAB+JOB_TAB}name: ${j.name}\n${j.script}').join(JOB_TAB));
+		final yml = template
+			.replace('::JOBS::', jobs.map(j -> '${j.id}:\n${JOB_TAB+JOB_TAB}name: ${j.name}\n${j.script}').join(JOB_TAB))
+			.replace('::CANCEL_PREVIOUS::', align(File.getContent('./cancel-previous.yml'), JOB_TAB).substr(JOB_TAB.length));
 		FileSystem.createDirectory(Path.directory(output));
 		File.saveContent(output, yml);
 	}

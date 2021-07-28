@@ -1,0 +1,9 @@
+cancel:
+  name: Cancel previous runs
+  runs-on: ubuntu-latest
+  timeout-minutes: 3
+  steps:
+    - uses: styfle/cancel-workflow-action@0.9.0
+      with:
+        all_but_latest: true
+        access_token: ${{ github.token }}
