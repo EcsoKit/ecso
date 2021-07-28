@@ -348,17 +348,21 @@ class Main {
 		script = matchHaxeTargets.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var targets = reg.matched(1);
-			var list = targets.split(',');
+			var list = ~/\W+/g.split(targets);
 			return if (list.length > 1) {
 				// start with "interp"
-				if (!targets.contains('interp')) {
-					list[0] = " " + list[0];
+				if (!targets.contains('interp'))
 					list.unshift('interp');
-				}
-				// end with "server"
-				if (!targets.contains('server'))
-					list.push(' server');
-				matched.replace(targets, list.join(','));
+				// filter some targets
+				list = list.filter(target -> switch target {
+					case "neko" | "php" | "python" | "lua" | "jvm" | "java" | "macro": false;
+					case _: true;
+				});
+				// ensure some targets
+				for (target in ["hl", "js", "cpp", "cs", "server"])
+					if (!list.contains('server'))
+						list.push('server');
+				matched.replace(targets, list.join(', '));
 			} else {
 				matched;
 			}
