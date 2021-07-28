@@ -598,15 +598,9 @@ module EcsoArchetypeAnalyzer = struct
 											false
 									) al'
 								) in
-								let chains = with_timer ["archetypes";"mutation";"chains"] (fun () -> ChainTbl.init_map al' (fun a -> a.a_components) )in
-								let extended_al' =  with_timer ["archetypes";"mutation";"extends"] (fun () -> 
-									ChainTbl.map_starts (fun cf ->
-										{ a_components = PMap.add cf.cf_name cf a.a_components }
-									) chains
-								) in
 								List.iter (fun a' ->
 									List.iter (transverse_relatives a') mutl
-								) extended_al'
+								) al'
 							| None -> ()
 						in
 						transverse_relatives a mut
