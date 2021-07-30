@@ -182,7 +182,7 @@ class Main {
 			} else {
 				@:nullSafety(Off) 
 				var libs = [for (lib => version in manifest.libraries) '"$lib=$version"'].join(" ");
-				final assumeDepExts = manifest.os.name == "ubuntu" ? '--assume-depexts ' : '';
+				final assumeDepExts = switch manifest.os.name { case "ubuntu" | "macos": '--assume-depexts '; case _: ''; }
 				matched.replace(install, 'opam install $libs --yes $assumeDepExts') + "\n" + matched;
 			}
 		});
