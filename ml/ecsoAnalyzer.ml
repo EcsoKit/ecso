@@ -29,12 +29,12 @@ module EcsoAnalyzer = struct
 		a_ctx : EcsoContext.t;
 	}
 
-	let from_module (gctx : global) (m : module_type) : t list =
+	let from_module (gctx : global) (basic : basic_types) (m : module_type) : t list =
 		let find_fields_with meta fl =
 			List.filter (fun cf -> Meta.has meta cf.cf_meta) fl
 		in
 		let make_group cl is_static fl =
-			let api = (gctx.gl_ectx.curapi.get_com()).basic in
+			let api = basic in
 			let tany = { null_abstract with a_path = ([],"Any") } in
 			let trest = { null_abstract with a_path = (["haxe"],"Rest") } in
 			let tfunc = { null_abstract with a_path = ([],"Any") } in
@@ -158,20 +158,28 @@ module EcsoAnalyzer = struct
 			List.map (fun (g,id) -> {
 					(* a_global = gctx; *)
 					a_global = { gctx with gl_fields = Hashtbl.create 0 ~random:false };
-					a_ctx = EcsoContext.create id g;
+					a_ctx = EcsoContext.create id g basic;
 				}) gl
 		| TEnumDecl en -> []
 		| TTypeDecl td -> []
 		| TAbstractDecl ab -> []
 
 	let fetch (ctx : EvalContext.context) (macro : bool) (ml : module_type list) : t list =
+		let com = ctx.curapi.get_com() in
+		let basic = if macro then begin match com.get_macros() with
+			| Some mctx ->
+				mctx.basic
+			| None -> 
+				com.basic
+			end else com.basic
+		in
 		let gctx = {
 			gl_macro = macro;
 			gl_fields = Hashtbl.create 0 ~random:false;
 			gl_ectx = ctx;
 			gl_debug_mutations = false;
 		} in
-		List.flatten (List.map (from_module gctx) ml)
+		List.flatten (List.map (from_module gctx basic) ml)
 
 end
 
@@ -502,7 +510,7 @@ module EcsoArchetypeAnalyzer = struct
 		loop g
 	
 	let apply_mutations (actx : EcsoAnalyzer.t) user_archetypes mutations : archetype list =
-		let api = (actx.a_global.gl_ectx.curapi.get_com()).basic in
+		let api = actx.a_ctx.ctx_basic in
 		let match_mutation_base a base =
 			List.length base = 0 ||
 			List.for_all (fun cf -> PMap.mem cf.cf_name a.a_components) base

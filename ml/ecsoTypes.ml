@@ -276,6 +276,7 @@ module EcsoContext = struct
 
 	type t = {
 		ctx_group : egroup; (* The entity containter *)
+		ctx_basic : basic_types;
 		ctx_id : int;
 		ctx_field_ids : string DynArray.t; (* List of field which are part of the context *)
 		mutable ctx_archetypes : archetype list; (* Every possible combinason of components *)
@@ -299,9 +300,10 @@ module EcsoContext = struct
 	let simple_debugging = 1
 	let full_debugging = 2
 
-	let create id g = {
+	let create id g basic = {
 		ctx_id = id;
 		ctx_group = g;
+		ctx_basic = basic;
 		ctx_field_ids = DynArray.create();
 		ctx_archetypes = [];
 		ctx_storage_mode = AoS ((ATightlyPacked AArray), MCumulated, SAnon);

@@ -154,7 +154,12 @@ module RsetGenerator = struct
 	let get_field_access t name =
 		match t with
 		| TInst (cl, params) ->
-			let push = PMap.find name cl.cl_fields in
+			let push =
+				try 
+					PMap.find name cl.cl_fields
+				with | Not_found ->
+					Error.error ("{ECSO} failed to resolve field " ^ name ^ " on " ^ s_type_kind t ^ " - please report this at https://github.com/EcsoKit/ecso/issues") cl.cl_pos
+			in
 			{
 				cf_access = FInstance (cl, params, push);
 				cf_type = push.cf_type;
@@ -179,9 +184,8 @@ module RsetGenerator = struct
 		gen_iter : texpr -> pos -> (texpr -> texpr) -> t -> texpr;
 	}
 
-	let make_rmonolist_accessor (list_impl : cf_impl_accessor) (length_impl : cf_impl_accessor) : rset_impl =
-		let gcon = (EvalContext.get_ctx()).curapi.get_com() in
-		let api = gcon.basic in
+	let make_rmonolist_accessor (ctx : EcsoContext.t) (list_impl : cf_impl_accessor) (length_impl : cf_impl_accessor) : rset_impl =
+		let api = ctx.ctx_basic in
 		let list g p = mk (TField (g, list_impl.cf_access)) list_impl.cf_type p in
 		let length g p = mk (TField (g, length_impl.cf_access)) length_impl.cf_type p in
 		let gen_add_func (g : texpr) (model : texpr) (p : pos) : texpr =
@@ -240,8 +244,7 @@ module RsetGenerator = struct
 
 	let retrieve_rset (kind : rset_kind) (ctx : EcsoContext.t) (def : archetype) : rset_status =
 		let cl,fl = get_class ctx in
-		let gcon = (EvalContext.get_ctx()).curapi.get_com() in
-		let api = gcon.basic in
+		let api = ctx.ctx_basic in
 		match kind with
 		| RMonolist ->
 			let rset_id = string_of_int ctx.ctx_id ^ "_" ^ string_of_int (hash_tanon def) in
@@ -257,7 +260,7 @@ module RsetGenerator = struct
 			in
 			begin match list_impl, length_impl with
 			| Some list_impl, Some length_impl ->
-				Retrieved (make_rmonolist_accessor list_impl length_impl)
+				Retrieved (make_rmonolist_accessor ctx list_impl length_impl)
 			| _ ->
 				Missing (BMonolist {
 					list_name = list_name;
@@ -269,8 +272,7 @@ module RsetGenerator = struct
 		let cl,_ = get_class ctx in
 		match bdata with
 		| BMonolist impl_data ->
-			let gcon = (EvalContext.get_ctx()).curapi.get_com() in
-			let api = gcon.basic in
+			let api = ctx.ctx_basic in
 			let list_impl =
 				let t = api.tarray (TAnon { a_fields = def.a_components; a_status = ref Closed; }) in
 				let pos = { pfile = "ecso.gen.RList"; pmin = 1; pmax = 4; } in
@@ -555,8 +557,7 @@ module EcsoGraph = struct
 			f value
 
 	let restore (ectx : EvalContext.context) (ctx : EcsoContext.t) (debug_buffer : (string,string)Hashtbl.t) (g : gexpr) : texpr =
-		let com = ectx.curapi.get_com() in
-		let api = com.basic in
+		let api = ctx.ctx_basic in
 		let rec f (g : gexpr) : texpr = 
 			let e = g.greal in match g.gexpr with
 			| GReal -> e
