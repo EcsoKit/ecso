@@ -8,64 +8,22 @@ open AnalyzerTexpr
 open EcsoTypes
 open EcsoAnalyzer
 
-(* 
-	Fix for #19.
-*)
-module EvalEcso = struct
-
-	let void = EvalEncode.vfun1 (fun systems ->
-		vnull
-	)
-
-	let register_fields (ctx : EvalContext.context) (path : Globals.path) (fields : string list) (static : bool) =
-		let rec associate fl into =
-			match fl with
-			| [] ->
-				into
-			| [f] ->
-				(f,void) :: into
-			| f :: fl ->
-				(f,void) :: associate fl into
-		in
-		let statics = if static then associate fields [] else [] in
-		let members = if not static then associate fields [] else [] in
-		EvalStdLib.init_fields ctx.builtins path statics members;
-		()
-
-end
-
 class plugin =
 	object (self)
 
-		val mutable executed = (true)
-
 		method init () =
-			executed <- false;
-			let ctx = EvalContext.get_ctx() in
-			let compiler = ctx.curapi in
-			compiler.after_typing
-				self#on_after_typing;
-			EvalEcso.register_fields ctx (["ecso"],"EntityGroup") [
-				"foreachEntity";
-				"createEntity";
-				"deleteEntity";
-			] false;
+			let ectx = EvalContext.get_ctx() in
+			ectx.curapi.after_typing (self#run false);
+			let com = ectx.curapi.get_com() in
+			begin match com.get_macros() with
+			| Some mctx ->
+				mctx.callbacks#add_after_typing (self#run true)
+			| None -> 
+				()
+			end;
 			vnull
 
-		method register_context path fields static =
-			let path = Path.parse_path (EvalDecode.decode_string path) in
-			let fields = List.map (fun v -> EvalDecode.decode_string v) (EvalDecode.decode_array fields) in
-			let static = EvalDecode.decode_bool static in
-			let ctx = EvalContext.get_ctx() in
-			EvalEcso.register_fields ctx path fields static;
-			vnull
-
-		method on_after_typing (ml : module_type list) =
-			if not executed then
-				self#run ml;
-			executed <- true
-
-		method run (ml : module_type list) =
+		method run (macro : bool) (ml : module_type list) =
 
 			let print_ctxs = false in (* FIXME *)
 
@@ -73,7 +31,7 @@ class plugin =
 			let com = ectx.curapi.get_com() in
 			detail_times := Common.raw_defined com "ecso-times";
 
-			let ctxl = with_timer ["fetch-contexts"] (fun () -> EcsoAnalyzer.fetch ectx ml) in
+			let ctxl = with_timer ["fetch-contexts"] (fun () -> EcsoAnalyzer.fetch ectx macro ml) in
 
 			if print_ctxs then begin
 				let s_ctx (actx : EcsoAnalyzer.t) =
@@ -83,7 +41,7 @@ class plugin =
 					let ef = match actx.a_ctx.ctx_group.eg_foreach with | Some cf -> " ef(" ^ cf.cf_name ^ ")" | None -> "" in
 					t ^ ec ^ ed ^ ef;
 				in
-				print_endline "{ECSO} | Contexts:";
+				print_endline ("{ECSO} | Contexts" ^ if macro then " (macro):" else ":");
 				print_list_br "              | " s_ctx ctxl ~cache:true;
 			end;
 
@@ -108,6 +66,15 @@ class plugin =
 
 			if print_ctxs then
 				print_endline "{ECSO} | Done"
+
+		(*
+			Deprecated.
+		*)
+		method register_context path fields static =
+			EvalDecode.decode_string path;
+			List.iter (fun v -> begin EvalDecode.decode_string v; () end) (EvalDecode.decode_array fields);
+			EvalDecode.decode_bool static;
+			vnull
 	end
 ;;
 

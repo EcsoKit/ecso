@@ -18,6 +18,7 @@ module EcsoAnalyzer = struct
 	}
 
 	type global = {
+		gl_macro : bool;
 		gl_fields : (string,analyze) Hashtbl.t;
 		gl_ectx : EvalContext.context;
 		gl_debug_mutations : bool;
@@ -106,13 +107,16 @@ module EcsoAnalyzer = struct
 					cf
 				| _ -> assert false
 			in
-			let ctx_id = make_context_id is_static cl in
+			let ctx_id = make_context_id is_static cl gctx.gl_macro in
 			let get_single sanity_check l name =
 				if List.length l = 0 then
 					None
 				else if List.length l = 1 then
 					let cf = List.nth l 0 in
-					begin
+					if in_context_raw cf ctx_id then begin
+						(* Already processed *)
+						Some cf
+					end else begin
 						cf.cf_meta <- (EcsoMeta.context,[EConst (Int (string_of_int ctx_id)),cf.cf_name_pos],cf.cf_name_pos) :: cf.cf_meta;
 						Some (sanity_check name cf)
 					end
@@ -160,8 +164,9 @@ module EcsoAnalyzer = struct
 		| TTypeDecl td -> []
 		| TAbstractDecl ab -> []
 
-	let fetch (ctx : EvalContext.context) (ml : module_type list) : t list =
+	let fetch (ctx : EvalContext.context) (macro : bool) (ml : module_type list) : t list =
 		let gctx = {
+			gl_macro = macro;
 			gl_fields = Hashtbl.create 0 ~random:false;
 			gl_ectx = ctx;
 			gl_debug_mutations = false;

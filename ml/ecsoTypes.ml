@@ -4,8 +4,8 @@ open Globals
 
 (* Tools *)
 
-let make_context_id static cl : int = 
-	Hashtbl.hash (Globals.s_type_path cl.cl_path ^ ":" ^ if static then "s" else "i")
+let make_context_id static cl macro : int = 
+	Hashtbl.hash (Globals.s_type_path cl.cl_path ^ ":" ^ if static then "s" else "i" ^ if macro then "m" else "n")
 
 let append_field_into cl cf static =
 	if static then begin
@@ -312,11 +312,20 @@ module EcsoContext = struct
 		ctx_debug_gen = no_debugging;
 	}
 
-	let in_context (cf : tclass_field) (ctx : t) =
+	let extract_context_id (cf : tclass_field) : int option =
+		if not (Meta.has EcsoMeta.context cf.cf_meta) then None
+		else match Meta.get EcsoMeta.context cf.cf_meta with
+		| (_,[Ast.EConst (Int (id)),_],p) -> Some (int_of_string id)
+		| _ -> None
+
+	let in_context_raw (cf : tclass_field) (ctx_id : int) =
 		Meta.has EcsoMeta.context cf.cf_meta
-		&& match Meta.get EcsoMeta.context cf.cf_meta with
-		| (_,[Ast.EConst (Int (id)),_],p) when id = string_of_int ctx.ctx_id -> true
+		&& match extract_context_id cf with
+		| Some id when id = ctx_id -> true
 		| _ -> false
+
+	let in_context (cf : tclass_field) (ctx : t) =
+		in_context_raw cf ctx.ctx_id
 	
 	let does_match_api (ctx : t) (fa : tfield_access) (api_field : tclass_field option) : bool =
 		match api_field, fa with
