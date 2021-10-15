@@ -209,17 +209,23 @@ macro function getIssues() {
 				issues.push(v);
 			}
 	}
+	final dir = macro (unitsDir + "units/issues");
 	if (issues.length == 0) {
-		final dir = macro (unitsDir + "units/issues");
 		return macro [for (file in sys.FileSystem.readDirectory($dir)) {
 			if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file))
-				file.substr(5);
+				new runci.Issue(file.substr(5), $dir + "/" + file);
 			else if (file.startsWith("Issue") && file.endsWith(".hx"))
-				file.substring(5, file.length - 3);
+				new runci.Issue(file.substring(5, file.length - 3));
 			else
 				continue;
 		}];
 	} else {
-		return macro $v{issues};
+		return macro [for (id in $v{issues}) {
+			final project = $dir + "/issue" + id;
+			if (sys.FileSystem.isDirectory(project))
+				new runci.Issue(id, project);
+			else
+				new runci.Issue(id);
+		}];
 	}
 }
