@@ -213,10 +213,11 @@ macro function getIssues() {
 		final dir = macro (unitsDir + "units/issues");
 		return macro [for (file in sys.FileSystem.readDirectory($dir)) {
 			if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file))
-				file += "/Main.hx";
-			else if (!file.endsWith(".hx") || !file.startsWith("Issue"))
+				file.substr(5);
+			else if (file.startsWith("Issue") && file.endsWith(".hx"))
+				file.substring(5, file.length - 3);
+			else
 				continue;
-			file.substring(5, file.length - 3);
 		}];
 	} else {
 		return macro $v{issues};
