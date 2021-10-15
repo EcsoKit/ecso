@@ -210,8 +210,11 @@ macro function getIssues() {
 			}
 	}
 	if (issues.length == 0) {
-		return macro [for (file in sys.FileSystem.readDirectory(unitsDir + "units/issues")) {
-			if (!file.endsWith(".hx") || !file.startsWith("Issue"))
+		final dir = macro (unitsDir + "units/issues");
+		return macro [for (file in sys.FileSystem.readDirectory($dir)) {
+			if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file))
+				file += "/Main.hx";
+			else if (!file.endsWith(".hx") || !file.startsWith("Issue"))
 				continue;
 			file.substring(5, file.length - 3);
 		}];
