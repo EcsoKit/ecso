@@ -82,6 +82,9 @@ function main() {
 			#if ecso_times
 			args = args.concat(["--times", "-D", "ecso-times"]);
 			#end
+			#if dump_pretty
+			args = args.concat(["-D", "dump=pretty"]);
+			#end
 
 			switch test {
 				case Macro | Neko | Php | Python | Lua | Cppia | Java | Flash9:
