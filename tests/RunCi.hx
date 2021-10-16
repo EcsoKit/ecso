@@ -32,7 +32,13 @@ function main() {
 			case _: 5.0;
 		}
 		for (issue in issues) {
-			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(['-D', 'issue=$issue', issue.extraParams()])), timeout);
+			final extraArgs = ['-D', 'issue=$issue'];
+			switch issue.extraParams() {
+				case "":
+				case extraParams: 
+					extraArgs.push(extraParams);
+			}
+			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(extraArgs)), timeout);
 			if (run != null)
 				run("units");
 		}
