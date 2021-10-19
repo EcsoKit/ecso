@@ -659,15 +659,19 @@ module EcsoGraph = struct
 				end;
 
 				let p = e1.greal.epos in
-				let block = ref [mk (TConst (TString ("CreateEntity " ^ s_archetype a))) api.tstring p] in
 				let einstance_t = TAnon { a_fields = a.a_components; a_status = ref Closed } in
 				let einstance_var = alloc_var VGenerated "e" einstance_t p in
 				let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
 
 				let rset = RsetGenerator.retrieve_or_gen_rset RMonolist ctx a in
-				block := (rset.gen_add group einstance p) :: !block;
-				block := (mk (TVar (einstance_var, Some (f e1))) api.tvoid p) :: !block;
-				{ e with eexpr = (mk (TBlock !block) api.tstring p).eexpr }
+				{ e with eexpr = (mk (TBlock [
+					(mk (TVar (einstance_var, Some (f e1))) api.tvoid p);
+					PMap.fold (fun component expr ->
+						let ecomponent = mk (TField (einstance, FAnon component)) component.cf_type component.cf_pos in
+						EcsoCallbacks.with_component_added ctx expr ecomponent
+					) a.a_components (rset.gen_add group einstance p);
+					mk (TConst (TString ("CreateEntity " ^ s_archetype a))) api.tstring p
+				]) api.tstring p).eexpr }
 				
 			| GEcsoDelete (group,instance,_) ->
 
@@ -675,22 +679,33 @@ module EcsoGraph = struct
 				let instance = f instance in
 
 				let p = instance.epos in
-				let block = ref [] in
 				let einstance_var = alloc_var VGenerated "e" instance.etype p in
 				let einstance = mk (TLocal einstance_var) einstance_var.v_type p in
-				foreach_compatible_archetype ctx.ctx_debug_archetype_eq ctx.ctx_archetypes
-					(fun a ->
-						let einstance = match ctx.ctx_storage_mode with
-							| AoS (_,MCumulated,_) -> mk_cast einstance (TAnon { a_fields = a.a_components; a_status = ref Closed }) e.epos
-							| _ -> einstance
-						in
-						match RsetGenerator.retrieve_rset RMonolist ctx a with
-						| Retrieved rset -> block := (rset.gen_remove group einstance p) :: !block
-						| Missing _ -> ()
-					)
-					archetype;
-				block := (mk (TVar (einstance_var, Some instance)) api.tvoid p) :: !block;
-				{ e with eexpr = TBlock !block; etype = api.tvoid }
+				let maybe_removed_components = ref PMap.empty in
+				let delete_expr =
+					let block = ref [] in
+					foreach_compatible_archetype ctx.ctx_debug_archetype_eq ctx.ctx_archetypes
+						(fun a ->
+							maybe_removed_components := pmap_append a.a_components !maybe_removed_components;
+							let einstance = match ctx.ctx_storage_mode with
+								| AoS (_,MCumulated,_) -> mk_cast einstance (TAnon { a_fields = a.a_components; a_status = ref Closed }) e.epos
+								| _ -> einstance
+							in
+							match RsetGenerator.retrieve_rset RMonolist ctx a with
+							| Retrieved rset ->
+								block := (rset.gen_remove group einstance p) :: !block
+							| Missing _ -> ()
+						)
+						archetype;
+					(mk (TBlock !block) api.tvoid p)
+				in
+				{ e with eexpr = TBlock [
+					(mk (TVar (einstance_var, Some instance)) api.tvoid p);
+					PMap.fold (fun component expr ->
+						let ecomponent = mk (TField (einstance, FAnon component)) component.cf_type component.cf_pos in
+						EcsoCallbacks.with_component_removed ctx expr ecomponent
+					) !maybe_removed_components delete_expr
+				]; etype = api.tvoid }
 
 			| GEcsoProcess (group,system,_) ->
 
@@ -825,7 +840,8 @@ module EcsoGraph = struct
 				let value = f value in
 				let entity = Builder.make_local v e.epos in
 				let component = mk (TField (entity,fa)) value.etype e.epos in
-				{ e with eexpr = TBinop(op,component,value) }
+				let emut = { e with eexpr = TBinop(op,component,value) } in
+				EcsoCallbacks.with_component_callbacks ctx emut component value
 		in
 		f g
 

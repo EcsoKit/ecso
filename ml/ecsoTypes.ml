@@ -97,6 +97,9 @@ let pmap_of_fl fl =
 		| f :: fl -> loop fl (PMap.add f.cf_name f pm)
 	in loop fl PMap.empty
 
+let pmap_append m1 m2 =
+	PMap.foldi (fun k v m -> PMap.add k v m) m1 m2
+
 let detail_times = ref false
 
 let with_timer s f =
