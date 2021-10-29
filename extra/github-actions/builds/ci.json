@@ -2,9 +2,9 @@
 	"template": "ci",
 	"defaults": {
 		"development": true,
-		"haxeVersion": "4.2.3",
-		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/1385eda48e60387e349282d26347b28d0b2768ca/.github/workflows/main.yml",
-		"haxeSources": "HaxeFoundation/haxe@1385eda48e60387e349282d26347b28d0b2768ca"
+		"haxeVersion": "4.2.4",
+		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/ab0c0548ff80fcbbbc140a381a9031af13b5782c/.github/workflows/main.yml",
+		"haxeSources": "HaxeFoundation/haxe@ab0c0548ff80fcbbbc140a381a9031af13b5782c"
 	},
 	"workflows": [
 		{

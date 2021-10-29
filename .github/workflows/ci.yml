@@ -49,8 +49,8 @@ jobs:
             haxelib.json
           if-no-files-found: error
     
-  windows64-build-4-2-3:
-    name: Haxe 4.2.3 / windows64-build
+  windows64-build-4-2-4:
+    name: Haxe 4.2.4 / windows64-build
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -66,7 +66,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -156,9 +156,9 @@ jobs:
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.3')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.4')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
@@ -177,8 +177,8 @@ jobs:
           path: out
       
 
-  windows-build-4-2-3:
-    name: Haxe 4.2.3 / windows-build
+  windows-build-4-2-4:
+    name: Haxe 4.2.4 / windows-build
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -194,7 +194,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -284,9 +284,9 @@ jobs:
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.3')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.3/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.4')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
@@ -305,8 +305,8 @@ jobs:
           path: out
       
 
-  linux-build-4-2-3:
-    name: Haxe 4.2.3 / linux-build
+  linux-build-4-2-4:
+    name: Haxe 4.2.4 / linux-build
     runs-on: ubuntu-latest
     env:
       PLATFORM: linux64
@@ -316,7 +316,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -380,9 +380,9 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
           make -s package_unix
-          mkdir ./plugins/ecso/cmxs/hx-4.2.3
-          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.3
-          ldd -v ./plugins/ecso/cmxs/hx-4.2.3/Linux/plugin.cmxs
+          mkdir ./plugins/ecso/cmxs/hx-4.2.4
+          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.4
+          ldd -v ./plugins/ecso/cmxs/hx-4.2.4/Linux/plugin.cmxs
           ls -l out
           ldd -v ./haxe
           ldd -v ./haxelib
@@ -409,8 +409,8 @@ jobs:
           path: out
       
 
-  mac-build-4-2-3:
-    name: Haxe 4.2.3 / mac-build
+  mac-build-4-2-4:
+    name: Haxe 4.2.4 / mac-build
     runs-on: macos-latest
     env:
       PLATFORM: mac
@@ -421,7 +421,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -495,7 +495,7 @@ jobs:
           opam env
           opam pin add ctypes 0.17.1 --yes
           opam pin add haxe . --no-action
-          opam install haxe --deps-only
+          opam install haxe --deps-only --assume-depexts
           opam list
           ocamlopt -v
       
@@ -511,9 +511,9 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
           make -s package_unix package_installer_mac
-          mkdir ./plugins/ecso/cmxs/hx-4.2.3
-          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.3
-          otool -L ./plugins/ecso/cmxs/hx-4.2.3/Mac/plugin.cmxs
+          mkdir ./plugins/ecso/cmxs/hx-4.2.4
+          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.4
+          otool -L ./plugins/ecso/cmxs/hx-4.2.4/Mac/plugin.cmxs
           ls -l out
           otool -L ./haxe
           otool -L ./haxelib
@@ -534,9 +534,9 @@ jobs:
           path: out
       
 
-  windows64-test-4-2-3:
-    name: Haxe 4.2.3 / windows64-test
-    needs: [packaging, windows64-build-4-2-3]
+  windows64-test-4-2-4:
+    name: Haxe 4.2.4 / windows64-test
+    needs: [packaging, windows64-build-4-2-4]
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -554,7 +554,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -645,9 +645,9 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
-  windows-test-4-2-3:
-    name: Haxe 4.2.3 / windows-test
-    needs: [packaging, windows-build-4-2-3]
+  windows-test-4-2-4:
+    name: Haxe 4.2.4 / windows-test
+    needs: [packaging, windows-build-4-2-4]
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -666,7 +666,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -757,9 +757,9 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
-  linux-test-4-2-3:
-    name: Haxe 4.2.3 / linux-test
-    needs: [packaging, linux-build-4-2-3]
+  linux-test-4-2-4:
+    name: Haxe 4.2.4 / linux-test
+    needs: [packaging, linux-build-4-2-4]
     runs-on: ubuntu-latest
     env:
       PLATFORM: linux64
@@ -787,7 +787,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -876,9 +876,9 @@ jobs:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
       
 
-  mac-test-4-2-3:
-    name: Haxe 4.2.3 / mac-test
-    needs: [packaging, mac-build-4-2-3]
+  mac-test-4-2-4:
+    name: Haxe 4.2.4 / mac-test
+    needs: [packaging, mac-build-4-2-4]
     runs-on: macos-latest
     env:
       PLATFORM: mac
@@ -896,7 +896,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: '1385eda48e60387e349282d26347b28d0b2768ca'
+          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
