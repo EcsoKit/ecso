@@ -1088,13 +1088,10 @@ module EcsoGraph = struct
 						in
 						a.a_components <- prune_dead_components a.a_components fl;
 						a
-					| GReal ->
+					| _ ->
 						let real = (skip e1).greal in
 						let fname = match ctx.ctx_group.eg_create with | Some cf -> cf.cf_name in
-						Error.error ("[ECSO] Object declaration expected in " ^ fname ^ " function but have " ^ s_expr_pretty real) e1.greal.epos
-					| unsupported ->
-						let fname = match ctx.ctx_group.eg_create with | Some cf -> cf.cf_name in
-						Error.error ("[ECSO] Object declaration expected in " ^ fname ^ " function but have " ^ s_gexpr_kind unsupported) e1.greal.epos
+						Error.error ("[ECSO] Object declaration expected in " ^ fname ^ " function") e1.greal.epos
 				in
 				let e = { greal = e; gexpr = GEcsoCreate ((group,e1),archetype,ctx.ctx_id) } in
 				acc,e,VSelf
