@@ -117,12 +117,12 @@ class Components extends buddy.SingleSuite {
 }
 
 private abstract ComponentAbstract(#if static Null<Int> #else Int #end) from Int {
-    @:ecso.added @:keep
-    function onAbstractAdded() {
+    @:ecso.added
+    function onAdded() {
         track(AddedAbstract);
     }
-    @:ecso.removed @:keep
-    function onAbstractRemoved() {
+    @:ecso.removed
+    function onRemoved() {
         track(RemovedAbstract);
     }
 }
