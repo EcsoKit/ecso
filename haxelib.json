@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"description": "Entity Component System for Haxe",
 	"tags": ["ecs", "plugin"],
-	"version": "1.0.0-alpha.5",
+	"version": "1.0.0-alpha.6",
 	"classPath": "hx",
-	"releasenote": "Support for Haxe 4.2.3",
+	"releasenote": "Support for Haxe 4.2.4",
 	"contributors": ["dpomier"]
 }
