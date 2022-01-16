@@ -180,6 +180,7 @@ jobs:
   windows-build-4-2-4:
     name: Haxe 4.2.4 / windows-build
     runs-on: windows-latest
+    continue-on-error: true
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       PLATFORM: windows
@@ -538,6 +539,7 @@ jobs:
     name: Haxe 4.2.4 / windows64-test
     needs: [packaging, windows64-build-4-2-4]
     runs-on: windows-latest
+    continue-on-error: ${{matrix.target == 'jvm'}}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       PLATFORM: windows64
@@ -649,6 +651,7 @@ jobs:
     name: Haxe 4.2.4 / windows-test
     needs: [packaging, windows-build-4-2-4]
     runs-on: windows-latest
+    continue-on-error: true
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       PLATFORM: windows
@@ -752,7 +755,6 @@ jobs:
           haxelib setup "$env:HAXELIB_ROOT"
       
       - name: Test
-        continue-on-error: true
         shell: pwsh
         run: haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests
@@ -762,6 +764,7 @@ jobs:
     name: Haxe 4.2.4 / linux-test
     needs: [packaging, linux-build-4-2-4]
     runs-on: ubuntu-latest
+    continue-on-error: ${{matrix.target == 'jvm'}}
     env:
       PLATFORM: linux64
       TEST: ${{matrix.target}}
@@ -881,6 +884,7 @@ jobs:
     name: Haxe 4.2.4 / mac-test
     needs: [packaging, mac-build-4-2-4]
     runs-on: macos-latest
+    continue-on-error: ${{matrix.target == 'jvm'}}
     env:
       PLATFORM: mac
       TEST: ${{matrix.target}}

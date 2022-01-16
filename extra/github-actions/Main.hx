@@ -25,6 +25,7 @@ typedef JobManifest = {
 	githubWorkflow:String,
 	?libraries:DynamicAccess<String>,
 	?allowFailure:Bool,
+	?experimentalTargets:Array<String>
 }
 
 typedef Job = {
@@ -48,7 +49,7 @@ class Main {
 	static final matchBuildCheck = ~/.* (cygcheck|ldd|otool) .*(haxe|haxelib).*\n/gm;
 	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/g;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
-	static final matchRunnerOS = ~/runs-on:\s*(\w+)-(.+)/g;
+	static final matchRunnerOS = ~/( *)runs-on:\s*(\w+)-(.+)/g;
 
 	static function loadManifests(folder:String):Array<BuildManifest> {
 		final manifests:Map<String, BuildManifest> = [];
@@ -147,8 +148,9 @@ class Main {
 		// Lock Runner OS
 		script = matchRunnerOS.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var os = reg.matched(1).toLowerCase();
-			var version = reg.matched(2);
+			var tabs = reg.matched(1);
+			var os = reg.matched(2).toLowerCase();
+			var version = reg.matched(3);
 			return matched.replace(os, manifest.os.name).replace(version, manifest.os.version);
 		});
 
@@ -201,11 +203,13 @@ class Main {
 		}
 
 		// Build
-		if (manifest.haxeDownload == null) {
+		final buildJob:Bool = if (manifest.haxeDownload == null) {
+			var found = false;
 			// Rename build jobs
 			script = script.replace("Build Haxe", "Build Haxe + Ecso");
 			// Build ecso as plugin (after haxelib)
 			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+				found = true;
 				var pos = reg.matchedPos();
 				var makeEcso = "";
 				matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
@@ -221,11 +225,14 @@ class Main {
 				var matched = reg.matched(0);
 				return matched + makeEcso;
 			});
+			found;
 		} else {
+			var found = false;
 			// Rename build jobs
 			script = script.replace("Build Haxe", "Build Ecso");
 			// Build ecso instead of haxe/haxelib
 			script = matchMakeHaxe.map(script, function(reg:EReg) {
+				found = true;
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
 				var haxe = reg.matched(3);
@@ -244,6 +251,7 @@ class Main {
 			script = matchBuildCheck.map(script, function(reg:EReg) {
 				return "";
 			});
+			found;
 		}
 
 		// Move binaries
@@ -323,6 +331,21 @@ class Main {
 		// Force release/dev modes
 		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.development != null ? '${!manifest.development}' : 'true');
 
+		// Allow job failure 
+		script = matchRunnerOS.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var tabs = reg.matched(1);
+			
+			final continueOnError = if(manifest.allowFailure != null)
+				'${manifest.allowFailure}';
+			else if (!buildJob && manifest.experimentalTargets != null) {
+				"${{" + [for(target in manifest.experimentalTargets) 'matrix.target == \'$target\''].join(' || ') + "}}";
+			} else {
+				return matched;
+			}
+			return '$matched\n${tabs}continue-on-error: $continueOnError';
+		});
+
 		// Edit tests
 		script = matchHaxeTests.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
@@ -343,18 +366,6 @@ class Main {
 			}
 			// Redirect tests
 			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
-			// Allow failure 
-			final continueOnError = if(manifest.allowFailure != null)
-				'${manifest.allowFailure}';
-			} else {
-				null;
-			}
-			test = if(continueOnError != null) {
-				test.replace(name, '$name\n$tabs  continue-on-error: $continueOnError');
-			} else { 
-				test; 
-			}
-
 			return correctRelativePaths(test, cwd);
 		});
 

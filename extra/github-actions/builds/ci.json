@@ -4,7 +4,8 @@
 		"development": true,
 		"haxeVersion": "4.2.4",
 		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/2a9ef7cf837d172351b62921ff6695f7d3a172a4/.github/workflows/main.yml",
-		"haxeSources": "HaxeFoundation/haxe@ab0c0548ff80fcbbbc140a381a9031af13b5782c"
+		"haxeSources": "HaxeFoundation/haxe@ab0c0548ff80fcbbbc140a381a9031af13b5782c",
+		"experimentalTargets": ["jvm"]
 	},
 	"workflows": [
 		{
