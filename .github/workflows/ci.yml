@@ -752,6 +752,7 @@ jobs:
           haxelib setup "$env:HAXELIB_ROOT"
       
       - name: Test
+        continue-on-error: true
         shell: pwsh
         run: haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/tests

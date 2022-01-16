@@ -23,7 +23,8 @@ typedef JobManifest = {
 	?development:Bool,
 	haxeSources:String,
 	githubWorkflow:String,
-	?libraries:DynamicAccess<String>
+	?libraries:DynamicAccess<String>,
+	?allowFailure:Bool,
 }
 
 typedef Job = {
@@ -326,6 +327,7 @@ class Main {
 		script = matchHaxeTests.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var head = reg.matched(1);
+			var tabs = head.substr(head.lastIndexOf('\n')+1);
 			var name = reg.matched(2);
 			var run = reg.matched(3);
 			var cwd = reg.matched(5);
@@ -341,6 +343,18 @@ class Main {
 			}
 			// Redirect tests
 			var test = matched.replace(cwd, "${{github.workspace}}/plugins/ecso/tests");
+			// Allow failure 
+			final continueOnError = if(manifest.allowFailure != null)
+				'${manifest.allowFailure}';
+			} else {
+				null;
+			}
+			test = if(continueOnError != null) {
+				test.replace(name, '$name\n$tabs  continue-on-error: $continueOnError');
+			} else { 
+				test; 
+			}
+
 			return correctRelativePaths(test, cwd);
 		});
 

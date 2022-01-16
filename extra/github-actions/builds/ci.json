@@ -23,7 +23,8 @@
 			"os": {
 				"name": "windows",
 				"version": "latest"
-			}
+			},
+			"allowFailure": true
 		},
 		{
 			"name": "linux64",
