@@ -3,7 +3,8 @@
 	"defaults": {
 		"haxeVersion": "4.2.3",
 		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/2a9ef7cf837d172351b62921ff6695f7d3a172a4/.github/workflows/main.yml",
-		"haxeSources": "HaxeFoundation/haxe@1385eda48e60387e349282d26347b28d0b2768ca"
+		"haxeSources": "HaxeFoundation/haxe@1385eda48e60387e349282d26347b28d0b2768ca",
+		"targets": ["interp", "js", "hl", "cpp", "cs", "server"]
 	},
 	"workflows": [
 		{

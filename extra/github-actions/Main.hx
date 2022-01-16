@@ -18,6 +18,7 @@ typedef JobManifest = {
 	url:String,
 	jobs:Array<String>,
 	os:{name:String, version:String},
+	targets:Array<String>,
 	?haxeDownload:String,
 	?nekoDownload:String,
 	?development:Bool,
@@ -375,19 +376,12 @@ class Main {
 			var targets = reg.matched(1);
 			var list = ~/\W+/g.split(targets);
 			return if (list.length > 1) {
-				// start with "interp"
-				if (!targets.contains('interp'))
-					list.unshift('interp');
-				// filter some targets
-				list = list.filter(target -> switch target {
-					case "neko" | "php" | "python" | "lua" | "jvm" | "java" | "macro": false;
-					case _: true;
-				});
-				// ensure some targets
-				for (target in ["hl", "js", "cpp", "cs", "server"])
-					if (!list.contains('server'))
-						list.push('server');
-				matched.replace(targets, list.join(', '));
+				// append experimental targets
+				if(manifest.experimentalTargets != null)
+					for(experimentalTarget in manifest.experimentalTargets)
+						if(!manifest.targets.contains(experimentalTarget))
+							manifest.targets.push(experimentalTarget);
+				matched.replace(targets, manifest.targets.join(', '));
 			} else {
 				matched;
 			}

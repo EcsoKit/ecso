@@ -550,7 +550,7 @@ jobs:
       fail-fast: false
       matrix:
         # TODO enable lua after https://github.com/HaxeFoundation/haxe/issues/5024
-        target: [interp, js, hl, cpp, cs, server]
+        target: [interp, js, hl, cpp, cs, server, jvm]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -663,7 +663,7 @@ jobs:
       matrix:
         # TODO jvm: https://github.com/HaxeFoundation/haxe/issues/8601
         # TODO enable lua after https://github.com/HaxeFoundation/haxe/issues/5024
-        target: [interp, js, hl, cpp, cs, server]
+        target: [interp, js, hl, cpp, cs, server, jvm]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -772,7 +772,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [interp, js, hl, cpp, cs, server] #flash9
+        target: [interp, js, hl, cpp, cs, server, jvm] #flash9
         include:
           - target: js
             # SAUCE: 1
@@ -892,7 +892,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [interp, js, hl, cpp, cs, server] #flash9
+        target: [interp, js, hl, cpp, cs, server, jvm] #flash9
         include:
           - target: hl
             BREW_PACKAGES: ninja
