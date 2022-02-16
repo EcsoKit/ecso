@@ -38,6 +38,8 @@ let print_list_br ?(cache=false) suffix s l =
 	in
 	List.iter (fun x -> print_endline (suffix ^ s x ^ count x)) l
 
+let s_error_pos p : string = !(Globals.get_error_pos_ref) (Printf.sprintf "%s:%d:") p
+
 let rec unwrap_explicit_null = function
 	| TMono r ->
 		(match r.tm_type with None -> assert false | Some t -> unwrap_explicit_null t)

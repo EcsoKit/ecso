@@ -342,8 +342,8 @@ module CheckComponentGlobalization = struct
 						"[ECSO] Cannot redefine " ^ cf.cf_name ^ "'s type "
 						^ "\n         have: " ^ Printer.s_type cf.cf_type
 						^ "\n         want: " ^ Printer.s_type cf'.cf_type
-						^ "\n         declared at: " ^ Printer.s_pos cf'.cf_name_pos
-						) cf.cf_name_pos;
+						^ "\n         declared at: " ^ s_error_pos cf'.cf_pos
+						) cf.cf_pos;
 				end
 			end else
 				Hashtbl.add cache cf.cf_name cf
@@ -363,7 +363,7 @@ module CheckComponentGlobalization = struct
 					let downcast_error name decl_pos p =
 						Error.error (
 							"[ECSO] Cannot downcast component " ^ name
-							^ "\n         declared at: " ^ Printer.s_pos decl_pos
+							^ "\n         declared at: " ^ s_error_pos decl_pos
 						) p
 					in
 					if cl == cl' then
@@ -383,7 +383,7 @@ module CheckComponentGlobalization = struct
 					else if extends cl cl' then
 						Error.error (
 							"[ECSO] Cannot upcast component " ^ name ^ " declared as " ^ Globals.s_type_path cl.cl_path
-							^ "\n         declared at: " ^ Printer.s_pos p
+							^ "\n         declared at: " ^ s_error_pos p
 						) p'
 				| _ -> ()
 			end
