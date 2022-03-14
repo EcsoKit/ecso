@@ -49,8 +49,8 @@ jobs:
             haxelib.json
           if-no-files-found: error
     
-  windows64-build-4-2-4:
-    name: Haxe 4.2.4 / windows64-build
+  windows64-build-4-2-5:
+    name: Haxe 4.2.5 / windows64-build
     runs-on: windows-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -66,7 +66,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -156,9 +156,9 @@ jobs:
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.4')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.5')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.5/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.5/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
@@ -177,8 +177,8 @@ jobs:
           path: out
       
 
-  windows-build-4-2-4:
-    name: Haxe 4.2.4 / windows-build
+  windows-build-4-2-5:
+    name: Haxe 4.2.5 / windows-build
     runs-on: windows-latest
     continue-on-error: true
     env:
@@ -195,7 +195,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -206,7 +206,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/windows/neko_latest.zip -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -220,7 +220,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/windows/neko_latest.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
@@ -285,9 +285,9 @@ jobs:
           dir out
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxe.exe')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./haxelib.exe')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.4')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}')
-          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.4/Windows${ARCH}/plugin.cmxs')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mkdir ./plugins/ecso/cmxs/hx-4.2.5')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && mv -T ./plugins/ecso/cmxs/Windows ./plugins/ecso/cmxs/hx-4.2.5/Windows${ARCH}')
+          & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && cygcheck ./plugins/ecso/cmxs/hx-4.2.5/Windows${ARCH}/plugin.cmxs')
           & "$($env:CYG_ROOT)/bin/bash.exe" @('-lc', 'cd "$OLDPWD" && ls ./out')
       
       - name: Upload Ecso
@@ -306,8 +306,8 @@ jobs:
           path: out
       
 
-  linux-build-4-2-4:
-    name: Haxe 4.2.4 / linux-build
+  linux-build-4-2-5:
+    name: Haxe 4.2.5 / linux-build
     runs-on: ubuntu-latest
     env:
       PLATFORM: linux64
@@ -317,7 +317,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -328,7 +328,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -342,7 +342,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
@@ -381,9 +381,9 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
           make -s package_unix
-          mkdir ./plugins/ecso/cmxs/hx-4.2.4
-          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.4
-          ldd -v ./plugins/ecso/cmxs/hx-4.2.4/Linux/plugin.cmxs
+          mkdir ./plugins/ecso/cmxs/hx-4.2.5
+          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.2.5
+          ldd -v ./plugins/ecso/cmxs/hx-4.2.5/Linux/plugin.cmxs
           ls -l out
           ldd -v ./haxe
           ldd -v ./haxelib
@@ -410,8 +410,8 @@ jobs:
           path: out
       
 
-  mac-build-4-2-4:
-    name: Haxe 4.2.4 / mac-build
+  mac-build-4-2-5:
+    name: Haxe 4.2.5 / mac-build
     runs-on: macos-latest
     env:
       PLATFORM: mac
@@ -422,7 +422,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -433,7 +433,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -447,7 +447,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
@@ -512,9 +512,9 @@ jobs:
           opam config exec -- make -s haxelib
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
           make -s package_unix package_installer_mac
-          mkdir ./plugins/ecso/cmxs/hx-4.2.4
-          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.4
-          otool -L ./plugins/ecso/cmxs/hx-4.2.4/Mac/plugin.cmxs
+          mkdir ./plugins/ecso/cmxs/hx-4.2.5
+          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.2.5
+          otool -L ./plugins/ecso/cmxs/hx-4.2.5/Mac/plugin.cmxs
           ls -l out
           otool -L ./haxe
           otool -L ./haxelib
@@ -535,9 +535,9 @@ jobs:
           path: out
       
 
-  windows64-test-4-2-4:
-    name: Haxe 4.2.4 / windows64-test
-    needs: [packaging, windows64-build-4-2-4]
+  windows64-test-4-2-5:
+    name: Haxe 4.2.5 / windows64-test
+    needs: [packaging, windows64-build-4-2-5]
     runs-on: windows-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:
@@ -556,7 +556,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -647,9 +647,9 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
-  windows-test-4-2-4:
-    name: Haxe 4.2.4 / windows-test
-    needs: [packaging, windows-build-4-2-4]
+  windows-test-4-2-5:
+    name: Haxe 4.2.5 / windows-test
+    needs: [packaging, windows-build-4-2-5]
     runs-on: windows-latest
     continue-on-error: true
     env:
@@ -669,7 +669,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -687,7 +687,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/windows/neko_latest.zip -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -701,7 +701,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/windows/neko_latest.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
@@ -760,9 +760,9 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
       
 
-  linux-test-4-2-4:
-    name: Haxe 4.2.4 / linux-test
-    needs: [packaging, linux-build-4-2-4]
+  linux-test-4-2-5:
+    name: Haxe 4.2.5 / linux-test
+    needs: [packaging, linux-build-4-2-5]
     runs-on: ubuntu-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:
@@ -791,7 +791,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -809,7 +809,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -823,7 +823,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
@@ -880,9 +880,9 @@ jobs:
           SAUCE_ACCESS_KEY: matrix.SAUCE_ACCESS_KEY
       
 
-  mac-test-4-2-4:
-    name: Haxe 4.2.4 / mac-test
-    needs: [packaging, mac-build-4-2-4]
+  mac-test-4-2-5:
+    name: Haxe 4.2.5 / mac-test
+    needs: [packaging, mac-build-4-2-5]
     runs-on: macos-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:
@@ -901,7 +901,7 @@ jobs:
         with:
           repository: 'HaxeFoundation/haxe'
           submodules: recursive
-          ref: 'ab0c0548ff80fcbbbc140a381a9031af13b5782c'
+          ref: '2d1c1198e79c30cca5c3957b1e3b65ce95b5356e'
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -919,7 +919,7 @@ jobs:
         run: |
           set -ex
       
-          curl -sSL https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          curl -sSL https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
           tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
           NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
           sudo mkdir -p /usr/local/bin
@@ -933,7 +933,7 @@ jobs:
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Invoke-WebRequest https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -OutFile $env:RUNNER_TEMP/neko_latest.zip
           Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
           $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
           echo "$NEKOPATH" >> $env:GITHUB_PATH
