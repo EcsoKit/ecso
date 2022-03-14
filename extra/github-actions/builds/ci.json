@@ -2,9 +2,9 @@
 	"template": "ci",
 	"defaults": {
 		"development": true,
-		"haxeVersion": "4.2.4",
-		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/2a9ef7cf837d172351b62921ff6695f7d3a172a4/.github/workflows/main.yml",
-		"haxeSources": "HaxeFoundation/haxe@ab0c0548ff80fcbbbc140a381a9031af13b5782c",
+		"haxeVersion": "4.2.5",
+		"url": "https://raw.githubusercontent.com/HaxeFoundation/haxe/e5eec3122454bfc95412437d938d1d8d3e77ed68/.github/workflows/main.yml",
+		"haxeSources": "HaxeFoundation/haxe@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e",
 		"targets": ["interp", "js", "hl", "cpp", "cs", "server"],
 		"experimentalTargets": ["jvm"]
 	},
@@ -20,7 +20,7 @@
 		},
 		{
 			"name": "win32",
-			"nekoDownload": "https://build.haxe.org/builds/neko/windows/neko_2019-12-02_master_1df580c.zip",
+			"nekoDownload": "https://build.haxe.org/builds/neko/windows/neko_latest.zip",
 			"jobs": ["windows-build", "windows-test"],
 			"os": {
 				"name": "windows",
@@ -30,7 +30,7 @@
 		},
 		{
 			"name": "linux64",
-			"nekoDownload": "https://build.haxe.org/builds/neko/linux64/neko_2019-12-02_master_1df580c.tar.gz",
+			"nekoDownload": "https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz",
 			"jobs": ["linux-build", "linux-test"],
 			"os": {
 				"name": "ubuntu",
@@ -39,7 +39,7 @@
 		},
 		{
 			"name": "mac",
-			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_2019-12-02_master_1df580c.tar.gz",
+			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz",
 			"jobs": ["mac-build", "mac-test"],
 			"os": {
 				"name": "macos",
