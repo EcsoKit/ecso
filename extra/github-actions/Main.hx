@@ -392,6 +392,11 @@ class Main {
 			return "";
 		});
 
+		if(manifest.os.name == "macos") {
+			// Fix deleted zlib: https://github.com/HaxeFoundation/haxe/commit/b9a9ec84d4d4a306f87008c7f58791a6450dc591
+			script = script.replace("ZLIB_VERSION: 1.2.11", "ZLIB_VERSION: 1.2.12");
+		}
+
 		return script;
 	}
 
