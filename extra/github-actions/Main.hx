@@ -203,6 +203,24 @@ class Main {
 			});
 		}
 
+		// Add commands before `make haxe`
+		script = matchMakeHaxe.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var cmd = reg.matched(1);
+			var haxe = reg.matched(3);
+			var s = "";
+			if(manifest.os.name == "windows") {
+				// include leading cd in `cmd`
+				final cmdIdx = matched.indexOf(cmd);
+				final realCmdIdx = matched.substring(0, cmdIdx).lastIndexOf("cd ");
+				if(realCmdIdx >= 0)
+					cmd = matched.substring(realCmdIdx, cmdIdx + cmd.length);
+				// update for newest git (security fix for https://github.blog/2022-04-12-git-security-vulnerability-announced/)
+				s += matched.replace(cmd, "git config --global --add safe.directory $OLDPWD");
+			}
+			return s + matched;
+		});
+
 		// Build
 		final buildJob:Bool = if (manifest.haxeDownload == null) {
 			var found = false;
