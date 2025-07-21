@@ -1,0 +1,3 @@
+[submodule "libs/docker-haxe"]
+	path = libs/docker-haxe
+	url = git@github.com:GaillareTech/docker-haxe.git

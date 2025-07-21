@@ -1,0 +1,50 @@
+{
+	// [optional] Name to display for this Dev Container
+	"name": "Ecso",
+
+	// Build instructions pointing to the Dockerfile mentioned above
+	"build": {
+		"context": ".",
+		"dockerfile": "Dockerfile",
+		"options": ["--pull=false"],
+	},
+
+	// [optional] Allow debugging via USB
+	"privileged": true,
+    "mounts": [
+        {
+            "type": "bind",
+            "source": "/dev/bus/usb",
+            "target": "/dev/bus/usb",
+        }
+    ],
+
+	// [optional] View GUI apps
+	"runArgs": [
+		"-e", "DISPLAY=${env:DISPLAY}",
+		"-v", "/tmp/.X11-unix:/tmp/.X11-unix"
+	],
+	"initializeCommand": {
+		"Allow connections to X server": "xhost +local:docker", // run `xhost -local:docker` to close
+	},
+
+	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/haxe/plugins/ecso,type=bind",
+	"workspaceFolder": "/usr/src/haxe/plugins/ecso",
+
+	// Include VSCode extensions
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// Haxe support
+				"nadako.vshaxe",
+				// Dev Container resources information
+				"mutantdino.resourcemonitor",
+				// OCaml support
+				"ocamllabs.ocaml-platform",
+			],
+			"settings": {
+				"git.ignoredRepositories": ["libs/docker-haxe"],
+			}
+		}
+	}
+}
