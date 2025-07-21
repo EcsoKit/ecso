@@ -26,6 +26,7 @@
 	],
 	"initializeCommand": {
 		"Allow connections to X server": "xhost +local:docker", // run `xhost -local:docker` to close
+		"Prepare images": "sh ${localWorkspaceFolder}/libs/docker-haxe/make-image.sh",
 	},
 
 	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/haxe/plugins/ecso,type=bind",
