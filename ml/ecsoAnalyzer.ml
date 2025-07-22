@@ -55,7 +55,7 @@ module EcsoAnalyzer = struct
 				else raise (Error (Unify [cannot_unify a b], p, 0)) 
 			in
 			let single_param_or_raise name cf = match cf.cf_params with
-				| [n,t] -> n,t
+				| [param] -> param
 				| _ -> Error.typing_error ("[ECSO] " ^ name ^ " functions must declare exactly one parameter") cf.cf_pos;
 			in
 			let common_sanity name cf =
@@ -77,12 +77,12 @@ module EcsoAnalyzer = struct
 				let cf = common_sanity name cf in
 				match cf.cf_type with
 				| TFun ([n,opt,t],_) ->
-					let pname,_ = single_param_or_raise name cf in
+					let param = single_param_or_raise name cf in
 					let tparam = match t with
 						| TInst({ cl_kind = KTypeParameter _ }, params) ->
 							t
 						| _ ->
-							TInst({ tparam with cl_kind = KTypeParameter[]; cl_private = cl.cl_private; cl_path = ([],pname) }, [])
+							TInst({ tparam with cl_kind = KTypeParameter[]; cl_private = cl.cl_private; cl_path = ([],param.ttp_name) }, [])
 					in
 					let have = TFun([n,opt,t],api.tvoid) in
 					let want = TFun([n,false,tparam], api.tvoid) in
