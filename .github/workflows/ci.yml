@@ -895,7 +895,6 @@ jobs:
 
   mac-test-4-3-7:
     name: Haxe 4.3.7 / mac-test
-    needs: mac-build-universal
     runs-on: macos-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:
