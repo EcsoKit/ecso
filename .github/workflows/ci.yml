@@ -352,7 +352,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ocaml: ["4.14.0", "5.3.0"]
+        ocaml: ["5.3.0"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -447,8 +447,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linuxBinaries${{
-          retention-days: 1 (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          name: linuxBinaries
+          retention-days: 1
           path: out
 
   mac-build-4-3-7:
@@ -834,7 +834,7 @@ jobs:
           path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v4
         with:
-          name: linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          name: linuxBinaries
           path: linuxBinaries
 
       - name: Install Neko from S3
