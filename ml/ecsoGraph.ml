@@ -1192,7 +1192,7 @@ module EcsoGraph = struct
 							{ e with gexpr = GField (fe,fa') }
 						| GFunction (tf,_) ->
 							(* If we inline a function expression, we have to duplicate its locals. *)
-							let tf = match duplicate_tvars e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
+							let tf = match duplicate_tvars e_identity e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
 							make_s e.greal tf
 						| GLocal (v,vl) ->
 						
