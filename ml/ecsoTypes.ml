@@ -322,7 +322,7 @@ module EcsoContext = struct
 	let extract_context_id (cf : tclass_field) : int option =
 		if not (Meta.has EcsoMeta.context cf.cf_meta) then None
 		else match Meta.get EcsoMeta.context cf.cf_meta with
-		| (_,[Ast.EConst (Int (id)),_],p) -> Some (int_of_string id)
+		| (_,[Ast.EConst (Int (id,_)),_],p) -> Some (int_of_string id)
 		| _ -> None
 
 	let in_context_raw (cf : tclass_field) (ctx_id : int) =

@@ -437,7 +437,7 @@ module EcsoGraph = struct
 	
 	let get_entity_context v =
 		match Meta.get EcsoMeta.entity v.v_meta with
-		| _,[EConst(Int ctx_id),_],_ -> int_of_string ctx_id
+		| _,[EConst(Int (ctx_id,_)),_],_ -> int_of_string ctx_id
 		| _ -> raise Not_found
 
 	let mk_local_decl v eo =
@@ -1123,7 +1123,7 @@ module EcsoGraph = struct
 					List.iter
 						(fun r -> match r with
 							| SREntity (v,arch) ->
-								v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id)),v.v_pos],v.v_pos) :: v.v_meta;
+								v.v_meta <- (EcsoMeta.entity,[EConst(Int (string_of_int ctx.ctx_id, None)),v.v_pos],v.v_pos) :: v.v_meta;
 						)
 						rl;
 					let _,e,_ = f acc tf.tf_expr in

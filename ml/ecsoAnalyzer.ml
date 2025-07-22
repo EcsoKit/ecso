@@ -117,7 +117,7 @@ module EcsoAnalyzer = struct
 						(* Already processed *)
 						Some cf
 					end else begin
-						cf.cf_meta <- (EcsoMeta.context,[EConst (Int (string_of_int ctx_id)),cf.cf_name_pos],cf.cf_name_pos) :: cf.cf_meta;
+						cf.cf_meta <- (EcsoMeta.context,[EConst (Int (string_of_int ctx_id, None)),cf.cf_name_pos],cf.cf_name_pos) :: cf.cf_meta;
 						Some (sanity_check name cf)
 					end
 				else
