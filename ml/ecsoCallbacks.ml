@@ -36,9 +36,9 @@ let make_callback_call (ctx : EcsoContext.t) self pos ((_,_,meta_pos),targs,efie
 		if List.length args == 0 then begin
 			mk (TCall (efield,List.map2 (fun e t -> mk (TCast(e,None)) t e.epos) [self] targs)) api.tvoid pos
 		end else
-			Error.error "[ECSO] @:ecso.added must be annotated on functions without arguments" meta_pos
+			Error.typing_error "[ECSO] @:ecso.added must be annotated on functions without arguments" meta_pos
 	| _ ->
-		Error.error "[ECSO] @:ecso.added must be annotated on functions" meta_pos
+		Error.typing_error "[ECSO] @:ecso.added must be annotated on functions" meta_pos
 
 let with_component_removed ?(compare=false) (ctx : EcsoContext.t) emutation ecomponent : texpr =
 	let api = ctx.ctx_basic in

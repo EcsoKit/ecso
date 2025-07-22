@@ -47,7 +47,7 @@ module EcsoAnalyzer = struct
 			let hint_or_raise name t want p =
 				match t with
 				| TMono _ ->
-					Error.error ("[ECSO] " ^ name ^ " functions must be explicitely typed " ^ TPrinting.Printer.s_type want) p
+					Error.typing_error ("[ECSO] " ^ name ^ " functions must be explicitely typed " ^ TPrinting.Printer.s_type want) p
 				| _ -> ()
 			in
 			let unify_or_raise a b p =
@@ -56,22 +56,22 @@ module EcsoAnalyzer = struct
 			in
 			let single_param_or_raise name cf = match cf.cf_params with
 				| [n,t] -> n,t
-				| _ -> Error.error ("[ECSO] " ^ name ^ " functions must declare exactly one parameter") cf.cf_pos;
+				| _ -> Error.typing_error ("[ECSO] " ^ name ^ " functions must declare exactly one parameter") cf.cf_pos;
 			in
 			let common_sanity name cf =
 				match cf.cf_type with
 				| _ when not (has_class_field_flag cf CfExtern) ->
-					Error.error ("[ECSO] " ^ name ^ " functions must be extern") cf.cf_pos
+					Error.typing_error ("[ECSO] " ^ name ^ " functions must be extern") cf.cf_pos
 				| TFun (_,r) when not (ExtType.is_mono r) && not (ExtType.is_void r) ->
 					raise (Error (Unify [cannot_unify r api.tvoid], cf.cf_pos))
 				| TFun ([_,true,_],_) ->
-					Error.error ("[ECSO] " ^ name ^ " functions cannot have an optional argument") cf.cf_pos
+					Error.typing_error ("[ECSO] " ^ name ^ " functions cannot have an optional argument") cf.cf_pos
 				| TFun ([a1],_) ->
 					{ cf with cf_type = TFun([a1],api.tvoid) }
 				| TFun (_,_) ->
-					Error.error ("[ECSO] " ^ name ^ " functions must accept exactly one argument") cf.cf_pos
+					Error.typing_error ("[ECSO] " ^ name ^ " functions must accept exactly one argument") cf.cf_pos
 				| _ ->
-					Error.error ("[ECSO] " ^ name ^ " fields must be function") cf.cf_pos
+					Error.typing_error ("[ECSO] " ^ name ^ " fields must be function") cf.cf_pos
 			in
 			let sanitize_ec_ed name cf =
 				let cf = common_sanity name cf in
@@ -121,7 +121,7 @@ module EcsoAnalyzer = struct
 						Some (sanity_check name cf)
 					end
 				else
-					Error.error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos
+					Error.typing_error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos
 			in
 			let get_meta_name m = match m with | Meta.Custom v -> "@" ^ v | _ -> assert false in
 			{
@@ -208,7 +208,7 @@ let u_analyze (ctx : EcsoContext.t) (e : texpr) : uexpr =
 				UNone
 		end
 	| TField (entity_group, (FInstance(_,_,cf) | FStatic(_,cf) | FClosure(_,cf))) when EcsoContext.in_context cf ctx ->
-		Error.error "[ECSO] Cannot use ecso's core functions as value" e.epos
+		Error.typing_error "[ECSO] Cannot use ecso's core functions as value" e.epos
 	| _ ->
 		UNone
 
@@ -338,7 +338,7 @@ module CheckComponentGlobalization = struct
 			if Hashtbl.mem cache cf.cf_name then begin
 				let cf' = Hashtbl.find cache cf.cf_name in
 				if not (does_unify_component strict cf' cf) then begin
-					Error.error (
+					Error.typing_error (
 						"[ECSO] Cannot redefine " ^ cf.cf_name ^ "'s type "
 						^ "\n         have: " ^ Printer.s_type cf.cf_type
 						^ "\n         want: " ^ Printer.s_type cf'.cf_type
@@ -361,7 +361,7 @@ module CheckComponentGlobalization = struct
 			begin match fetch_type t, fetch_type t' with
 				| TInst (cl,_),TInst (cl',_) ->
 					let downcast_error name decl_pos p =
-						Error.error (
+						Error.typing_error (
 							"[ECSO] Cannot downcast component " ^ name
 							^ "\n         declared at: " ^ s_error_pos decl_pos
 						) p
@@ -381,7 +381,7 @@ module CheckComponentGlobalization = struct
 					if cl == cl' then
 						()
 					else if extends cl cl' then
-						Error.error (
+						Error.typing_error (
 							"[ECSO] Cannot upcast component " ^ name ^ " declared as " ^ Globals.s_type_path cl.cl_path
 							^ "\n         declared at: " ^ s_error_pos p
 						) p'
@@ -423,7 +423,7 @@ module CheckComponentGlobalization = struct
 					| FInstance (_,_,cf)
 					| FStatic (_,cf) -> cf.cf_name
 					| FDynamic n -> n
-					| FEnum _ -> Error.error "{ECSO} unsupported entity kind - please report this at https://github.com/EcsoKit/ecso/issues" g.greal.epos
+					| FEnum _ -> Error.typing_error "{ECSO} unsupported entity kind - please report this at https://github.com/EcsoKit/ecso/issues" g.greal.epos
 				in
 				(* Forbid downcasting mutations *)
 				begin

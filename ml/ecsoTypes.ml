@@ -187,7 +187,7 @@ let rec archetype_of_type t p =
 	| TAbstract ({ a_path = [],"Any" }, []) ->
 		archetype_of_type (TAnon { a_fields = PMap.empty; a_status = ref Closed }) p
 	| _ ->
-		Error.error "[ECSO] Cannot use non-anonymous structure as entity" p
+		Error.typing_error "[ECSO] Cannot use non-anonymous structure as entity" p
 
 let eq_archetype a1 a2 =
 	let rec loop fields1 fields2 =

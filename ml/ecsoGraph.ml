@@ -158,7 +158,7 @@ module RsetGenerator = struct
 				try 
 					PMap.find name cl.cl_fields
 				with | Not_found ->
-					Error.error ("{ECSO} failed to resolve field " ^ name ^ " on " ^ s_type_kind t ^ " - please report this at https://github.com/EcsoKit/ecso/issues") cl.cl_pos
+					Error.typing_error ("{ECSO} failed to resolve field " ^ name ^ " on " ^ s_type_kind t ^ " - please report this at https://github.com/EcsoKit/ecso/issues") cl.cl_pos
 			in
 			{
 				cf_access = FInstance (cl, params, push);
@@ -431,7 +431,7 @@ module EcsoGraph = struct
 		| GEnumIndex _ -> "GEnumIndex"
 
 	let mk_srequirement ((v,eo) : tvar * texpr option) : srequirement =
-		begin match eo with | None -> () | Some _ -> Error.error "{ECSO} Optional entities are not supported yet" v.v_pos end;
+		begin match eo with | None -> () | Some _ -> Error.typing_error "{ECSO} Optional entities are not supported yet" v.v_pos end;
 		let archetype = archetype_of_type v.v_type v.v_pos in
 		SREntity (v,archetype)
 	
@@ -711,7 +711,7 @@ module EcsoGraph = struct
 
 				let rl = match follow (skip system).greal.etype with
 					| TFun (rl,ret) -> rl
-					| t -> Error.error ("[ECSO] Invalid system type " ^ TPrinting.Printer.s_type t) system.greal.epos
+					| t -> Error.typing_error ("[ECSO] Invalid system type " ^ TPrinting.Printer.s_type t) system.greal.epos
 				in
 
 				let p = system.greal.epos in
@@ -931,7 +931,7 @@ module EcsoGraph = struct
 				let e = { greal = e; gexpr = GAssign (prel, v, ANormal(op,e2), vl) } in
 
 				if Meta.has EcsoMeta.entity v.v_meta then
-					Error.error ("[ECSO] Assigning entity variables is not supported yet") e.greal.epos;
+					Error.typing_error ("[ECSO] Assigning entity variables is not supported yet") e.greal.epos;
 				
 				acc,e,VBranch[e1] (* intentionally forwards the local *)
 			| TBinop (op,e1,e2) ->
@@ -1077,7 +1077,7 @@ module EcsoGraph = struct
 							List.iter (fun ((name,pos,quote),e) ->
 								begin match quote with
 								| NoQuotes -> ()
-								| DoubleQuotes -> Error.error "[ECSO] Cannot declare component with quotes" pos
+								| DoubleQuotes -> Error.typing_error "[ECSO] Cannot declare component with quotes" pos
 								end;
 								if not (always_gives_null e) then begin
 									let c = (PMap.find name cmap) in
@@ -1091,7 +1091,7 @@ module EcsoGraph = struct
 					| _ ->
 						let real = (skip e1).greal in
 						let fname = match ctx.ctx_group.eg_create with | Some cf -> cf.cf_name in
-						Error.error ("[ECSO] Object declaration expected in " ^ fname ^ " function") e1.greal.epos
+						Error.typing_error ("[ECSO] Object declaration expected in " ^ fname ^ " function") e1.greal.epos
 				in
 				let e = { greal = e; gexpr = GEcsoCreate ((group,e1),archetype,ctx.ctx_id) } in
 				acc,e,VSelf
@@ -1144,7 +1144,7 @@ module EcsoGraph = struct
 					let system' = match e.gexpr with
 						| GField (fe,fa) ->
 							let mk_anon_system cf =
-								Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) p
+								Error.typing_error ("[ECSO] Unsupported system " ^ cf.cf_name) p
 							in
 							let mk_field_system cf =
 								let e = match cf.cf_expr with
@@ -1153,10 +1153,10 @@ module EcsoGraph = struct
 											| TFunction tf ->
 												make_s impl tf
 											| _ ->
-												Error.error ("[ECSO] Unsupported system " ^ cf.cf_name) p
+												Error.typing_error ("[ECSO] Unsupported system " ^ cf.cf_name) p
 										end
 									| None ->
-										Error.error "[ECSO] Cannont use system without implementation" p
+										Error.typing_error "[ECSO] Cannont use system without implementation" p
 								in { cf with
 									cf_name = "_ECSO" ^ string_of_int ctx.ctx_id ^ "_" ^ cf.cf_name;
 									cf_type = cf.cf_type;
@@ -1186,8 +1186,8 @@ module EcsoGraph = struct
 								| FStatic (cl, cf) -> FStatic (cl, mk_class_system cl cf true)
 								| FAnon cf -> FAnon (mk_anon_system cf)
 								| FClosure (None,cf) -> mk_anon_system cf
-								| FDynamic _ -> Error.error "[ECSO] Cannot use Dynamic as system" p
-								| FEnum _ -> Error.error "[ECSO] Cannot use Enum as system" p
+								| FDynamic _ -> Error.typing_error "[ECSO] Cannot use Dynamic as system" p
+								| FEnum _ -> Error.typing_error "[ECSO] Cannot use Enum as system" p
 							in
 							{ e with gexpr = GField (fe,fa') }
 						| GFunction (tf,_) ->
@@ -1198,7 +1198,7 @@ module EcsoGraph = struct
 						
 							let decl_prel = match LocalFlow.get_first acc.locals v with
 								| Some (prel,_,_) -> prel
-								| None -> Error.error ("[ECSO] Cannot reach the system value of " ^ v.v_name) v.v_pos
+								| None -> Error.typing_error ("[ECSO] Cannot reach the system value of " ^ v.v_name) v.v_pos
 							in
 
 							(*
