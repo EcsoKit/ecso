@@ -32,6 +32,7 @@ jobs:
       - run: |
           haxe --cwd extra/readme build-github.hxml
           git config --local user.name "[bot]"
+          git config --local user.email ""
           git commit --allow-empty -m "update readme" README.md
 
       - uses: ad-m/github-push-action@master
