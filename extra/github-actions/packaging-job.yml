@@ -18,7 +18,7 @@ steps:
       echo "$CHANGELOG" > CHANGELOG.md
 
   - name: Upload Ecso
-    uses: actions/upload-artifact@v2
+    uses: actions/upload-artifact@v4
     with:
       name: ecso
       path: |

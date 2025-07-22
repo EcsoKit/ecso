@@ -28,7 +28,7 @@ jobs:
           echo "$CHANGELOG" > CHANGELOG.md
     
       - name: Upload Ecso
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ecso
           path: |
@@ -159,7 +159,7 @@ jobs:
           [ $(ls -1 out | wc -l) -eq "3" ]
 
       - name: Upload Ecso
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ecso
           path: plugins/ecso/**/*.cmxs
@@ -306,7 +306,7 @@ jobs:
           [ $(ls -1 out | wc -l) -eq "3" ]
 
       - name: Upload Ecso
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ecso
           path: plugins/ecso/**/*.cmxs
@@ -405,7 +405,7 @@ jobs:
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       - name: Upload Ecso
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ecso
           path: plugins/ecso/**/*.cmxs
