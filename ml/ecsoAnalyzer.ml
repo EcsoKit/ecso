@@ -52,7 +52,7 @@ module EcsoAnalyzer = struct
 			in
 			let unify_or_raise a b p =
 				if type_iseq_strict a b then ()
-				else raise (Error (Unify [cannot_unify a b], p)) 
+				else raise (Error (Unify [cannot_unify a b], p, 0)) 
 			in
 			let single_param_or_raise name cf = match cf.cf_params with
 				| [n,t] -> n,t
@@ -63,7 +63,7 @@ module EcsoAnalyzer = struct
 				| _ when not (has_class_field_flag cf CfExtern) ->
 					Error.typing_error ("[ECSO] " ^ name ^ " functions must be extern") cf.cf_pos
 				| TFun (_,r) when not (ExtType.is_mono r) && not (ExtType.is_void r) ->
-					raise (Error (Unify [cannot_unify r api.tvoid], cf.cf_pos))
+					raise (Error (Unify [cannot_unify r api.tvoid], cf.cf_pos, 0))
 				| TFun ([_,true,_],_) ->
 					Error.typing_error ("[ECSO] " ^ name ^ " functions cannot have an optional argument") cf.cf_pos
 				| TFun ([a1],_) ->
