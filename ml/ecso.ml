@@ -66,15 +66,6 @@ class plugin =
 
 			if print_ctxs then
 				print_endline "{ECSO} | Done"
-
-		(*
-			Deprecated.
-		*)
-		method register_context path fields static =
-			EvalDecode.decode_string path;
-			List.iter (fun v -> begin EvalDecode.decode_string v; () end) (EvalDecode.decode_array fields);
-			EvalDecode.decode_bool static;
-			vnull
 	end
 ;;
 
@@ -86,5 +77,4 @@ let api = new plugin in
 *)
 EvalStdLib.StdContext.register [
 	("init", EvalEncode.vfun0 api#init);
-	("registerContext", EvalEncode.vfun3 api#register_context);
 ]

@@ -7,7 +7,6 @@ using haxe.io.Path;
 
 private typedef EcsoPluginApi = {
 	function init():Void;
-	@:deprecated function registerContext(path:String, fields:Array<String>, isStatic:Bool):Void;
 }
 
 class Plugin {
