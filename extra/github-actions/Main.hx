@@ -90,7 +90,8 @@ class Main {
 					var originalWorkflow = Http.requestUrl(workflow.url);
 					final jobTab:String = {
 						final r = ~/([ \t]*)jobs\s*:[\r\n]*([ \t]*)/;
-						r.match(originalWorkflow);
+						if(!r.match(originalWorkflow))
+							throw false;
 						r.matched(1) + r.matched(2);
 					}
 					// Fix job name collisions
@@ -104,7 +105,8 @@ class Main {
 					}
 					for (jobName in workflow.jobs) {
 						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
-						r.match(originalWorkflow);
+						if(!r.match(originalWorkflow))
+							throw false;
 						final job:Job = {
 							id: uniqueName(jobName),
 							name: 'Haxe ${workflow.haxeVersion} / $jobName',
@@ -147,7 +149,7 @@ class Main {
 
 	static function transform(script:String, build:BuildManifest, manifest:JobManifest) {
 		// Lock Runner OS
-		script = matchRunnerOS.map(script, function(reg:EReg) {
+		script = map(matchRunnerOS, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var tabs = reg.matched(1);
 			var os = reg.matched(2).toLowerCase();
@@ -156,7 +158,7 @@ class Main {
 		});
 
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
-		script = matchHaxeCheckout.map(script, function(reg:EReg) {
+		script = map(matchHaxeCheckout, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var head = reg.matched(1);
 			var action = reg.matched(2);
@@ -178,6 +180,7 @@ class Main {
 		});
 
 		// Lock Ocaml setup
+		
 		script = matchOpamInstallHaxe.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var install = reg.matched(1);
@@ -193,7 +196,8 @@ class Main {
 
 		// Lock Neko version
 		if (manifest.nekoDownload != null) {
-			script = ~/(https?:\/\/\S+\/(neko_latest\.(zip|tar\.gz))\/?)\s/gm.map(script, function(reg:EReg) {
+			var matchNekoVersion = ~/(https?:\/\/\S+\/(neko_latest\.(zip|tar\.gz))\/?)\s/gm;
+			script = map(matchNekoVersion, script, function(reg:EReg) {
 				final matched = reg.matched(0);
 				final url = reg.matched(1);
 				final file = reg.matched(2);
@@ -204,7 +208,7 @@ class Main {
 		}
 
 		// Add commands before `make haxe`
-		script = matchMakeHaxe.map(script, function(reg:EReg) {
+		script = map(matchMakeHaxe, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var cmd = reg.matched(1);
 			var haxe = reg.matched(3);
@@ -227,11 +231,11 @@ class Main {
 			// Rename build jobs
 			script = script.replace("Build Haxe", "Build Haxe + Ecso");
 			// Build ecso as plugin (after haxelib)
-			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+			script = map(matchMakeHaxelib, script, function(reg:EReg) {
 				found = true;
 				var pos = reg.matchedPos();
 				var makeEcso = "";
-				matchMakeHaxe.map(script.substring(0, pos.pos), function(reg:EReg) {
+				map(matchMakeHaxe, script.substring(0, pos.pos), function(reg:EReg) {
 					var matched = reg.matched(0);
 					var cmd = reg.matched(1);
 					var make = reg.matched(2);
@@ -250,31 +254,31 @@ class Main {
 			// Rename build jobs
 			script = script.replace("Build Haxe", "Build Ecso");
 			// Build ecso instead of haxe/haxelib
-			script = matchMakeHaxe.map(script, function(reg:EReg) {
+			script = map(matchMakeHaxe, script, function(reg:EReg) {
 				found = true;
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
 				var haxe = reg.matched(3);
 				return matched.replace(haxe, "PLUGIN=ecso plugin");
 			});
-			script = matchMakeHaxelib.map(script, function(reg:EReg) {
+			script = map(matchMakeHaxelib, script, function(reg:EReg) {
 				var matched = reg.matched(0);
 				var cmd = reg.matched(1);
 				return "";
 			});
-			script = matchMakePackage.map(script, function(reg:EReg) {
+			script = map(matchMakePackage, script, function(reg:EReg) {
 				final matched = reg.matched(0);
 				final cmd = reg.matched(1);
 				return matched.replace(cmd, "mkdir ./out");
 			});
-			script = matchBuildCheck.map(script, function(reg:EReg) {
+			script = map(matchBuildCheck, script, function(reg:EReg) {
 				return "";
 			});
 			found;
 		}
 
 		// Move binaries
-		script = matchCheckOut.map(script, function(reg:EReg) {
+		script = map(matchCheckOut, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var cmd = reg.matched(1);
 			final platform = switch manifest.os.name {
@@ -300,7 +304,7 @@ class Main {
 		});
 
 		// Upload artifact
-		script = matchUploadArtifact.map(script, function(reg:EReg) {
+		script = map(matchUploadArtifact, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			if (matched.contains("xmldoc"))
 				return matched;
@@ -351,7 +355,7 @@ class Main {
 		script = script.replace("startsWith(github.ref, 'refs/tags/')", manifest.development != null ? '${!manifest.development}' : 'true');
 
 		// Allow job failure 
-		script = matchRunnerOS.map(script, function(reg:EReg) {
+		script = map(matchRunnerOS, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			var tabs = reg.matched(1);
 			
@@ -421,5 +425,11 @@ class Main {
 	static function align(value:String, head:String):String {
 		final spaces = head.substr(head.lastIndexOf("\n") + 1);
 		return head + value.replace('\n', '\n$spaces');
+	}
+
+	static inline function map(ereg:EReg, with:String, f):String {
+		if(!ereg.match(with))
+			throw 'No match with ${Std.string(ereg)} for $with';
+		return ereg.map(with, f);
 	}
 }

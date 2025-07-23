@@ -1,4 +1,5 @@
 # --run Main
 --main Main
+--debug
 --neko Main.n
 --cmd neko Main.n
