@@ -509,9 +509,16 @@ jobs:
           opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre2-8.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
           mkdir ./out
           mkdir ./plugins/ecso/cmxs/hx-4.3.7
-          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.3.7
-          otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac/plugin.cmxs
+          mv ./plugins/ecso/cmxs/Mac${{ matrix.os == 'macos-14' && '-arm64' || '' }} ./plugins/ecso/cmxs/hx-4.3.7
+          otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac${{ matrix.os == 'macos-14' && '-arm64' || '' }}/plugin.cmxs
           ls -l out
+
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecso
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
 
       - name: Upload artifact (x64)
         if: runner.arch == 'X64'
@@ -870,7 +877,7 @@ jobs:
 
   mac-test-4-3-7:
     name: Haxe 4.3.7 / mac-test
-    needs: mac-build-universal
+    needs: mac-build-4-3-7
     runs-on: macos-14.7.5
     env:
       PLATFORM: mac

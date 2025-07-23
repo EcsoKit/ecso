@@ -39,6 +39,10 @@ class Plugin {
 						'Haxe 32-bit is not yet supported, make sure to use an official 64-bit version of Haxe from https://haxe.org/download/.';
 					case "Linux":
 						'On Linux distributions, the installed Haxe package may not be supported by Ecso, make sure to use the official Linux Haxe Binaries from https://haxe.org/download/.';
+					case "Mac":
+						tryArm = true;
+						if (sys.FileSystem.exists(getPluginPath()))
+							return get_plugin();
 					case _:
 						null;
 				}
@@ -51,6 +55,7 @@ class Plugin {
 		}
 	}
 	static var try32 = false;
+	static var tryArm = false;
 	static function getPluginPath():String {
 		final here = ((?p:PosInfos) -> p.fileName)();
 		final src = here.directory().directory().directory().directory();
@@ -61,6 +66,8 @@ class Plugin {
 		return switch Sys.systemName() {
 			case "Windows":
 				'Windows${try32 ? "32" : "64"}';
+			case "Mac":
+				'Mac${tryArm ? "-arm64" : ""}';
 			case s:
 				s;
 		}
