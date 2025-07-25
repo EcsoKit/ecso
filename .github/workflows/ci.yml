@@ -49,7 +49,7 @@ jobs:
             haxelib.json
           if-no-files-found: error
     
-  windows64-build-4-3-7:
+  win64-4-3-7:
     name: Haxe 4.3.7 / windows64-build
     runs-on: windows-latest
     env:
@@ -169,7 +169,7 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v4
         with:
-          name: ecso
+          name: ecso-win64
           path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
@@ -182,7 +182,115 @@ jobs:
           path: out
 
 
-  windows-build-4-3-7:
+  win64-4-3-7-test:
+    name: Haxe 4.3.7 / windows64-test
+    needs: [packaging, win64-4-3-7]
+    runs-on: windows-latest
+    continue-on-error: ${{matrix.target == 'jvm'}}
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      PLATFORM: windows64
+      TEST: ${{matrix.target}}
+      HXCPP_COMPILE_CACHE: ~/hxcache
+      ARCH: 64
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO enable lua after https://github.com/HaxeFoundation/haxe/issues/10919
+        target: [interp, js, hl, cpp, cs, server, jvm]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'HaxeFoundation/haxe'
+          submodules: recursive
+          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          path: 'plugins/ecso'
+      - uses: actions/download-artifact@v4
+        with:
+          name: ecso
+          path: ${{github.workspace}}/plugins/ecso/
+      - uses: actions/download-artifact@v4
+        with:
+          name: win${{env.ARCH}}Binaries
+          path: win${{env.ARCH}}Binaries
+
+      - name: Install Neko from S3
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://build.haxe.org/builds/neko/windows64/neko_latest.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
+          Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
+          $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
+          echo "$NEKOPATH" >> $env:GITHUB_PATH
+          echo "NEKOPATH=$NEKOPATH" >> $env:GITHUB_ENV
+
+      - name: Print Neko version
+        run: neko -version 2>&1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.17.1
+
+      # - name: Quick test
+      #   shell: pwsh
+      #   run: |
+      #     $DOWNLOADDIR="./win$($env:ARCH)Binaries"
+      #     new-item -Name $DOWNLOADDIR -ItemType directory
+      #     Invoke-WebRequest https://build.haxe.org/builds/haxe/$env:PLATFORM/haxe_latest.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
+
+      - name: Setup Haxe
+        shell: pwsh
+        run: |
+          $DOWNLOADDIR="./win$($env:ARCH)Binaries"
+          Expand-Archive $DOWNLOADDIR/*_bin.zip -DestinationPath $DOWNLOADDIR
+          Set-PSDebug -Trace 1
+          $HAXEPATH = Get-ChildItem $DOWNLOADDIR/haxe_*_* -Directory
+          Write-Host "::add-path::$HAXEPATH"
+          Write-Host "::set-env name=HAXELIB_ROOT::$HAXEPATH\lib"
+
+      - name: Print Haxe version
+        shell: pwsh
+        run: haxe -version
+
+      - name: "Make Python 3 be available as python3 in the cmdline"
+        shell: pwsh
+        run: |
+          Set-PSDebug -Trace 1
+          $pypath = python -c "import sys; print(sys.executable)"
+          $py3path = $pypath.replace("python.exe","python3.exe")
+          cmd /c mklink $py3path $pypath
+          python3 -V
+
+      - name: Install hererocks
+        if: matrix.target == 'lua'
+        shell: cmd
+        run: |
+          pip install hererocks
+          hererocks lua53 -l5.3 -rlatest
+          call lua53/bin/activate
+
+      - name: Install wget
+        if: matrix.target == 'flash'
+        shell: cmd
+        run: |
+          choco install wget
+          wget --version
+
+      - name: Setup haxelib
+        shell: pwsh
+        run: |
+          mkdir "$env:HAXELIB_ROOT"
+          haxelib setup "$env:HAXELIB_ROOT"
+
+      - name: Test
+        shell: pwsh
+        run: haxe RunCi.hxml
+        working-directory: ${{github.workspace}}/plugins/ecso/tests
+
+
+  win32-4-3-7:
     name: Haxe 4.3.7 / windows-build
     runs-on: windows-latest
     continue-on-error: true
@@ -324,7 +432,7 @@ jobs:
       - name: Upload Ecso
         uses: actions/upload-artifact@v4
         with:
-          name: ecso
+          name: ecso-win32
           path: plugins/ecso/**/*.cmxs
           if-no-files-found: error
       
@@ -337,358 +445,9 @@ jobs:
           path: out
 
 
-  linux-build-4-3-7:
-    name: Haxe 4.3.7 / linux-build
-    runs-on: ubuntu-latest
-    env:
-      PLATFORM: linux64
-      OPAMYES: 1
-    strategy:
-      fail-fast: false
-      matrix:
-        ocaml: ["5.3.0"]
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: 'HaxeFoundation/haxe'
-          submodules: recursive
-          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-          path: 'plugins/ecso'
-
-      - name: Cache opam
-        id: cache-opam
-        uses: actions/cache@v4
-        with:
-          path: ~/.opam/
-          key: ${{ runner.os }}-${{ matrix.ocaml }}-${{ hashFiles('./haxe.opam', './libs/') }}
-
-      - name: Install Neko from S3
-        run: |
-          set -ex
-
-          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
-          tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
-          NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
-          sudo mkdir -p /usr/local/bin
-          sudo mkdir -p /usr/local/include
-          sudo mkdir -p /usr/local/lib/neko
-          sudo ln -s $NEKOPATH/{neko,nekoc,nekoml,nekotools}  /usr/local/bin/
-          sudo ln -s $NEKOPATH/libneko.*                      /usr/local/lib/
-          sudo ln -s $NEKOPATH/include/*                      /usr/local/include/
-          sudo ln -s $NEKOPATH/*.ndll                         /usr/local/lib/neko/
-          echo "NEKOPATH=$NEKOPATH" >> $GITHUB_ENV
-
-      - name: Print Neko version
-        run: neko -version 2>&1
-
-
-      - name: Install dependencies
-        run: |
-          set -ex
-          sudo apt-get update -qqy
-          sudo apt-get install -qqy bubblewrap ocaml-nox libpcre2-dev zlib1g-dev libgtk2.0-dev libmbedtls-dev ninja-build libstring-shellquote-perl libipc-system-simple-perl
-          curl -sSL https://github.com/ocaml/opam/releases/download/2.3.0/opam-2.3.0-x86_64-linux -o $RUNNER_TEMP/opam
-          sudo install $RUNNER_TEMP/opam /usr/local/bin/opam
-
-      - name: Install OCaml libraries
-        if: steps.cache-opam.outputs.cache-hit != 'true'
-        run: |
-          set -ex
-          opam init # --disable-sandboxing
-          opam update
-          opam switch create ${{ matrix.ocaml }}
-          opam pin add haxe . --no-action
-          opam install haxe --deps-only --assume-depexts
-          opam list
-          ocamlopt -v
-
-      - name: Set ADD_REVISION=1 for non-release
-        if: ${{ !false }}
-        run: echo "ADD_REVISION=1" >> $GITHUB_ENV
-
-      - name: Build Haxe + Ecso
-        run: |
-          set -ex
-          eval $(opam env)
-          opam config exec -- make -s -j`nproc` STATICLINK=1 haxe
-          opam config exec -- make -s haxelib
-          opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
-          make -s package_unix
-          mkdir ./plugins/ecso/cmxs/hx-4.3.7
-          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.3.7
-          ldd -v ./plugins/ecso/cmxs/hx-4.3.7/Linux/plugin.cmxs
-          ls -l out
-          ldd -v ./haxe
-          ldd -v ./haxelib
-
-      # https://stackoverflow.com/questions/58033366/how-to-get-current-branch-within-github-actions
-      - name: Extract branch name
-        id: extract_branch
-        shell: bash
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-      
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linuxBinaries
-          retention-days: 1
-          path: out
-
-  mac-build-4-3-7:
-    name: Haxe 4.3.7 / mac-build
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-14, macos-13]
-    runs-on: ${{ matrix.os }}
-    env:
-      PLATFORM: mac${{ matrix.os == 'macos-14' && '-arm64' || '' }}
-      OPAMYES: 1
-      MACOSX_DEPLOYMENT_TARGET: 10.13
-      OCAML_VERSION: 5.1.1
-      CTYPES: 0.21.1
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: 'HaxeFoundation/haxe'
-          submodules: recursive
-          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-          path: 'plugins/ecso'
-
-      - name: Cache opam
-        id: cache-opam
-        uses: actions/cache@v4
-        with:
-          path: ~/.opam/
-          key: ${{ matrix.os }}-${{ hashFiles('./haxe.opam', './libs/') }}
-
-      - name: Install Neko from S3
-        run: |
-          set -ex
-
-          curl -sSL https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
-          tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
-          NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
-          sudo mkdir -p /usr/local/bin
-          sudo mkdir -p /usr/local/include
-          sudo mkdir -p /usr/local/lib/neko
-          sudo ln -s $NEKOPATH/{neko,nekoc,nekoml,nekotools}  /usr/local/bin/
-          sudo ln -s $NEKOPATH/libneko.*                      /usr/local/lib/
-          sudo ln -s $NEKOPATH/include/*                      /usr/local/include/
-          sudo ln -s $NEKOPATH/*.ndll                         /usr/local/lib/neko/
-          echo "NEKOPATH=$NEKOPATH" >> $GITHUB_ENV
-
-      - name: Print Neko version
-        run: neko -version 2>&1
-
-      - name: Install dependencies
-        env:
-          # For compatibility with macOS 10.13
-          ZLIB_VERSION: 1.3.1
-          MBEDTLS_VERSION: 2.28.5
-          PCRE2_VERSION: 10.42
-        run: |
-          set -ex
-          brew update
-          brew bundle --file=tests/Brewfile --no-upgrade
-          cpanm IPC::System::Simple
-          cpanm String::ShellQuote
-          curl -L https://github.com/madler/zlib/releases/download/v$ZLIB_VERSION/zlib-$ZLIB_VERSION.tar.gz | tar xz
-          cd zlib-$ZLIB_VERSION
-          ./configure
-          sudo make && sudo make install
-          cd ..
-          curl -L https://github.com/ARMmbed/mbedtls/archive/v$MBEDTLS_VERSION.tar.gz | tar xz
-          cd mbedtls-$MBEDTLS_VERSION
-          sudo make && sudo make install
-          cd ..
-          curl -L https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.tar.gz | tar xz
-          cd pcre2-$PCRE2_VERSION
-          ./configure --enable-unicode --enable-pcre2-8 --enable-pcre2-16 --enable-pcre2-32 --enable-unicode-properties --enable-pcre2grep-libz --enable-pcre2grep-libbz2 --enable-jit
-          sudo make && sudo make install
-          cd ..
-
-      - name: Install OCaml libraries
-        if: steps.cache-opam.outputs.cache-hit != 'true'
-        run: |
-          set -ex
-          opam init # --disable-sandboxing
-          opam update
-          opam switch create ${{env.OCAML_VERSION}}
-          eval $(opam env)
-          opam env
-          opam pin add ctypes ${{env.CTYPES}} --yes
-          opam pin add haxe . --no-action
-          opam install haxe --deps-only --assume-depexts
-          opam list
-          ocamlopt -v
-
-      - name: Set ADD_REVISION=1 for non-release
-        if: ${{ !false }}
-        run: echo "ADD_REVISION=1" >> $GITHUB_ENV
-
-      - name: Build Haxe + Ecso
-        run: |
-          set -ex
-          eval $(opam env)
-          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre2-8.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" haxe
-          opam config exec -- make -s haxelib
-          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre2-8.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
-          make -s package_unix package_installer_mac
-          mkdir ./plugins/ecso/cmxs/hx-4.3.7
-          mv ./plugins/ecso/cmxs/Mac${{ matrix.os == 'macos-14' && '-arm64' || '' }} ./plugins/ecso/cmxs/hx-4.3.7
-          otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac${{ matrix.os == 'macos-14' && '-arm64' || '' }}/plugin.cmxs
-          ls -l out
-          otool -L ./haxe
-          otool -L ./haxelib
-
-      - name: Upload Ecso
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecso
-          path: plugins/ecso/**/*.cmxs
-          if-no-files-found: error
-
-      - name: Upload artifact (x64)
-        if: runner.arch == 'X64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macX64Binaries
-          path: out
-
-      - name: Upload artifact (arm)
-        if: runner.arch == 'ARM64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macArmBinaries
-          path: out
-
-
-  windows64-test-4-3-7:
-    name: Haxe 4.3.7 / windows64-test
-    needs: [packaging, windows64-build-4-3-7]
-    runs-on: windows-latest
-    continue-on-error: ${{matrix.target == 'jvm'}}
-    env:
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      PLATFORM: windows64
-      TEST: ${{matrix.target}}
-      HXCPP_COMPILE_CACHE: ~/hxcache
-      ARCH: 64
-    strategy:
-      fail-fast: false
-      matrix:
-        # TODO enable lua after https://github.com/HaxeFoundation/haxe/issues/10919
-        target: [interp, js, hl, cpp, cs, server, jvm]
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: 'HaxeFoundation/haxe'
-          submodules: recursive
-          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-          path: 'plugins/ecso'
-      - uses: actions/download-artifact@v4
-        with:
-          name: ecso
-          path: ${{github.workspace}}/plugins/ecso/
-      - uses: actions/download-artifact@v4
-        with:
-          name: win${{env.ARCH}}Binaries
-          path: win${{env.ARCH}}Binaries
-
-      - name: Install Neko from S3
-        shell: pwsh
-        run: |
-          Invoke-WebRequest https://build.haxe.org/builds/neko/windows64/neko_latest.zip -OutFile $env:RUNNER_TEMP/neko_latest.zip
-          Expand-Archive $env:RUNNER_TEMP/neko_latest.zip -DestinationPath $env:RUNNER_TEMP
-          $NEKOPATH = Get-ChildItem $env:RUNNER_TEMP/neko-*-*
-          echo "$NEKOPATH" >> $env:GITHUB_PATH
-          echo "NEKOPATH=$NEKOPATH" >> $env:GITHUB_ENV
-
-      - name: Print Neko version
-        run: neko -version 2>&1
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18.17.1
-
-      # - name: Quick test
-      #   shell: pwsh
-      #   run: |
-      #     $DOWNLOADDIR="./win$($env:ARCH)Binaries"
-      #     new-item -Name $DOWNLOADDIR -ItemType directory
-      #     Invoke-WebRequest https://build.haxe.org/builds/haxe/$env:PLATFORM/haxe_latest.zip -OutFile $DOWNLOADDIR/haxe_bin.zip
-
-      - name: Setup Haxe
-        shell: pwsh
-        run: |
-          $DOWNLOADDIR="./win$($env:ARCH)Binaries"
-          Expand-Archive $DOWNLOADDIR/*_bin.zip -DestinationPath $DOWNLOADDIR
-          Set-PSDebug -Trace 1
-          $HAXEPATH = Get-ChildItem $DOWNLOADDIR/haxe_*_* -Directory
-          Write-Host "::add-path::$HAXEPATH"
-          Write-Host "::set-env name=HAXELIB_ROOT::$HAXEPATH\lib"
-
-      - name: Print Haxe version
-        shell: pwsh
-        run: haxe -version
-
-      - name: "Make Python 3 be available as python3 in the cmdline"
-        shell: pwsh
-        run: |
-          Set-PSDebug -Trace 1
-          $pypath = python -c "import sys; print(sys.executable)"
-          $py3path = $pypath.replace("python.exe","python3.exe")
-          cmd /c mklink $py3path $pypath
-          python3 -V
-
-      - name: Install hererocks
-        if: matrix.target == 'lua'
-        shell: cmd
-        run: |
-          pip install hererocks
-          hererocks lua53 -l5.3 -rlatest
-          call lua53/bin/activate
-
-      - name: Install wget
-        if: matrix.target == 'flash'
-        shell: cmd
-        run: |
-          choco install wget
-          wget --version
-
-      - name: Setup haxelib
-        shell: pwsh
-        run: |
-          mkdir "$env:HAXELIB_ROOT"
-          haxelib setup "$env:HAXELIB_ROOT"
-
-      - name: Test
-        shell: pwsh
-        run: haxe RunCi.hxml
-        working-directory: ${{github.workspace}}/plugins/ecso/tests
-
-
-  windows-test-4-3-7:
+  win32-4-3-7-test:
     name: Haxe 4.3.7 / windows-test
-    needs: [packaging, windows-build-4-3-7]
+    needs: [packaging, win32-4-3-7]
     runs-on: windows-latest
     continue-on-error: true
     env:
@@ -795,9 +554,117 @@ jobs:
         working-directory: ${{github.workspace}}/plugins/ecso/tests
 
 
-  linux-test-4-3-7:
+  linux64-4-3-7:
+    name: Haxe 4.3.7 / linux-build
+    runs-on: ubuntu-latest
+    env:
+      PLATFORM: linux64
+      OPAMYES: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        ocaml: ["4.14.0", "5.3.0"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'HaxeFoundation/haxe'
+          submodules: recursive
+          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          path: 'plugins/ecso'
+
+      - name: Cache opam
+        id: cache-opam
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam/
+          key: ${{ runner.os }}-${{ matrix.ocaml }}-${{ hashFiles('./haxe.opam', './libs/') }}
+
+      - name: Install Neko from S3
+        run: |
+          set -ex
+
+          curl -sSL https://build.haxe.org/builds/neko/linux64/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
+          NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
+          sudo mkdir -p /usr/local/bin
+          sudo mkdir -p /usr/local/include
+          sudo mkdir -p /usr/local/lib/neko
+          sudo ln -s $NEKOPATH/{neko,nekoc,nekoml,nekotools}  /usr/local/bin/
+          sudo ln -s $NEKOPATH/libneko.*                      /usr/local/lib/
+          sudo ln -s $NEKOPATH/include/*                      /usr/local/include/
+          sudo ln -s $NEKOPATH/*.ndll                         /usr/local/lib/neko/
+          echo "NEKOPATH=$NEKOPATH" >> $GITHUB_ENV
+
+      - name: Print Neko version
+        run: neko -version 2>&1
+
+
+      - name: Install dependencies
+        run: |
+          set -ex
+          sudo apt-get update -qqy
+          sudo apt-get install -qqy bubblewrap ocaml-nox libpcre2-dev zlib1g-dev libgtk2.0-dev libmbedtls-dev ninja-build libstring-shellquote-perl libipc-system-simple-perl
+          curl -sSL https://github.com/ocaml/opam/releases/download/2.3.0/opam-2.3.0-x86_64-linux -o $RUNNER_TEMP/opam
+          sudo install $RUNNER_TEMP/opam /usr/local/bin/opam
+
+      - name: Install OCaml libraries
+        if: steps.cache-opam.outputs.cache-hit != 'true'
+        run: |
+          set -ex
+          opam init # --disable-sandboxing
+          opam update
+          opam switch create ${{ matrix.ocaml }}
+          opam pin add haxe . --no-action
+          opam install haxe --deps-only --assume-depexts
+          opam list
+          ocamlopt -v
+
+      - name: Set ADD_REVISION=1 for non-release
+        if: ${{ !false }}
+        run: echo "ADD_REVISION=1" >> $GITHUB_ENV
+
+      - name: Build Haxe + Ecso
+        run: |
+          set -ex
+          eval $(opam env)
+          opam config exec -- make -s -j`nproc` STATICLINK=1 haxe
+          opam config exec -- make -s haxelib
+          opam config exec -- make -s -j`nproc` STATICLINK=1 PLUGIN=ecso plugin
+          make -s package_unix
+          mkdir ./plugins/ecso/cmxs/hx-4.3.7
+          mv ./plugins/ecso/cmxs/Linux ./plugins/ecso/cmxs/hx-4.3.7
+          ldd -v ./plugins/ecso/cmxs/hx-4.3.7/Linux/plugin.cmxs
+          ls -l out
+          ldd -v ./haxe
+          ldd -v ./haxelib
+
+      # https://stackoverflow.com/questions/58033366/how-to-get-current-branch-within-github-actions
+      - name: Extract branch name
+        id: extract_branch
+        shell: bash
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecso-linux64
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linuxBinaries${{
+          retention-days: 1 (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          path: out
+
+  linux64-4-3-7-test:
     name: Haxe 4.3.7 / linux-test
-    needs: [packaging, linux-build-4-3-7]
+    needs: [packaging, linux64-4-3-7]
     runs-on: ubuntu-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:
@@ -835,7 +702,7 @@ jobs:
           path: ${{github.workspace}}/plugins/ecso/
       - uses: actions/download-artifact@v4
         with:
-          name: linuxBinaries
+          name: linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
           path: linuxBinaries
 
       - name: Install Neko from S3
@@ -894,9 +761,135 @@ jobs:
         run: haxe RunCi.hxml
         working-directory: ${{github.workspace}}/plugins/ecso/testss
 
-  mac-test-4-3-7:
+  mac-4-3-7:
+    name: Haxe 4.3.7 / mac-build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: []
+    runs-on: macos-latest
+    env:
+      PLATFORM: mac${{ matrix.os == 'macos-14' && '-arm64' || '' }}
+      OPAMYES: 1
+      MACOSX_DEPLOYMENT_TARGET: 10.13
+      OCAML_VERSION: 5.1.1
+      CTYPES: 0.21.1
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'HaxeFoundation/haxe'
+          submodules: recursive
+          ref: 'e0b355c6be312c1b17382603f018cf52522ec651'
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          path: 'plugins/ecso'
+
+      - name: Cache opam
+        id: cache-opam
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam/
+          key: macos-latest-${{ hashFiles('./haxe.opam', './libs/') }}
+
+      - name: Install Neko from S3
+        run: |
+          set -ex
+
+          curl -sSL https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz -o $RUNNER_TEMP/neko_latest.tar.gz
+          tar -xf $RUNNER_TEMP/neko_latest.tar.gz -C $RUNNER_TEMP
+          NEKOPATH=`echo $RUNNER_TEMP/neko-*-*`
+          sudo mkdir -p /usr/local/bin
+          sudo mkdir -p /usr/local/include
+          sudo mkdir -p /usr/local/lib/neko
+          sudo ln -s $NEKOPATH/{neko,nekoc,nekoml,nekotools}  /usr/local/bin/
+          sudo ln -s $NEKOPATH/libneko.*                      /usr/local/lib/
+          sudo ln -s $NEKOPATH/include/*                      /usr/local/include/
+          sudo ln -s $NEKOPATH/*.ndll                         /usr/local/lib/neko/
+          echo "NEKOPATH=$NEKOPATH" >> $GITHUB_ENV
+
+      - name: Print Neko version
+        run: neko -version 2>&1
+
+      - name: Install dependencies
+        env:
+          # For compatibility with macOS 10.13
+          ZLIB_VERSION: 1.3.1
+          MBEDTLS_VERSION: 2.28.5
+          PCRE2_VERSION: 10.42
+        run: |
+          set -ex
+          brew update
+          brew bundle --file=tests/Brewfile --no-upgrade
+          cpanm IPC::System::Simple
+          cpanm String::ShellQuote
+          curl -L https://github.com/madler/zlib/releases/download/v$ZLIB_VERSION/zlib-$ZLIB_VERSION.tar.gz | tar xz
+          cd zlib-$ZLIB_VERSION
+          ./configure
+          sudo make && sudo make install
+          cd ..
+          curl -L https://github.com/ARMmbed/mbedtls/archive/v$MBEDTLS_VERSION.tar.gz | tar xz
+          cd mbedtls-$MBEDTLS_VERSION
+          sudo make && sudo make install
+          cd ..
+          curl -L https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.tar.gz | tar xz
+          cd pcre2-$PCRE2_VERSION
+          ./configure --enable-unicode --enable-pcre2-8 --enable-pcre2-16 --enable-pcre2-32 --enable-unicode-properties --enable-pcre2grep-libz --enable-pcre2grep-libbz2 --enable-jit
+          sudo make && sudo make install
+          cd ..
+
+      - name: Install OCaml libraries
+        if: steps.cache-opam.outputs.cache-hit != 'true'
+        run: |
+          set -ex
+          opam init # --disable-sandboxing
+          opam update
+          opam switch create ${{env.OCAML_VERSION}}
+          eval $(opam env)
+          opam env
+          opam pin add ctypes ${{env.CTYPES}} --yes
+          opam pin add haxe . --no-action
+          opam install haxe --deps-only --assume-depexts
+          opam list
+          ocamlopt -v
+
+      - name: Set ADD_REVISION=1 for non-release
+        if: ${{ !false }}
+        run: echo "ADD_REVISION=1" >> $GITHUB_ENV
+
+      - name: Build Haxe + Ecso
+        run: |
+          set -ex
+          eval $(opam env)
+          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre2-8.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" haxe
+          opam config exec -- make -s haxelib
+          opam config exec -- make -s -j`sysctl -n hw.ncpu` STATICLINK=1 "LIB_PARAMS=/usr/local/lib/libz.a /usr/local/lib/libpcre2-8.a /usr/local/lib/libmbedtls.a /usr/local/lib/libmbedcrypto.a /usr/local/lib/libmbedx509.a -cclib '-framework Security -framework CoreFoundation'" PLUGIN=ecso plugin
+          make -s package_unix package_installer_mac
+          mkdir ./plugins/ecso/cmxs/hx-4.3.7
+          mv ./plugins/ecso/cmxs/Mac ./plugins/ecso/cmxs/hx-4.3.7
+          otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac/plugin.cmxs
+          ls -l out
+          otool -L ./haxe
+          otool -L ./haxelib
+
+      - name: Upload artifact (x64)
+        if: runner.arch == 'X64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macX64Binaries
+          path: out
+
+      - name: Upload artifact (arm)
+        if: runner.arch == 'ARM64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macArmBinaries
+          path: out
+
+
+  mac-4-3-7-test:
     name: Haxe 4.3.7 / mac-test
-    needs: mac-build-4-3-7
+    needs: [packaging, mac-4-3-7]
     runs-on: macos-latest
     continue-on-error: ${{matrix.target == 'jvm'}}
     env:

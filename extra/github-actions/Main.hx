@@ -48,7 +48,7 @@ class Main {
 	static final matchMakeHaxelib = ~/.* ((opam config exec -- make) .* (haxelib))(?= |\n).*\n/g;
 	static final matchMakePackage = ~/.* (make .* (package_unix|package_bin)( +\w+)*)(?= |\n).*\n/g;
 	static final matchBuildCheck = ~/.* (cygcheck|ldd|otool) .*(haxe|haxelib).*\n/gm;
-	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/g;
+	static final matchCheckOut = ~/.* (ls (-\w+ )*(\.\/)?out).*\n/;
 	static final matchCompileFs = ~/( |\/)(sys\/compile-fs\.hxml)( *)$/gm;
 	static final matchRunnerOS = ~/( *)runs-on:\s*(\w+)-(.+)/g;
 
@@ -96,21 +96,34 @@ class Main {
 					}
 					// Fix job name collisions
 					inline function uniqueName(name:String):String {
-						return '$name-${workflow.haxeVersion.replace('.', '-')}';
+						var suffix = name.contains('test') ? '-test' : '';
+						return '${workflow.name}-${workflow.haxeVersion.replace('.', '-')}' + suffix;
 					}
-					for (jobName in workflow.jobs) {
-						originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
-							r.matched(0).replace(jobName, '[packaging, ${uniqueName(jobName)}]');
-						});
-					}
+					// for (jobName in workflow.jobs) {
+					// 	trace('EXISTING NEEDS $jobName ?');
+						// originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
+						// 	r.matched(0).replace(jobName, '[packaging, ${uniqueName(jobName)}]');
+						// });
+					// }
 					for (jobName in workflow.jobs) {
 						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
 						if(!r.match(originalWorkflow))
 							throw false;
+
+						var originalScript = r.matched(2);
+						// originalScript = ~/mac-build-universal/g.replace(originalScript, uniqueName(jobName));
+
+						// Update name for jobs dependencies
+						var needsRegex = new EReg('^\\s+needs:\\s*([\\w-]+)\\s', "gm");
+						originalScript = needsRegex.map(originalScript, r -> {
+							var neededJob = r.matched(1);
+							r.matched(0).replace(neededJob, '[packaging, ${uniqueName(neededJob)}]');
+						});
+
 						final job:Job = {
 							id: uniqueName(jobName),
 							name: 'Haxe ${workflow.haxeVersion} / $jobName',
-							script: transform(r.matched(2), build, workflow)
+							script: transform(originalScript, build, workflow)
 						};
 						job;
 					}
@@ -154,8 +167,22 @@ class Main {
 			var tabs = reg.matched(1);
 			var os = reg.matched(2).toLowerCase();
 			var version = reg.matched(3);
+			trace(manifest.name + " : os=" + os + ' $version');
 			return matched.replace(os, manifest.os.name).replace(version, manifest.os.version);
 		});
+		script = ~/\${{\s*matrix\.os\s*}}/g.map(script, function(reg:EReg) {
+			return manifest.os.name + '-' + manifest.os.version;
+		});
+		script = ~/\s+matrix:\s*os:\s*\[([\w\s,.-]+)\]/g.map(script, function(reg:EReg) {
+			var matched = reg.matched(0);
+			var osList = reg.matched(1);
+			var manifestOs = manifest.os.name + '-' + manifest.os.version;
+			var newOsList = osList.split(',').map(os -> os.trim()).filter(os -> manifestOs.contains(os)).join(', ');
+			return matched.replace(osList, newOsList);
+		});
+
+		// Fix Ubuntu libraries
+		script = ~/ darcs /g.replace(script, ' '); 
 
 		// Replace Haxe checkout with `checkout-haxe.yml` and `checkout-ecso.yml`
 		script = map(matchHaxeCheckout, script, function(reg:EReg) {
@@ -313,7 +340,7 @@ class Main {
 			var name = reg.matched(3);
 			var tab = head.substr(head.lastIndexOf('\n') + 1);
 
-			var uploadEcso = File.getContent('./upload-cmxs.yml');
+			var uploadEcso = File.getContent('./upload-cmxs.yml').replace('::ARTIFACT_NAME::', "ecso-" + manifest.name);
 			var uploadHaxe = if (manifest.haxeDownload == null) {
 				matched.replace(name, '$name\n$tab    retention-days: 1');
 			} else {
@@ -428,8 +455,8 @@ class Main {
 	}
 
 	static inline function map(ereg:EReg, with:String, f):String {
-		if(!ereg.match(with))
-			throw 'No match with ${Std.string(ereg)} for $with';
+		// if(!ereg.match(with))
+			// throw 'No match with ${Std.string(ereg)} for:\n     ${with.substr(0,28)}';
 		return ereg.map(with, f);
 	}
 }
