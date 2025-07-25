@@ -99,12 +99,6 @@ class Main {
 						var suffix = name.contains('test') ? '-test' : '';
 						return '${workflow.name}-${workflow.haxeVersion.replace('.', '-')}' + suffix;
 					}
-					// for (jobName in workflow.jobs) {
-					// 	trace('EXISTING NEEDS $jobName ?');
-						// originalWorkflow = new EReg('^\\s+needs:\\s*($jobName)\\s', "gm").map(originalWorkflow, r -> {
-						// 	r.matched(0).replace(jobName, '[packaging, ${uniqueName(jobName)}]');
-						// });
-					// }
 					for (jobName in workflow.jobs) {
 						final r = new EReg('\\n$jobTab$jobName\\s*:\\s*(#.*\\n|\\n)((\\s*\\n|$jobTab$jobTab.*\\n)+)', 'm');
 						if(!r.match(originalWorkflow))
@@ -167,7 +161,6 @@ class Main {
 			var tabs = reg.matched(1);
 			var os = reg.matched(2).toLowerCase();
 			var version = reg.matched(3);
-			trace(manifest.name + " : os=" + os + ' $version');
 			return matched.replace(os, manifest.os.name).replace(version, manifest.os.version);
 		});
 		script = ~/\${{\s*matrix\.os\s*}}/g.map(script, function(reg:EReg) {
