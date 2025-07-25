@@ -43,6 +43,7 @@ class Plugin {
 						tryArm = true;
 						if (sys.FileSystem.exists(getPluginPath()))
 							return get_plugin();
+						null;
 					case _:
 						null;
 				}
