@@ -175,10 +175,25 @@ class Main {
 		});
 		script = ~/\s+matrix:\s*os:\s*\[([\w\s,.-]+)\]/g.map(script, function(reg:EReg) {
 			var matched = reg.matched(0);
-			var osList = reg.matched(1);
-			var manifestOs = manifest.os.name + '-' + manifest.os.version;
-			var newOsList = osList.split(',').map(os -> os.trim()).filter(os -> manifestOs.contains(os)).join(', ');
-			return matched.replace(osList, newOsList);
+			var matchedList = reg.matched(1);
+			var osList = matchedList.split(',').map(os -> os.trim());
+			osList = if(manifest.os.version == "latest") {
+				// if there is a matrix we use the more recent of the listed os
+				function v(os:String):Array<Int> @:nullSafety(Off) return os.substr(os.indexOf('-') + 1).split('.').map(i -> Std.parseInt(i));
+				function sort(a:Array<Int>, b:Array<Int>):Int {
+					if(a.length == 0) return 1;
+					if(b.length == 0) return -1;
+					@:nullSafety(Off) return if(a[0] < b[0]) 1;
+					else if(a.shift() > b.shift()) -1;
+					else sort(a, b);
+				}
+				osList.sort((a,b) -> sort(v(a), v(b)));
+				[osList[0]];
+			} else {
+				var manifestOs = manifest.os.name + '-' + manifest.os.version;
+				osList.filter(os -> manifestOs.contains(os));
+			}
+			return matched.replace(matchedList, osList.join(', '));
 		});
 
 		// Fix Ubuntu libraries

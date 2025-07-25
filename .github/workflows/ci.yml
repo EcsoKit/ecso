@@ -766,7 +766,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: []
+        os: [macos-14]
     runs-on: macos-latest
     env:
       PLATFORM: mac${{ matrix.os == 'macos-14' && '-arm64' || '' }}
