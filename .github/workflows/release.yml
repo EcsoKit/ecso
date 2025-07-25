@@ -853,19 +853,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac/plugin.cmxs
           ls -l out
 
-      - name: Upload artifact (x64)
-        if: runner.arch == 'X64'
+      - name: Upload Ecso
         uses: actions/upload-artifact@v4
         with:
-          name: macX64Binaries
-          path: out
-
-      - name: Upload artifact (arm)
-        if: runner.arch == 'ARM64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macArmBinaries
-          path: out
+          name: ecso-mac-x64
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
 
 
   mac-x64-4-3-7-test:
@@ -1073,19 +1067,13 @@ jobs:
           otool -L ./plugins/ecso/cmxs/hx-4.3.7/Mac/plugin.cmxs
           ls -l out
 
-      - name: Upload artifact (x64)
-        if: runner.arch == 'X64'
+      - name: Upload Ecso
         uses: actions/upload-artifact@v4
         with:
-          name: macX64Binaries
-          path: out
-
-      - name: Upload artifact (arm)
-        if: runner.arch == 'ARM64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macArmBinaries
-          path: out
+          name: ecso-mac-arm64
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
 
 
   mac-arm64-4-3-7-test:

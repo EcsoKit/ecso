@@ -38,8 +38,8 @@ typedef Job = {
 @:nullSafety
 class Main {
 	static final matchHaxeCheckout = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/checkout@[A-Za-z0-9.]+)\s*[\r\n](.|\r|\n)+?(?=(\r|\n)\s*-)/gm;
-	static final matchXmldocTasks = ~/([\r\n]\s*)-\s*name:[\w\s]+xmldoc[\w\s]+\s*:\s*[\w\W]+?(?=\n\n|\n\s*-)/gm;
-	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([\w${}. |&'=()]+)[\w\W]+?(?=\n\n|\n\s*-)/gm;
+	static final matchXmldocTasks = ~/([\r\n]\s*)-\s*name:[\w\s()]+xmldoc[\w\s]+\s*:\s*[\w\W]+?(?=\n\n|\n\s*-)/gm;
+	static final matchUploadArtifact = ~/([\r\n]\s*)-\s*name:[\w\s():.='|&]+\s*:\s*(actions\/upload-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([\w${}. |&'=()]+)[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchDownloadArtifact = ~/([\r\n]\s*)-\s*uses\s*:\s*(actions\/download-artifact@[A-Za-z0-9.]+)\s*[\w\W\r\n]+?(?=\sname:)\sname:\s([\w${}. |&'=()]+)/gm;
 	static final matchHaxeTests = ~/([\r\n]\s*)-\s*name: (Test[\w ()-]*)\s*[\n][\w\W]+?(?=haxe)(haxe RunCi\.hxml)[\w\W]+?(?=working-directory:)(working-directory:\s*([\w${}.\/ ]+))[\w\W]+?(?=\n\n|\n\s*-)/gm;
 	static final matchHaxeTargets = ~/[\r\n\s]target:\s*\[([\w,\s'"]*)\]/gm;
@@ -339,6 +339,7 @@ class Main {
 		});
 
 		// Upload artifact
+		var ecsoUploaded = false;
 		script = map(matchUploadArtifact, script, function(reg:EReg) {
 			var matched = reg.matched(0);
 			if (matched.contains("xmldoc"))
@@ -348,14 +349,22 @@ class Main {
 			var name = reg.matched(3);
 			var tab = head.substr(head.lastIndexOf('\n') + 1);
 
-			var uploadEcso = File.getContent('./upload-cmxs.yml').replace('::ARTIFACT_NAME::', "ecso-" + manifest.name);
 			var uploadHaxe = if (manifest.haxeDownload == null) {
 				matched.replace(name, '$name\n$tab    retention-days: 1');
 			} else {
 				'';
 			};
 
-			return align(uploadEcso, head) + uploadHaxe;
+			// make sure to upload ecso only once
+			var uploadEcso = if(!ecsoUploaded) {
+				ecsoUploaded = true;
+				var uploadEcso = File.getContent('./upload-cmxs.yml').replace('::ARTIFACT_NAME::', "ecso-" + manifest.name);
+				align(uploadEcso, head);
+			} else {
+				'';
+			}
+
+			return uploadEcso + uploadHaxe;
 		});
 
 		// Download artifact

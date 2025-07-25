@@ -872,11 +872,20 @@ jobs:
           otool -L ./haxe
           otool -L ./haxelib
 
+      - name: Upload Ecso
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecso-mac
+          path: plugins/ecso/**/*.cmxs
+          if-no-files-found: error
+      
+
       - name: Upload artifact (x64)
         if: runner.arch == 'X64'
         uses: actions/upload-artifact@v4
         with:
           name: macX64Binaries
+          retention-days: 1
           path: out
 
       - name: Upload artifact (arm)
@@ -884,6 +893,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macArmBinaries
+          retention-days: 1
           path: out
 
 
