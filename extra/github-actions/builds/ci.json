@@ -39,7 +39,7 @@
 		},
 		{
 			"name": "mac",
-			"nekoDownload": "https://build.haxe.org/builds/neko/mac/neko_latest.tar.gz",
+			"nekoDownload": "https://build.haxe.org/builds/neko/mac-arm64/neko_latest.tar.gz",
 			"jobs": ["mac-build", "mac-test"],
 			"os": {
 				"name": "macos",
