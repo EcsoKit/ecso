@@ -678,15 +678,15 @@ jobs:
       - name: 'Download https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz (Unix)'
         if: ${{ !startsWith(env.PLATFORM, 'windows') }}
         run: |
-          mkdir ./linuxBinaries${{
-          curl -sSL https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz -o ./linuxBinaries${{/haxe_bin.tar.gz
+          mkdir ./linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          curl -sSL https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz -o ./linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}/haxe_bin.tar.gz
       - name: 'Download https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz (Windows)'
         if: ${{ startsWith(env.PLATFORM, 'windows') }}
         shell: pwsh
         run: |
-          $DOWNLOADDIR="./linuxBinaries${{"
+          $DOWNLOADDIR="./linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}"
           new-item -Name $DOWNLOADDIR -ItemType directory
-          Invoke-WebRequest https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          Invoke-WebRequest https://haxe.org/website-content/downloads/4.3.7/downloads/haxe-4.3.7-linux64.tar.gz -OutFile $DOWNLOADDIR/haxe_bin.tar.gz
           path: linuxBinaries
 
       - name: Install Neko from S3

@@ -658,8 +658,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linuxBinaries${{
-          retention-days: 1 (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          name: linuxBinaries${{ (matrix.ocaml == '5.3.0' && '_ocaml5') || '' }}
+          retention-days: 1
           path: out
 
   linux64-4-3-7-test:
