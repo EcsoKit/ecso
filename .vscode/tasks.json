@@ -14,6 +14,42 @@
             "options": {
                 "cwd": "${workspaceFolder}/../.."
             }
+        },
+        {
+            "label": "Test Ecso",
+            "type": "shell",
+            "group": "test",
+            "command": "haxe RunCi.hxml -D test=${input:target}",
+            "options": {
+                "cwd": "${workspaceFolder}/tests"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "description": "Choose a target",
+            "default": "interp,macro,server",
+            "id": "target",
+            "type": "pickString",
+            "options": [
+                "interp,macro,server",
+                "server",
+                "interp",
+                "macro",
+                "js",
+                "hl",
+                "cs",
+                "jvm",
+                "cpp",
+                "php",
+                "php7",
+                "lua",
+                "python",
+                "cppia",
+                "java",
+                "flash9",
+                "neko",
+            ]
         }
     ]
 }
