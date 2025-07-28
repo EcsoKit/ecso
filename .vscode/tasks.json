@@ -10,7 +10,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "opam config exec -- make -s -j`nproc` STATICLINK=1 ADD_REVISION=1 && opam config exec -- make -s -j`nproc` STATICLINK=1 ADD_REVISION=1 PLUGIN=ecso plugin",
+            "command": "opam config exec -- make -s -j`nproc` STATICLINK=1 ADD_REVISION=1 && opam config exec -- make -s -j`nproc` STATICLINK=1 ADD_REVISION=1 PLUGIN=ecso plugin && bash plugins/ecso/extra/arch.sh && make install",
             "options": {
                 "cwd": "${workspaceFolder}/../.."
             }
