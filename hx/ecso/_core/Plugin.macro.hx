@@ -4,6 +4,7 @@ import haxe.macro.Context;
 import haxe.PosInfos;
 
 using haxe.io.Path;
+using StringTools;
 
 private typedef EcsoPluginApi = {
 	function init():Void;
@@ -30,20 +31,10 @@ class Plugin {
 			} catch (e:String) {
 				var exists = sys.FileSystem.exists(path);
 				final hint = switch getSystem() {
-					case "Windows64":
-						try32 = true;
-						if (sys.FileSystem.exists(getPluginPath()))
-							return get_plugin();
-						null;
-					case "Windows32":
+					case "windows-x86":
 						'Haxe 32-bit is not yet supported, make sure to use an official 64-bit version of Haxe from https://haxe.org/download/.';
-					case "Linux":
+					case _.startsWith('l') => true:
 						'On Linux distributions, the installed Haxe package may not be supported by Ecso, make sure to use the official Linux Haxe Binaries from https://haxe.org/download/.';
-					case "Mac":
-						tryArm = true;
-						if (sys.FileSystem.exists(getPluginPath()))
-							return get_plugin();
-						null;
 					case _:
 						null;
 				}
@@ -55,22 +46,23 @@ class Plugin {
 			plugin;
 		}
 	}
-	static var try32 = false;
 	static var tryArm = false;
 	static function getPluginPath():String {
 		final here = ((?p:PosInfos) -> p.fileName)();
 		final src = here.directory().directory().directory().directory();
-		final hx = Context.definedValue("haxe");
+		final hx = getCompilerVersion();
 		return Path.join([src, 'cmxs', 'hx-$hx', getSystem(), 'plugin.cmxs']);
 	}
 	static function getSystem():String {
-		return switch Sys.systemName() {
-			case "Windows":
-				'Windows${try32 ? "32" : "64"}';
-			case "Mac":
-				'Mac${tryArm ? "-arm64" : ""}';
-			case s:
-				s;
-		}
+		return Sys.systemName().toLowerCase() + "-" + getArch();
+	}
+	static function getArch():String {
+		var uname = new sys.io.Process('uname -m');
+		var arch = uname.stdout.readLine();
+		uname.close();
+		return arch;
+	}
+	static function getCompilerVersion():String {
+		return Context.definedValue("haxe");
 	}
 }

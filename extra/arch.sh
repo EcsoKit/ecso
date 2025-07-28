@@ -6,24 +6,43 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-if [ `uname -m` == 'x86_64' ]; then
-  ARCH='64'
-else
-  ARCH='32'
-fi
+# Get Architecture
+ARCH=$(uname -m)
 
+# Get OS
+case "$OSTYPE" in
+  linux*) OS='linux' ;;
+  darwin*) OS='mac' ;;
+  *) OS='windows' ;;
+esac
+
+# Get Haxe version
 CMXS=$DIR/../cmxs
 cd $DIR/../../..
-HX="hx-$( ./haxe.exe --version 2>&1 )"
+if [[ "$OS" == "windows" ]]; then
+  HX="hx-$( ./haxe.exe --version 2>&1 )"
+else
+  HX="hx-$( ./haxe --version 2>&1 )"
+fi
 cd $DIR
+HX=${HX%+*} # remove commit information until we can also get it from macros
+
+# Get plugin output directory
+case $OS in
+  linux) PLUGIN_SOURCE=$CMXS/Linux ;;
+  mac) PLUGIN_SOURCE=$CMXS/Mac ;;
+  windows) PLUGIN_SOURCE=$CMXS/Windows ;;
+esac
+
+PLUGIN_DESTINATION=$CMXS/$HX/$OS-$ARCH
 
 # Remove previous build
-if [ -d "$CMXS/$HX/Windows$ARCH" ]; then
-  rm -r $CMXS/$HX/Windows$ARCH
+if [ -d "$PLUGIN_DESTINATION" ]; then
+  rm -r $PLUGIN_DESTINATION
 fi
 # Create destination directory
 if [ ! -d "$CMXS/$HX" ]; then
   mkdir $CMXS/$HX
 fi
 
-mv -T $CMXS/Windows $CMXS/$HX/Windows$ARCH
+mv -T $PLUGIN_SOURCE $PLUGIN_DESTINATION
