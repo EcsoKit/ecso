@@ -120,6 +120,8 @@ function main() {
 					runUnits(Hl, args, runHl);
 					runSpecs(Hl, args, runHl);
 				case Js:
+					haxelibInstall("hxnodejs");
+					installNode();
 					testHaxe(Js);
 					for (es_ver in    [[], ["-D", "js-es=3"], ["-D", "js-es=6"]])
 					for (unflatten in [[], ["-D", "js-unflatten"]])

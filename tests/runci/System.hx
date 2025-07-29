@@ -115,6 +115,23 @@ function addToPATH(path:String):Void {
 	}
 }
 
+function installNode():Void {
+	if(Sys.command('node -v') != 0) {
+		switch Sys.systemName() {
+			case 'Windows': 
+				Sys.command('powershell -c "irm https://community.chocolatey.org/install.ps1|iex"');
+				Sys.command('choco install nodejs');
+			case 'Mac':
+				Sys.command('brew install node');
+			case 'Linux': 
+				Sys.command('apt install -qqy nodejs');
+			case _:
+		}
+		if(Sys.command('node -v') != 0)
+			failMsg('Error : node needs to be installed to run this target');
+	}
+}
+
 function haxelibInstallGit(account:String, repository:String, ?branch:String, ?srcPath:String, useRetry:Bool = false, ?altName:String):Void {
 	var name:String = (altName == null) ? repository : altName;
 	try {
