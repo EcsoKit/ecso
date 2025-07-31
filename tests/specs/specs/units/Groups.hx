@@ -8,13 +8,13 @@ import specs.systems.*;
 class CustomGroup {
     public function new () {}
     @:ecso.create public extern function add <A> (v:A):Void;
-    @:ecso.delete public extern function rem <B> (v:B);
-    @:ecso.foreach public extern function run (systems : haxe.extern.Rest<Any>);
+    @:ecso.delete public extern function rem <B> (v:B):Void;
+    @:ecso.foreach public extern function run (systems : haxe.extern.Rest<Any>):Void;
 
     
     @:ecso.create public static extern function staticAdd <A> (v:A):Void;
-    @:ecso.delete public static extern function staticRem <B> (v:B);
-    @:ecso.foreach public static extern function staticRun (systems : haxe.extern.Rest<Any>);
+    @:ecso.delete public static extern function staticRem <B> (v:B):Void;
+    @:ecso.foreach public static extern function staticRun (systems : haxe.extern.Rest<Any>):Void;
 }
 
 class Groups extends buddy.SingleSuite {
