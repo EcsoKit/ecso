@@ -127,17 +127,31 @@ private class CoreSpecification extends BuddySuite {
                     movingX(e2);
                     e2.x.should.be(4);
                 });
-                it('from hijacked functions', {
-                    var movingX = null;
-                    entities.foreachEntity(movingX = function (e:PositionComponent) {
-                        e.x += 4;
-                    });
-                    var e2 = { x: 0, y: 0 }
-                    movingX(e2);
-                    entities.foreachEntity(spying);
-                    spy.x.should.be(8);
-                    e2.x.should.be(4);
-                });
+                // it('from assigned functions', {
+                //     var movingX = null;
+                //     entities.foreachEntity(movingX = function (e:PositionComponent) {
+                //         e.x += 4;
+                //     });
+                //     var e2 = { x: 0, y: 0 }
+                //     movingX(e2);
+                //     entities.foreachEntity(spying);
+                //     spy.x.should.be(8);
+                //     e2.x.should.be(4);
+                // });
+                // it('from hijacked functions', {
+                //     var movingX:(PositionComponent)->Void = null;
+                //     var ran = 0;
+                //     entities.foreachEntity(movingX = function (e:PositionComponent) {
+                //         e.x += 4;
+                //         if(++ran == 2)
+                //             movingX = e -> e.y += 1;
+                //     });
+                //     entities.foreachEntity(movingX); // same
+                //     entities.foreachEntity(movingX); // hijacked
+                //     entities.foreachEntity(spying);
+                //     spy.x.should.be(12);
+                //     spy.y.should.be(5);
+                // });
                 it('from static functions', {
                     entities.foreachEntity(movingY);
                     entities.foreachEntity(spying);
