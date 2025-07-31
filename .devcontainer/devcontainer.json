@@ -42,6 +42,8 @@
 				"mutantdino.resourcemonitor",
 				// OCaml support
 				"ocamllabs.ocaml-platform",
+				// Gitlens
+				"eamodio.gitlens",
 			],
 			"settings": {
 				"git.ignoredRepositories": ["libs/docker-haxe"],
