@@ -396,7 +396,7 @@ module EcsoGraph = struct
 		| VBranch el -> "VBranch[" ^ TPrinting.Printer.s_list "," (fun e -> s_expr_pretty e.greal) el ^ "]"
 		| VVoid -> "VVoid"
 	
-	let s_gexpr_kind ge : string =
+	let s_gexpr_kind (ge : gexpr_expr) : string =
 		match ge with
 		| GEcsoCreate _ -> "GEcsoCreate"
 		| GEcsoDelete _ -> "GEcsoDelete"
@@ -440,9 +440,9 @@ module EcsoGraph = struct
 		| _,[EConst(Int (ctx_id,_)),_],_ -> int_of_string ctx_id
 		| _ -> raise Not_found
 
-	let mk_local_decl v eo =
+	let mk_local_decl api v eo =
 		{
-			greal = Builder.make_null v.v_type v.v_pos;
+			greal = Builder.make_null api.tvoid v.v_pos;
 			gexpr = GAssign (ref [],v,AInit eo,VVoid);
 		}
 	let mk_local v p =
@@ -559,20 +559,26 @@ module EcsoGraph = struct
 	let restore (ectx : EvalContext.context) (ctx : EcsoContext.t) (debug_buffer : (string,string)Hashtbl.t) (g : gexpr) : texpr =
 		let api = ctx.ctx_basic in
 		let rec f (g : gexpr) : texpr = 
-			let e = g.greal in match g.gexpr with
+			let e = g.greal in 
+			let e' = match g.gexpr with
 			| GReal -> e
-			| GLocal (v,_) -> { e with eexpr = TLocal v }
+			| GLocal (v,_) -> 
+				{ e with eexpr = TLocal v; etype = v.v_type }
+			| GVar (v, eo) -> 
+				(* { e with eexpr = TVar (v, match eo with None -> None | Some e -> Some (f e)) } *)
+				assert false
 			| GAssign (prel,v,a,_) ->
 				let e' = match a with
 					| AInit eo ->
-						{ e with eexpr = TVar (v, match eo with None -> None | Some e -> Some (f e)) }
+						{ e with eexpr = TVar (v, match eo with None -> None | Some e -> Some (f e)); etype = api.tvoid }
 					| ANormal (op,e2) ->
-						let e1 = { eexpr = TLocal v; epos = v.v_pos; etype = v.v_type } in
 						let e2 = f e2 in
-						{ e with eexpr = TBinop (op,e1,e2) }
+						let e1 = { eexpr = TLocal v; epos = v.v_pos; etype = v.v_type } in
+						{ e with eexpr = TBinop (op,e1,e2); etype = e1.etype }
 				in
 				let el = (List.map f !prel) @ [e'] in
-				{ e with eexpr = TBlock el }
+				let t = e'.etype in
+				{ e with eexpr = TBlock el; etype = t }
 			(* | GConst of tconstant *)
 			(* | GLocal of tvar *)
 			| GArray (e1,e2) ->
@@ -615,7 +621,9 @@ module EcsoGraph = struct
 					| e :: gl ->
 						loop gl (f e :: el)
 				in
-				{ e with eexpr = TBlock (loop (List.rev gl) []) }
+				let el = loop (List.rev gl) [] in
+				let t = if List.length el = 0 then api.tvoid else (List.nth el (List.length el - 1)).etype in
+				{ e with eexpr = TBlock el; etype = t }
 			| GObjectDecl el ->
 				{ e with eexpr = TObjectDecl (List.map (fun (v,e) -> v, f e) el) }
 			| GCall (e1,el) ->
@@ -814,7 +822,7 @@ module EcsoGraph = struct
 					print_endline ("              | IMPL " ^ s_expr_pretty impl);
 				end;
 
-				{ e with eexpr = impl.eexpr }
+				{ e with eexpr = impl.eexpr; etype = api.tvoid }
 			| GEcsoSystem (s,_) ->
 				(*
 					Generate a normal function, without any entity/component runtime status added.
@@ -842,6 +850,19 @@ module EcsoGraph = struct
 				let component = mk (TField (entity,fa)) value.etype e.epos in
 				let emut = { e with eexpr = TBinop(op,component,value) } in
 				EcsoCallbacks.with_component_callbacks ctx emut component value
+			in
+			(* Check typing wasn't altered during development only *)
+			if true || type_iseq e.etype e'.etype then
+				e'
+			else
+				let pctx = print_context() in
+				raise (Error.Error (Custom (
+					"{ECSO} Please report the following error:\n" ^
+					"Typing divergence at texpr " ^ s_expr_kind g.greal ^ " => gexpr " ^ s_gexpr_kind g.gexpr ^ " : " ^
+					s_type pctx e'.etype ^ " should be " ^ s_type pctx e.etype ^ "\n" ^
+					"From " ^ TPrinting.s_expr_pretty false "   " false (s_type pctx) e ^ "\n" ^
+					"To " ^ TPrinting.s_expr_pretty false "   " false (s_type pctx) e'
+				), e.epos, 0))
 		in
 		f g
 
@@ -849,8 +870,108 @@ module EcsoGraph = struct
 		locals : ((gexpr list) ref * gexpr option * gexpr_value) LocalFlow.t;
 	}
 
+	(* Debug *)
+
+	let rec s_gexpr_debug ?(tabs = "") (g : gexpr) : string =
+		let f g = s_gexpr_debug g ~tabs:(tabs ^ "  ") in
+		s_gexpr_kind g.gexpr ^ "(from texpr: " ^ s_expr_debug g.greal ^ ")" ^ "\n" ^ tabs ^ match g.gexpr with
+		| GLocal (v,vl) -> v.v_name ^ ": " ^ string_of_int (List.length vl) ^ " branches"
+		| GReal -> ""
+		| GArray (e1,e2)
+		| GBinop (_,e1,e2)
+		| GFor (_,e1,e2)
+		| GWhile (e1,e2,_) ->
+			f e1 ^ "\n" ^ tabs ^ f e2
+		| GThrow e
+		| GField (e,_)
+		| GEnumParameter (e,_,_)
+		| GEnumIndex e
+		| GParenthesis e
+		| GCast (e,_)
+		| GUnop (_,_,e)
+		| GFunction (_,e)
+		| GEcsoCreate ((_,e),_,_)
+		| GEcsoDelete (_,e,_)
+		| GEcsoProcess (_,e,_)
+		| GMeta(_,e) ->
+			f e
+		| GArrayDecl el
+		| GNew (_,_,el)
+		| GBlock el ->
+			List.fold_left (fun s e -> s ^ "\n" ^ tabs ^ f e ^ ";") "" el
+		| GObjectDecl fl ->
+			let s_field (_,e) = f e in
+			List.fold_left (fun s field -> s ^ "\n" ^ tabs ^ s_field field) "" fl
+		| GCall (e,el) ->
+			f e ^ "\n" ^ tabs ^ List.fold_left (fun s e -> s ^ "\n" ^ tabs ^ "arg: " ^ f e) "" el
+		| GVar (v,eo) ->
+			(match eo with None -> "<empty>" | Some e -> f e)
+		| GIf (e,e1,e2) ->
+			f e ^ "\n" ^ tabs ^
+			"eif:" ^ f e1 ^ "\n" ^ tabs ^
+			"eelse:" ^ (match e2 with None -> "<empty>" | Some e -> f e)
+		| GSwitch (e,cases,def) ->
+			f e ^ "\n" ^ tabs ^
+			List.fold_left (fun s (el,e2) -> s ^ "\n" ^ tabs ^ "case: " ^ 
+				List.fold_left (fun s e -> s ^ "\n" ^ tabs ^ "| " ^ f e) "" el ^
+				" if " ^ f e2
+			) "" cases ^
+			"def: " ^ (match def with None -> "<empty>" | Some e -> f e)
+		| GTry (e,catches) ->
+			f e ^ "\n" ^ tabs ^ List.fold_left (fun s (_,e) -> s ^ "\n" ^ tabs ^ "catch: " ^ f e) "" catches
+		| GReturn eo ->
+			(match eo with None -> "<void>" | Some e -> f e)
+		| GAssign (el,v,a,_) ->
+			(* DynArray.iter f el; *)
+			v.v_name ^ " = " ^
+			List.fold_left (fun s e -> s ^ "\n" ^ tabs ^ f e ) "" !el ^
+			"\n" ^ tabs ^ "value: \n" ^ tabs ^ "  " ^ begin match a with
+			| AInit (Some e) | ANormal (_,e) -> f e
+			| AInit None -> "<empty>"
+			end
+		| GEcsoSystem (s,_) ->
+			f s.s_expr
+		| GEcsoMutation (_,_,_,value,_) ->
+			f value
+
+	let s_prel prel tabs =
+		let el = !prel in
+		let last = List.length el - 1 in
+		let s,_ =
+			(List.fold_left (fun (s,i) e -> 
+				let s = 
+					tabs ^ s ^ string_of_int i ^ ": " ^ s_gexpr_debug e ^ (if i = last then "" else "\n")
+				in s,i+1
+			) ("",0) el)
+		in
+		if List.length el = 0 then tabs^"<empty>" else s
+
+	let s_flow_value (fv : flow_value) tabs =
+		let prel,e,v = fv in
+		let s = tabs ^ "prel : \n" ^ s_prel prel (tabs ^ "    ") in
+		let s = s ^ "\n" ^ tabs ^ "expr : " ^ begin match e with
+			| Some(e) -> s_gexpr_debug e
+			| None -> ""
+			end
+		in
+		let s = s ^ "\n" ^ tabs ^ "value : " ^ s_gexpr_value v in
+		s
+	
+	let s_flow_value_list (fvl : flow_value list) tabs =
+		let last = List.length fvl - 1 in
+		let s,_ =
+			List.fold_left (fun (s,i) fv -> 
+				let s = s ^ s_flow_value fv (tabs ^ "    ") in
+				let s = s ^ if i = last then "" else "\n" in
+				s,(i+1)
+			) ("",0) fvl
+		in if List.length fvl = 0 then tabs^"<empty>" else s
+
+	(* Graph execution *)
+
 	let run (ctx : EcsoContext.t) com (e : texpr) : graph_info =
 		let e = TexprFilter.apply com e in
+		let api = com.basic in
 		let extra = DynArray.create() in
 		let same_branch f acc (e : texpr) = 
 			f acc e
@@ -1101,6 +1222,8 @@ module EcsoGraph = struct
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
 
+				let ereal = e in
+
 				(* Unwrap rest arguments *)
 				let el = match el with
 					| [e] when ExtType.is_rest e.etype ->
@@ -1191,11 +1314,12 @@ module EcsoGraph = struct
 							in
 							{ e with gexpr = GField (fe,fa') }
 						| GFunction (tf,_) ->
+
 							(* If we inline a function expression, we have to duplicate its locals. *)
 							let tf = match duplicate_tvars e_identity e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
 							make_s e.greal tf
 						| GLocal (v,vl) ->
-						
+
 							let decl_prel = match LocalFlow.get_first acc.locals v with
 								| Some (prel,_,_) -> prel
 								| None -> Error.typing_error ("[ECSO] Cannot reach the system value of " ^ v.v_name) v.v_pos
@@ -1204,7 +1328,7 @@ module EcsoGraph = struct
 							(*
 								We declare a local variable which will hold the value of each system out of `values`.
 								By doing so we can preserve the user's variable.
-								For instance:
+								Step 1:
 									var system = z;
 									g.process( system );
 								Becomes:
@@ -1224,15 +1348,15 @@ module EcsoGraph = struct
 									v'.v_meta <- (Meta.Custom ("$ecso.v_clone" ^ string_of_int v'.v_id),[],v.v_pos) :: v.v_meta;
 									v'.v_extra <- v.v_extra;
 									add_var_flag v' VCaptured;
-									decl_prel := (mk_local_decl v' None) :: !decl_prel;
+									decl_prel := (mk_local_decl api v' None) :: !decl_prel;
 									v'
 								| _ -> assert false
 							in
-
+							
 							(*
 								Process the local copy instead of the user's variable, which we also move above
 								the process call in order to still be executed.
-								For instance:
+								Step 2:
 									var copy;
 									var system = z;
 									g.process( system );
@@ -1241,11 +1365,11 @@ module EcsoGraph = struct
 									var system = z;
 									g.process( { system; copy; } );
 							*)
-							let e = { e with gexpr = GBlock[mk_local v' e.greal.epos;{ e with gexpr = e.gexpr }] } in
+							(* let e = { e with gexpr = GBlock[{ e with gexpr = e.gexpr }] } in *)
 
 							(*
-								Assign the local copy everywhre the user's variable is being assigned a value.
-								For instance:
+								Assign the local copy everywhere the user's variable is being assigned a value.
+								Step 3:
 									var copy;
 									var system = z;
 									g.process( { system; copy; } );
@@ -1256,32 +1380,55 @@ module EcsoGraph = struct
 							*)
 							let rec loop_fv (fv : flow_value) = match fv with prel,e,gv ->
 								let assign_copy e =
-									let assign_copy _ = mk_local_assign v' { e with gexpr = e.gexpr } in
+
+									let eassign =
+										let e' = 
+											(* make_s e.gexpr function *)
+											begin match e.gexpr with
+												| GFunction (tf,_) ->
+													(* If we inline a function expression, we have to duplicate its locals. *)
+													let tf = match duplicate_tvars e_identity e.greal with | { eexpr = TFunction tf } -> tf | _ -> assert false in
+													make_s e.greal tf
+												| _ ->
+													Error.typing_error ("{ECSO} failed to parse this system") p;
+											end
+										in
+										mk_local_assign v' { e with gexpr = e'.gexpr }
+									in
+									
 									let original _ = { e with gexpr = e.gexpr } in
-									e.gexpr <- GBlock[assign_copy()(* ;original() *)]
+									e.gexpr <- GBlock[eassign ; original()]
 								in
 								(* This is a bit hacky, not sure it covers every cases *)
-								let follow_locals e =
-									match (skip e).gexpr with
+								let assign_copy_follow e =
+									let e = skip e in
+									match e.gexpr with
 									| GLocal (v,vl) ->
 										List.iter loop_fv vl
-									| _ -> assign_copy (skip e)
+									| _ -> assign_copy e
 								in
 								begin match gv,e with
 								| VBranch el,_ ->
-									List.iter follow_locals el
+									List.iter assign_copy_follow el
 								| VSelf,Some e ->
-									follow_locals e
+									assign_copy_follow e
 								| VVoid,_ ->
 									()
+								| VSelf,None ->
+									assert false
 								end
 							in
 							List.iter loop_fv vl;
-							e
+							
+							let system = { e with gexpr = e.gexpr } in
+							system
+
 						| _ ->
 							assert false
 					in
-					e.gexpr <- GEcsoProcess (group,{ e with gexpr = system'.gexpr },ctx.ctx_id)
+							
+					e.gexpr <- GEcsoProcess (group,system',ctx.ctx_id);
+					e.greal <- ereal;
 				in
 
 				let rec loop el vll =
@@ -1294,8 +1441,9 @@ module EcsoGraph = struct
 						end;
 						loop el vll
 					| [],[] -> ()
+					| _ -> assert false
 				in loop el vll;
-
+				
 				let e = { greal = e; gexpr = GBlock el } in
 				acc,e,VSelf
 			| TCall (e1,el) ->
