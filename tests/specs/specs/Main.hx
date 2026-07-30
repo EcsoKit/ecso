@@ -20,6 +20,7 @@ private class CoreSpecification extends BuddySuite {
         e.y += e.vy;
     }
     
+    @:haxe.warning("-WVarInit")
     public function new () {
 
         super();
