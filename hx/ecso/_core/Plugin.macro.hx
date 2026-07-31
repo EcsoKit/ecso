@@ -39,7 +39,7 @@ class Plugin {
 						null;
 				}
 				if (!exists)
-					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")} on ${Sys.systemName()}.', Context.currentPos());
+					Context.fatalError('[ECSO] No support for Haxe ${Context.definedValue("haxe")} on ${Sys.systemName()} (missing $path).', Context.currentPos());
 				throw '[ECSO] Failed to load plugin: $e' + (hint != null ? '\nHint: $hint' : '');
 			}
 		} else {
