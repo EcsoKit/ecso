@@ -1,6 +1,7 @@
 open Type
 open Ast
 open Globals
+open Error
 
 (* Tools *)
 
@@ -176,18 +177,37 @@ let foreach_compatible_archetype debug al f a =
 let mk_archetype (components : (string, tclass_field) PMap.t) : archetype =
 	{ a_components = components; }
 
-let rec archetype_of_type t p =
+let rec archetype_of_type (params : (typed_type_param * bool) list) t p =
 	match fetch_type t with
 	| TType (td, tparams) ->
-		archetype_of_type td.t_type p
+		archetype_of_type params td.t_type p
 	| TAnon a ->
 		mk_archetype a.a_fields
 	| TDynamic _
 	| TMono { tm_type = None }
 	| TAbstract ({ a_path = [],"Any" }, []) ->
-		archetype_of_type (TAnon { a_fields = PMap.empty; a_status = ref Closed }) p
+		mk_archetype PMap.empty
+	| TInst ({ cl_kind = KTypeParameter _ } as cl, _) ->
+		(* 
+			Type parameters can be used as entity archetypes in generic functions.
+			When a type parameter is used, we create an non-matching archetype to allow it.
+		*)
+		let is_generic_param = 
+			List.exists (fun (ttp, is_generic) ->
+				is_generic && ttp.ttp_name = (snd cl.cl_path)
+			) params
+		in
+		if is_generic_param then
+			let nomatch_component =
+				let kind = TType.Var { v_read = AccNormal; v_write = AccNormal; } in
+				let t = TDynamic(None) in
+				Gencommon.mk_class_field "$nomatch" t true p kind []
+			in
+			mk_archetype (PMap.add nomatch_component.cf_name nomatch_component PMap.empty)
+		else
+			typing_error ("[ECSO] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p
 	| _ ->
-		Error.typing_error "[ECSO] Cannot use non-anonymous structure as entity" p
+		typing_error ("[ECSO] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p
 
 let eq_archetype a1 a2 =
 	let rec loop fields1 fields2 =

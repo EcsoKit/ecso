@@ -350,8 +350,8 @@ module EcsoGraph = struct
 
 	and gexpr_expr =
 		| GEcsoCreate of (texpr * gexpr) * archetype  * int (* (group, obj), archetype, ctx_id *)
-		| GEcsoDelete of texpr * gexpr * int (* group, entity, ctx_id *)
-		| GEcsoProcess of texpr * gexpr * int (* group, system, ctx_id *)
+		| GEcsoDelete of texpr * gexpr * int * ((typed_type_param * bool) list) (* group, entity, ctx_id, (params,is_generic) *)
+		| GEcsoProcess of texpr * gexpr * int * ((typed_type_param * bool) list) (* group, system, ctx_id, (params,is_generic) *)
 		| GEcsoSystem of s * int
 		| GEcsoMutation of tvar * tfield_access * Ast.binop * gexpr * int
 		(* | GReal of texpr,gexpr *)
@@ -430,9 +430,9 @@ module EcsoGraph = struct
 		| GEnumParameter _ -> "GEnumParameter"
 		| GEnumIndex _ -> "GEnumIndex"
 
-	let mk_srequirement ((v,eo) : tvar * texpr option) : srequirement =
+	let mk_srequirement params ((v,eo) : tvar * texpr option) : srequirement =
 		begin match eo with | None -> () | Some _ -> Error.typing_error "{ECSO} Optional entities are not supported yet" v.v_pos end;
-		let archetype = archetype_of_type v.v_type v.v_pos in
+		let archetype = archetype_of_type params v.v_type v.v_pos in
 		SREntity (v,archetype)
 	
 	let get_entity_context v =
@@ -516,8 +516,8 @@ module EcsoGraph = struct
 		| GUnop (_,_,e)
 		| GFunction (_,e)
 		| GEcsoCreate ((_,e),_,_)
-		| GEcsoDelete (_,e,_)
-		| GEcsoProcess (_,e,_)
+		| GEcsoDelete (_,e,_,_)
+		| GEcsoProcess (_,e,_,_)
 		| GMeta(_,e) ->
 			f e
 		| GArrayDecl el
@@ -681,9 +681,9 @@ module EcsoGraph = struct
 					mk (TConst (TString ("CreateEntity " ^ s_archetype a))) api.tstring p
 				]) api.tstring p).eexpr }
 				
-			| GEcsoDelete (group,instance,_) ->
+			| GEcsoDelete (group,instance,_,params) ->
 
-				let archetype = archetype_of_type instance.greal.etype instance.greal.epos in
+				let archetype = archetype_of_type params instance.greal.etype instance.greal.epos in
 				let instance = f instance in
 
 				let p = instance.epos in
@@ -715,7 +715,7 @@ module EcsoGraph = struct
 					) !maybe_removed_components delete_expr
 				]; etype = api.tvoid }
 
-			| GEcsoProcess (group,system,_) ->
+			| GEcsoProcess (group,system,_,params) ->
 
 				let rl = match follow (skip system).greal.etype with
 					| TFun (rl,ret) -> rl
@@ -735,7 +735,7 @@ module EcsoGraph = struct
 						gen_system_call (List.rev system_args)
 					else match List.hd r_list with
 					| (name,opt,t) ->
-						let required_archetype = archetype_of_type t p in
+						let required_archetype = archetype_of_type params t p in
 						if not (ctx.ctx_identity_mode = IGlobal) then begin
 							print_endline ("{ECSO} Non unique component is not supported yet.");
 							(* FIXME: to make this work we would have to change
@@ -868,6 +868,7 @@ module EcsoGraph = struct
 
 	type acc_typer = {
 		locals : ((gexpr list) ref * gexpr option * gexpr_value) LocalFlow.t;
+		params : (typed_type_param * bool) list;
 	}
 
 	(* Debug *)
@@ -891,8 +892,8 @@ module EcsoGraph = struct
 		| GUnop (_,_,e)
 		| GFunction (_,e)
 		| GEcsoCreate ((_,e),_,_)
-		| GEcsoDelete (_,e,_)
-		| GEcsoProcess (_,e,_)
+		| GEcsoDelete (_,e,_,_)
+		| GEcsoProcess (_,e,_,_)
 		| GMeta(_,e) ->
 			f e
 		| GArrayDecl el
@@ -969,7 +970,7 @@ module EcsoGraph = struct
 
 	(* Graph execution *)
 
-	let run (ctx : EcsoContext.t) com (e : texpr) : graph_info =
+	let run (ctx : EcsoContext.t) com (params : (typed_type_param * bool) list) (e : texpr) : graph_info =
 		let e = TexprFilter.apply com e in
 		let api = com.basic in
 		let extra = DynArray.create() in
@@ -1025,6 +1026,7 @@ module EcsoGraph = struct
 		in
 		let create_acc size : acc_typer = {
 			locals = LocalFlow.create size;
+			params = params;
 		} in
 		let rec f acc (e : texpr) =
 			match e.eexpr with
@@ -1192,7 +1194,7 @@ module EcsoGraph = struct
 				let acc,e1,_ = f acc e1 in
 				let archetype = match (skip e1).gexpr with
 					| GObjectDecl fl ->
-						let a = archetype_of_type e1.greal.etype e1.greal.epos in
+						let a = archetype_of_type acc.params e1.greal.etype e1.greal.epos in
 						let prune_dead_components cmap fl = 
 							let useds = ref PMap.empty in
 							List.iter (fun ((name,pos,quote),e) ->
@@ -1218,7 +1220,7 @@ module EcsoGraph = struct
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },[e1]) when EcsoContext.is_api_delete ctx fa ->
 				let acc,e1,_ = f acc e1 in
-				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id) } in
+				let e = { greal = e; gexpr = GEcsoDelete (group,e1,ctx.ctx_id,acc.params) } in
 				acc,e,VSelf
 			| TCall ({ eexpr = TField(group, fa) },el) when EcsoContext.is_api_foreach ctx fa ->
 
@@ -1241,7 +1243,7 @@ module EcsoGraph = struct
 				let acc,el,vll = foldmap_list f acc el in
 
 				let make_s real tf : gexpr =
-					let rl = List.map mk_srequirement tf.tf_args in
+					let rl = List.map (mk_srequirement acc.params) tf.tf_args in
 					let acc = create_acc (List.length tf.tf_args) in
 					List.iter
 						(fun r -> match r with
@@ -1427,7 +1429,7 @@ module EcsoGraph = struct
 							assert false
 					in
 							
-					e.gexpr <- GEcsoProcess (group,system',ctx.ctx_id);
+					e.gexpr <- GEcsoProcess (group, system', ctx.ctx_id, acc.params);
 					e.greal <- ereal;
 				in
 

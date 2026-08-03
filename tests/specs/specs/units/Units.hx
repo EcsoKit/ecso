@@ -4,6 +4,7 @@ import utest.*;
 import utest.ui.common.*;
 import ecso.Entity;
 import specs.systems.*;
+using buddy.Should;
 
 class Units extends buddy.SingleSuite {
 
@@ -69,6 +70,34 @@ class Units extends buddy.SingleSuite {
                 nullSafety();
             });
         });
+
+        describe('Process generic archetypes', {
+            
+            beforeEach({
+                entities = new EntityGroup();
+                entities.createEntity({ str: "" });
+                entities.createEntity({ x: 0, str: "str" });
+            });
+
+            it('with unconstraint type parameter', {
+                genericForeach(entities, e -> e.x++ == 0);
+                entities.foreachEntity((e:{x:Int}) -> Assert.equals(1, e.x));
+            });
+
+            it('with constraint type parameter', {
+                genericForeachWithConstraint(entities, e -> e.str == "" || e.str == "str");
+                entities.foreachEntity((e:{x:Int}) -> Assert.equals(1, e.x));
+            });
+
+            // it('except with invalid type parameter (unconstraint)', buddy.CompilationShould.failFor({
+            //     genericForeach(entities, e -> e == "wrong");
+            // }).should.be("specs/units/Units.hx:93: characters 20-21 : [ECSO] Cannot use non-anonymous structure type String as entity"));
+
+            it('except with invalid type parameter (constraint)', buddy.CompilationShould.failFor({
+                genericForeachWithConstraint(entities, e -> e == "wrong");
+            }).should.be("Could not determine type for parameter Candidate"));
+
+        });
     }
 
     @:nullSafety(Strict) function nullSafety () {
@@ -103,4 +132,22 @@ class Units extends buddy.SingleSuite {
         Assert.equals(5, e.z);
         staticCount++;
     }
+
+    // generics
+
+    @:generic
+	function genericForeach<Entity>(g:EntityGroup, filter:(Entity)->Bool) {
+		g.foreachEntity((e:Entity) -> {
+			filter(e);
+		});
+	}
+
+	@:generic
+	function genericForeachWithConstraint<Entity, Candidate:Entity&{ x:Int }>(g:EntityGroup, filter:(Entity)->Bool) {		
+		g.foreachEntity((e:Candidate) -> {
+			if(e.x == 0 && filter(e)) {
+				e.x++;
+			}
+		});
+	}
 }

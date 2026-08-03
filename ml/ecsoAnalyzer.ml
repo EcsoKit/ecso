@@ -27,6 +27,7 @@ module EcsoAnalyzer = struct
 	type t = {
 		a_global : global;
 		a_ctx : EcsoContext.t;
+		a_params : (typed_type_param * bool) list; (* param, generic *)
 	}
 
 	let from_module (gctx : global) (basic : basic_types) (m : module_type) : t list =
@@ -156,9 +157,9 @@ module EcsoAnalyzer = struct
 			let gl = retrive_groups cl false cl.cl_ordered_fields [] in
 			let gl = retrive_groups cl true cl.cl_ordered_statics gl in
 			List.map (fun (g,id) -> {
-					(* a_global = gctx; *)
 					a_global = { gctx with gl_fields = Hashtbl.create 0 ~random:false };
 					a_ctx = EcsoContext.create id g basic;
+					a_params = [];
 				}) gl
 		| TEnumDecl en -> []
 		| TTypeDecl td -> []
@@ -248,7 +249,7 @@ module EcsoFilterFields = struct
 	let register (actx : EcsoAnalyzer.t) (id : string) (e : texpr) (commit : EcsoGraph.gexpr->((string,string) Hashtbl.t)->unit) : unit =
 		DynArray.add actx.a_ctx.ctx_field_ids id;
 		if not (registered actx id) then begin
-			let g = EcsoGraph.run actx.a_ctx (actx.a_global.gl_ectx.curapi.get_com()) e in
+			let g = EcsoGraph.run actx.a_ctx (actx.a_global.gl_ectx.curapi.get_com()) actx.a_params e in
 			Hashtbl.add actx.a_global.gl_fields id {
 				a_graph = g.gr_expr;
 				a_commit = commit;
@@ -279,6 +280,15 @@ module EcsoFilterFields = struct
 		| _ -> register()
 
 	let run_field (actx : EcsoAnalyzer.t) (cl : string) (cf : tclass_field) : unit =
+		(* Add field type parameters *)
+		let actx =
+			if cf.cf_params <> [] then begin
+				let is_generic = has_class_field_flag cf CfGeneric in
+				let type_params = List.map (fun tp -> (tp, is_generic)) cf.cf_params in
+				{ actx with a_params = type_params @ actx.a_params }
+			end else actx
+		in
+		
 		match cf.cf_expr with
 		| Some e -> run_expr actx (register_field actx cl cf e) e
 		| None -> ()
@@ -296,6 +306,16 @@ module EcsoFilterFields = struct
 	let run_class (actx : EcsoAnalyzer.t) (cl : tclass) : unit =
 		add_dependencies actx cl.cl_module;
 		let s_cl = Globals.s_type_path cl.cl_path in
+		
+		(* Add class type parameters *)
+		let actx =
+			if cl.cl_params <> [] then begin
+				let is_generic = match cl.cl_kind with | KGeneric -> true | _ -> false in
+				let type_params = List.map (fun tp -> (tp, is_generic)) cl.cl_params in
+				{ actx with a_params = type_params @ actx.a_params }
+			end else actx
+		in
+
 		List.iter (run_field actx s_cl) cl.cl_ordered_statics;
 		List.iter (run_field actx s_cl) cl.cl_ordered_fields;
 		match cl.cl_constructor with
