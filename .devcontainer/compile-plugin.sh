@@ -1,0 +1,1 @@
+bash ./libs/docker-haxe/setup-plugin.sh . --plugin-post-script ./extra/arch.sh
