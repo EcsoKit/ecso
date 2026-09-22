@@ -1,3 +1,6 @@
 [submodule "libs/docker-haxe"]
 	path = libs/docker-haxe
 	url = git@github.com:GaillareTech/docker-haxe.git
+[submodule "libs/wiki"]
+	path = libs/wiki
+	url = https://github.com/EcsoKit/ecso.wiki.git
