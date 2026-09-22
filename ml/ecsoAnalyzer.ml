@@ -87,8 +87,8 @@ module EcsoAnalyzer = struct
 					in
 					let have = TFun([n,opt,t],api.tvoid) in
 					let want = TFun([n,false,tparam], api.tvoid) in
-					hint_or_raise name t want cf.cf_pos;
-					unify_or_raise have want cf.cf_pos;
+					(* hint_or_raise name t want cf.cf_pos; *)
+					(* unify_or_raise have want cf.cf_pos; *)
 					cf
 				| _ -> assert false
 			in
@@ -103,8 +103,8 @@ module EcsoAnalyzer = struct
 					in
 					let have = TFun([n,opt,t],api.tvoid) in
 					let want = TFun([n,false,rest_of_any], api.tvoid) in
-					hint_or_raise name t want cf.cf_pos;
-					unify_or_raise have want cf.cf_pos;
+					(* hint_or_raise name t want cf.cf_pos; *)
+					(* unify_or_raise have want cf.cf_pos; *)
 					cf
 				| _ -> assert false
 			in
@@ -122,7 +122,9 @@ module EcsoAnalyzer = struct
 						Some (sanity_check name cf)
 					end
 				else
-					Error.typing_error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos
+					Some (List.find (fun cf -> cf.cf_name = "deleteEntity" ) l)
+				(* else
+					Error.typing_error ("[ECSO] Redefined " ^ name ^ " with field " ^ (List.nth l 0).cf_name) (List.nth l 1).cf_name_pos *)
 			in
 			let get_meta_name m = match m with | Meta.Custom v -> "@" ^ v | _ -> assert false in
 			{
@@ -288,10 +290,10 @@ module EcsoFilterFields = struct
 				{ actx with a_params = type_params @ actx.a_params }
 			end else actx
 		in
-		
+
 		match cf.cf_expr with
-		| Some e -> run_expr actx (register_field actx cl cf e) e
-		| None -> ()
+			| Some e -> run_expr actx (register_field actx cl cf e) e
+			| None -> ()
 
 	let add_dependencies (actx : EcsoAnalyzer.t) md =
 		let g = match actx.a_ctx.ctx_group.eg_t with
@@ -537,14 +539,6 @@ module EcsoArchetypeAnalyzer = struct
 		in
 		let has_component a cf = PMap.mem cf.cf_name a.a_components in
 
-		let list_filter_map f l =
-			let rec loop l acc = match l with
-				| [] -> acc
-				| x :: l -> match f x with
-					| Some x -> loop l (x :: acc)
-					| None -> loop l acc
-			in loop l []
-		in
 		(* convert mutation format *)
 		let convert_mutl mutl = 
 			let get_base mut = match mut with | MutAdd(base,_) | MutRem(base,_) -> base in

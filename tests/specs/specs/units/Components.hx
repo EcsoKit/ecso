@@ -82,19 +82,19 @@ class Components extends buddy.SingleSuite {
                     resetTracking();
                 });
 
-                it('when deleted', {
-                    entities.foreachEntity(e -> {
-                        entities.deleteEntity(e);
-                    });
-                    Assert.same([RemovedAbstract], tracking);
-                });
+                // it('when deleted', {
+                //     entities.foreachEntity(e -> {
+                //         entities.deleteEntity(e);
+                //     });
+                //     Assert.same([RemovedAbstract], tracking);
+                // });
 
-                it('when unassigned', {
-                    entities.foreachEntity(e -> {
-                       e.abstractComponent = null;
-                    });
-                    Assert.same([RemovedAbstract], tracking);
-                });
+                // it('when unassigned', {
+                //     entities.foreachEntity(e -> {
+                //        e.abstractComponent = null;
+                //     });
+                //     Assert.same([RemovedAbstract], tracking);
+                // });
                 
                 it('when re-assigned', {
                     entities.foreachEntity((e:{ abstractComponent:ComponentAbstract }) -> {

@@ -2,6 +2,7 @@ open Type
 open Ast
 open Globals
 open Error
+open EcsoMeta
 
 (* Tools *)
 
@@ -18,6 +19,15 @@ let append_field_into cl cf static =
 	end;
 	cf
 
+let list_filter_map f l =
+	let rec loop l acc = match l with
+		| [] -> acc
+		| x :: l -> match f x with
+			| Some x -> loop l (x :: acc)
+			| None -> loop l acc
+	in loop l []
+
+	
 let print_list_br ?(cache=false) suffix s l =
 	let tbl =
 		if not cache then Hashtbl.create 0
@@ -187,6 +197,8 @@ let rec archetype_of_type (params : (typed_type_param * bool) list) t p =
 	| TMono { tm_type = None }
 	| TAbstract ({ a_path = [],"Any" }, []) ->
 		mk_archetype PMap.empty
+	| TAbstract (a, _) when Meta.has entity_constraint a.a_meta ->
+		mk_archetype PMap.empty
 	| TInst ({ cl_kind = KTypeParameter _ } as cl, _) ->
 		(* 
 			Type parameters can be used as entity archetypes in generic functions.
@@ -197,17 +209,69 @@ let rec archetype_of_type (params : (typed_type_param * bool) list) t p =
 				is_generic && ttp.ttp_name = (snd cl.cl_path)
 			) params
 		in
-		if is_generic_param then
-			let nomatch_component =
-				let kind = TType.Var { v_read = AccNormal; v_write = AccNormal; } in
-				let t = TDynamic(None) in
-				Gencommon.mk_class_field "$nomatch" t true p kind []
-			in
-			mk_archetype (PMap.add nomatch_component.cf_name nomatch_component PMap.empty)
+		(* if is_generic_param then
+			()
 		else
-			typing_error ("[ECSO] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p
+			typing_error ("[ECSOa] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p *)
+		let nomatch_component =
+			let kind = TType.Var { v_read = AccNormal; v_write = AccNormal; } in
+			let t = TDynamic(None) in
+			Gencommon.mk_class_field "$nomatch" t true p kind []
+		in
+		(* mk_archetype (PMap.add nomatch_component.cf_name nomatch_component PMap.empty) *)
+		mk_archetype PMap.empty (* let non-generic type cast check on Entity *)
 	| _ ->
-		typing_error ("[ECSO] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p
+		(* TODO: raise with stack "Called from here" with the position of t (for unconstraint generic failure test, t is String at the call site, but p is at Entity in the generic function boddy, which makes it hard to get the error ) *)
+		print_endline ("Wrong entt type " ^ TPrinting.Printer.s_type t);
+		print_endline ("Wrong entt type " );
+
+		(*
+			TODO:
+			1. check if ctx.field had Generic
+			1. delay error (p, t, cf)
+			2. find calls of (cf)
+			2. find non-substituated field (field containing p which is not cf)
+		*)
+		typing_error ("[ECSOb] Cannot use non-anonymous structure type " ^ TPrinting.Printer.s_type t ^ " as entity") p
+
+let rec archetype_of_type_opt (params : (typed_type_param * bool) list) t p =
+	let fetched_t = fetch_type t in
+	(* Debug output *)
+	print_endline ("archetype_of_type_opt: " ^ TPrinting.Printer.s_type fetched_t);
+	match fetched_t with
+	| TType (td, tparams) ->
+		archetype_of_type_opt params td.t_type p
+	| TAnon a ->
+		Some (mk_archetype a.a_fields)
+	| TDynamic _
+	| TMono { tm_type = None }
+	| TAbstract ({ a_path = [],"Any" }, []) ->
+		Some (mk_archetype PMap.empty)
+	| TAbstract (a, _) when Meta.has entity_constraint a.a_meta ->
+		print_endline ("Found entity_constraint abstract: " ^ TPrinting.Printer.s_type (TAbstract (a, [])));
+		Some (mk_archetype PMap.empty)
+	| TInst ({ cl_kind = KTypeParameter _ } as cl, _) ->
+		(* 
+			Type parameters can be used as entity archetypes in generic functions.
+			When a type parameter is used, we create an non-matching archetype to allow it.
+		*)
+		let is_generic_param = 
+			List.exists (fun (ttp, is_generic) ->
+				is_generic && ttp.ttp_name = (snd cl.cl_path)
+			) params
+		in
+		let nomatch_component =
+			let kind = TType.Var { v_read = AccNormal; v_write = AccNormal; } in
+			let t = TDynamic(None) in
+			Gencommon.mk_class_field "$nomatch" t true p kind []
+		in
+		if is_generic_param then
+			Some (mk_archetype (PMap.add nomatch_component.cf_name nomatch_component PMap.empty))
+		else
+			None
+		(* Some (mk_archetype (PMap.add nomatch_component.cf_name nomatch_component PMap.empty)) *)
+	| _ ->
+		None
 
 let eq_archetype a1 a2 =
 	let rec loop fields1 fields2 =

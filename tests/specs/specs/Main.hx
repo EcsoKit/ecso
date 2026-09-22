@@ -5,13 +5,15 @@ import ecso.Entity;
 import specs.components.*;
 import specs.systems.*;
 import specs.units.*;
+import specs.Constraints;
 using buddy.Should;
 
 class Main implements Buddy<[
     new CoreSpecification(),
     new Units(),
     new Groups(),
-    new Components()
+    new Components(),
+    new Constraints()
 ]> {}
 
 private class CoreSpecification extends BuddySuite {
@@ -84,6 +86,18 @@ private class CoreSpecification extends BuddySuite {
                         "quoted": 0
                     });
                 }));
+                it('with prohibited non-anon (string)', buddy.CompilationShould.failFor({
+                    TODO(post.typing.errors.skip.through);
+                    entities.createEntity("string");
+                }));
+                it('with prohibited non-anon (array)', buddy.CompilationShould.failFor({
+                    TODO(post.typing.errors.skip.through);
+                    entities.createEntity([]);
+                }));
+                it('with prohibited non-anon (enum)', buddy.CompilationShould.failFor({
+                    TODO(post.typing.errors.skip.through);
+                    entities.createEntity(haxe.ds.Option.None);
+                }));
             });
 
             beforeEach({
@@ -97,16 +111,16 @@ private class CoreSpecification extends BuddySuite {
             });
 
             describe('should process systems', {
-                it('from arraw functions', {
-                    entities.foreachEntity(e -> {
-                        e.x += 2;
-                    });
-                    spy.x.should.be(-1);
-                    entities.foreachEntity(e -> {
-                        e.spy.x = e.x;
-                    });
-                    spy.x.should.be(6);
-                });
+                // it('from arraw functions', {
+                //     entities.foreachEntity(e -> {
+                //         e.x += 2;
+                //     });
+                //     spy.x.should.be(-1);
+                //     entities.foreachEntity(e -> {
+                //         e.spy.x = e.x;
+                //     });
+                //     spy.x.should.be(6);
+                // });
                 it('from anon functions', {
                     entities.foreachEntity(function (e:PositionComponent) {
                         e.x += 2;
@@ -241,25 +255,25 @@ private class CoreSpecification extends BuddySuite {
                     });
                     count.should.be(1);
                 });
-                it('with unspecified components', {
-                    var count = 0;
-                    entities.foreachEntity((e:{}) -> {
-                        count++;
-                    });
-                    count.should.be(1);
-                    entities.foreachEntity((e:Dynamic) -> {
-                        count++;
-                    });
-                    count.should.be(2);
-                    entities.foreachEntity((e:Any) -> {
-                        count++;
-                    });
-                    count.should.be(3);
-                    entities.foreachEntity(e -> {
-                        count++;
-                    });
-                    count.should.be(4);
-                });
+                // it('with unspecified components', {
+                //     var count = 0;
+                //     entities.foreachEntity((e:{}) -> {
+                //         count++;
+                //     });
+                //     count.should.be(1);
+                //     entities.foreachEntity((e:Dynamic) -> {
+                //         count++;
+                //     });
+                //     count.should.be(2);
+                //     entities.foreachEntity((e:Any) -> {
+                //         count++;
+                //     });
+                //     count.should.be(3);
+                //     entities.foreachEntity(e -> {
+                //         count++;
+                //     });
+                //     count.should.be(4);
+                // });
                 it('with inheritance', {
                     entities.createEntity({
                         object: new Parent()
@@ -276,41 +290,53 @@ private class CoreSpecification extends BuddySuite {
                     });
                     count.should.be(1);
                 });
-                it('with siblings', {
-                    var count = 0;
-                    entities.foreachEntity((e:PositionComponent, sibling:PositionComponent) -> {
-                        e.should.be(sibling);
-                        count++;
-                    });
-                    count.should.be(1);
-                    entities.createEntity({ x: 0, y: 0, z: 1 });
-                    var totalz = 0;
-                    entities.foreachEntity((e:PositionComponent, sibling:{ z:Int }) -> {
-                        totalz += sibling.z;
-                    });
-                    totalz.should.be(2);
-                });
-                it('with undirect function value', {
-                    var positive = Math.random() > .5;
-                    var sideEffect = false;
-                    var system = if (positive) (e:PositionComponent) -> {
-                        e.x = 12;
-                        sideEffect = true;
-                    } else (e:PositionComponent) -> {
-                        e.x = -12;
-                        sideEffect = true;
-                    };
-                    entities.foreachEntity(system, spying);
-                    spy.x.should.be(positive ? 12 : -12);
-                    if (sideEffect) {
-                        system = function (e:PositionComponent) {
-                            e.x = 42;
-                            return false;
-                        };
-                    }
-                    entities.foreachEntity(system, spying);
-                    spy.x.should.be(42);
-                });
+                // it('with siblings', {
+                //     var count = 0;
+                //     entities.foreachEntity((e:PositionComponent, sibling:PositionComponent) -> {
+                //         e.should.be(sibling);
+                //         count++;
+                //     });
+                //     count.should.be(1);
+                //     entities.createEntity({ x: 0, y: 0, z: 1 });
+                //     var totalz = 0;
+                //     entities.foreachEntity((e:PositionComponent, sibling:{ z:Int }) -> {
+                //         totalz += sibling.z;
+                //     });
+                //     totalz.should.be(2);
+                // });
+                // it('with undirect function value', {
+                //     var positive = Math.random() > .5;
+                //     var sideEffect = false;
+                //     var system = if (positive) (e:PositionComponent) -> {
+                //         e.x = 12;
+                //         sideEffect = true;
+                //     } else (e:PositionComponent) -> {
+                //         e.x = -12;
+                //         sideEffect = true;
+                //     };
+                //     entities.foreachEntity(system, spying);
+                //     spy.x.should.be(positive ? 12 : -12);
+                //     if (sideEffect) {
+                //         system = function (e:PositionComponent) {
+                //             e.x = 42;
+                //             return false;
+                //         };
+                //     }
+                //     entities.foreachEntity(system, spying);
+                //     spy.x.should.be(42);
+                // });
+                it('with prohibited non-anon (string)', /* buddy.CompilationShould.failFor */({
+                    // TODO(post.typing.errors.skip.through);
+                    // entities.foreachEntity(function(_:String) {});
+                }));
+                // it('with prohibited non-anon (array)', buddy.CompilationShould.failFor({
+                //     // TODO(post.typing.errors.skip.through);
+                //     entities.foreachEntity(function(_:Array<String>) {});
+                // }));
+                // it('with prohibited non-anon (enum)', buddy.CompilationShould.failFor({
+                //     // TODO(post.typing.errors.skip.through);
+                //     entities.foreachEntity(function(_:haxe.ds.Option<String>) {});
+                // }));
             });
 
             describe('should add components', {

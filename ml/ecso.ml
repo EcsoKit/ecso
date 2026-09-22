@@ -7,6 +7,7 @@ open Globals
 open AnalyzerTexpr
 open EcsoTypes
 open EcsoAnalyzer
+open EcsoConstraints
 
 class plugin =
 	object (self)
@@ -17,10 +18,11 @@ class plugin =
 			let com = ectx.curapi.get_com() in
 			begin match com.get_macros() with
 			| Some mctx ->
-				mctx.callbacks#add_after_typing (self#run true)
+				mctx.callbacks#add_after_typing (self#run true);
 			| None -> 
 				()
 			end;
+			EcsoConstraints.install();
 			vnull
 
 		method run (macro : bool) (ml : module_type list) =

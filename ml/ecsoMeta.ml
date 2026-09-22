@@ -7,3 +7,5 @@ let api_delete = Meta.Custom ":ecso.delete"
 let api_foreach = Meta.Custom ":ecso.foreach"
 let api_added_callback = Meta.Custom ":ecso.added"
 let api_removed_callback = Meta.Custom ":ecso.removed"
+(* Custom constraint metadata *)
+let entity_constraint = Meta.Custom ":ecso.entity_constraint"

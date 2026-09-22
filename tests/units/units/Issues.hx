@@ -5,6 +5,8 @@ import sys.FileSystem;
 
 using StringTools;
 
+// TODO open issue: use a component typed `Some<T>` which is defined as  `typedef Some<T> = ds.Some<T>` AND ds.Some<T> is annotated with @:generic
+
 macro function instantiateFrom(pack:String) {
 	final issue = Context.definedValue("issue");
 	final pack = pack.split(".");

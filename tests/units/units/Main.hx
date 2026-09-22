@@ -8,7 +8,7 @@ function main() {
 	var classes = #if issue [
 		Issues.instantiateFrom('units.issues')
 	] #else [
-		return // no tests atm.
+		new Constraints()
 	] #end;
 
 	var runner = new Runner();
