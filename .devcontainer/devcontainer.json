@@ -46,7 +46,7 @@
 				"eamodio.gitlens",
 			],
 			"settings": {
-				"git.ignoredRepositories": ["libs/docker-haxe"],
+				
 			}
 		}
 	}
