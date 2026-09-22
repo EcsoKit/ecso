@@ -16,7 +16,8 @@ Note that the script will try to look for test dependencies and install them if 
 
 1. Change to this directory.
 2. Run with `-D issues` to test all issue tests.
-2. Run with `-D issues=$ID` to select specific issues, where `$ID` should be a comma-separated list of issue ids, e.g. `19,21`.
+    - select specific issues with `-D issues=$ID` to , where `$ID` should be a comma-separated list of issue ids, e.g. `19,21`.
+    - ignore specific issues with `-D issues=-$ID` to , e.g. `-21` will ignore `Issue21.hx`.
 
 ### Unit tests
 

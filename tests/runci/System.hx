@@ -226,15 +226,29 @@ macro function getIssues() {
 				issues.push(v);
 			}
 	}
+	final ignoredIssues = [for(issue in issues) if(issue.startsWith('-')) {
+		issues.remove(issue);
+		final id = issue.substr(1);
+		infoMsg("Ignore issue " + id);
+		macro $v{id};
+	}];
+	
 	final dir = macro (unitsDir + "units/issues");
 	if (issues.length == 0) {
 		return macro [for (file in sys.FileSystem.readDirectory($dir)) {
-			if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file))
-				new runci.Issue(file.substr(5), $dir + "/" + file);
-			else if (file.startsWith("Issue") && file.endsWith(".hx"))
-				new runci.Issue(file.substring(5, file.length - 3));
-			else
+			final issue = if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file)) {
+				final id = file.substr(5);
+				new runci.Issue(id, $dir + "/" + file);
+			} else if (file.startsWith("Issue") && file.endsWith(".hx")) {
+				final id = file.substring(5, file.length - 3);
+				new runci.Issue(id);
+			} else continue;
+			// Filter ignored issues
+			if($a{ignoredIssues}.contains(@:privateAccess issue.id)) {
 				continue;
+			} else {
+				issue;
+			}
 		}];
 	} else {
 		return macro [for (id in $v{issues}) {
