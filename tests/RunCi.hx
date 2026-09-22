@@ -75,7 +75,7 @@ function main() {
 
 		final success = try {
 			haxelibInstallGit("haxe-utest", "utest", "master");
-			haxelibInstall("buddy");
+			haxelibInstallGit("dpomier", "buddy", "master", "src");
 
 			var args = switch ci {
 				case null:
