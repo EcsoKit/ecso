@@ -21,6 +21,15 @@ class plugin =
 			| None -> 
 				()
 			end;
+			(* 
+				Register extern functions to eval to allow compilation of normal context
+				with dead code using ecso when the macro context is loaded (see issue #34).
+			*)
+			EvalStdLib.init_fields ectx.builtins (["ecso"],"EntityGroup") [] [
+				("foreachEntity", EvalEncode.vfun1 (fun arg -> vnull ));
+				("createEntity", EvalEncode.vfun1 (fun arg -> vnull ));
+				("deleteEntity", EvalEncode.vfun1 (fun arg -> vnull ));
+			];
 			vnull
 
 		method run (macro : bool) (ml : module_type list) =
@@ -30,6 +39,18 @@ class plugin =
 			let ectx = EvalContext.get_ctx() in
 			let com = ectx.curapi.get_com() in
 			detail_times := Common.raw_defined com "ecso-times";
+
+			(*
+				When running on the macro context, only consider modules that don't
+				exist in the normal context: modules shared by both are owned by the
+				normal context, where the code is actually executed (see issue #34).
+			*)
+			let ml =
+				if macro then
+					List.filter (fun mt -> not (com.module_lut#mem (t_infos mt).mt_module.m_path)) ml
+				else
+					ml
+			in
 
 			let ctxl = with_timer ["fetch-contexts"] (fun () -> EcsoAnalyzer.fetch ectx macro ml) in
 
