@@ -8,7 +8,7 @@ We have a number of test suites, which are placed in their own folders in this d
 
 1. Change to this directory.
 2. Run `haxe RunCi.hxml -D test=$TARGET` to select specific targets, where `$TARGET` should be a comma-separated list of targets, e.g. `js,hl`. Possible targets are interp, macro, server, cpp, cppia, hl, neko, js, lua, php, cs, java, jvm, python and flash9. However, flash9 is not likely to work on local machines.
-3. Run with `-D issues`, `-D units`, or `-D specs` to select specific test suites. If nothing is defined, all suites will run. See below for details.
+3. Run with `-D issues`, `-D units`, or `-D specs` to select specific test suites. If nothing is defined, all suites will run. See below for details. Benchmarks with `-D bench` are not part of the default run.
 
 Note that the script will try to look for test dependencies and install them if they are not found. Look at the `getXXXDependencies` functions for the details.
 
@@ -34,6 +34,14 @@ Cpp unit tests are compiled with `-D HXCPP_NO_DEBUG_LINK` (removes debug symbols
 
 1. Change to this directory.
 2. Run with `-D specs`.
+
+### Bench tests
+
+Bench tests measure the runtime performance of systems (e.g. with a full entity archetype, a partial entity archetype, or optional components). They print timing results and do not assert anything, so they are opt-in and not part of the default test run.
+
+1. Change to this directory.
+2. Run with `-D bench`.
+3. Add new benchmarks in `bench/bench/benchmarks/` as classes extending `bench.Bench`, which provide an entity group `setup` and a timed `update`, then register them in `bench/bench/Main.hx`.
 
 ## Server
 

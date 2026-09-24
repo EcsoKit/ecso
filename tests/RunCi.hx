@@ -62,6 +62,15 @@ function main() {
 			run("units");
 	}
 
+	function runBench(target:TestTarget, args:Array<String>, ?run:String->Void) {
+		if (!testBench)
+			return;
+		changeDirectory(benchDir);
+		runCommand("haxe", ['compile-$target.hxml'].concat(args));
+		if (run != null)
+			run("bench");
+	}
+
 	for (test in tests) {
 		switch systemName {
 			case "Windows":
@@ -104,6 +113,7 @@ function main() {
 					runIssues(Interp, args);
 					runUnits(Interp, args);
 					runSpecs(Interp, args);
+					runBench(Interp, args);
 				case Hl:
 					testHaxe(Hl);
 
@@ -119,6 +129,7 @@ function main() {
 					runIssues(Hl, args, runHl);
 					runUnits(Hl, args, runHl);
 					runSpecs(Hl, args, runHl);
+					runBench(Hl, args, runHl);
 				case Js:
 					haxelibInstall("hxnodejs");
 					installNode();
@@ -148,6 +159,7 @@ function main() {
 						runIssues(Js, args, runJs);
 						runUnits(Js, args, runJs);
 						runSpecs(Js, args, runJs);
+						runBench(Js, args, runJs);
 					}
 				case Jvm:
 					haxelibInstall("hxjava");
@@ -160,6 +172,7 @@ function main() {
 						runIssues(Jvm, args, runJvm);
 						runUnits(Jvm, args, runJvm);
 						runSpecs(Jvm, args, runJvm);
+						runBench(Jvm, args, runJvm);
 					}
 				case Cpp:
 					testHaxe(Cpp);
@@ -177,6 +190,7 @@ function main() {
 					runIssues(Cpp, args, runCpp);
 					runUnits(Cpp, args, runCpp);
 					runSpecs(Cpp, args, runCpp);
+					runBench(Cpp, args, runCpp);
 				case Cs:
 					testHaxe(Cs);
 					for (unsafe in        [[], ["-D", "unsafe"]])
@@ -197,6 +211,7 @@ function main() {
 						runIssues(Cs, args, runCs);
 						runUnits(Cs, args, runCs);
 						runSpecs(Cs, args, runCs);
+						runBench(Cs, args, runCs);
 					}
 				case t:
 					throw new Exception("unknown target: " + t);

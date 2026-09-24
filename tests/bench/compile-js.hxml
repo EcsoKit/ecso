@@ -1,0 +1,4 @@
+common.hxml
+
+--library hxnodejs
+--js bin/bench.js

@@ -7,6 +7,7 @@ final cwd = Sys.getCwd();
 final repoDir = FileSystem.fullPath("..") + "/";
 final specsDir = cwd + "specs/";
 final unitsDir = cwd + "units/";
+final benchDir = cwd + "bench/";
 final serverDir = cwd + "server/";
 
 enum Ci {
@@ -34,7 +35,9 @@ final colorSupported = switch [ci, systemName] {
 private final defIssues = #if (issues || issue) true #else false #end;
 private final defSpecs = #if (specs || spec) true #else false #end;
 private final defUnits = #if (units || unit) true #else false #end;
-private final testAll = !(defIssues || defSpecs || defUnits);
+private final defBench = #if (bench || benchmarks) true #else false #end;
+private final testAll = !(defIssues || defSpecs || defUnits || defBench);
 final testIssues = testAll || defIssues;
 final testSpecs = testAll || defSpecs;
 final testUnits = testAll || defUnits;
+final testBench = defBench; // opt-in

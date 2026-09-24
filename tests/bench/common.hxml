@@ -1,0 +1,3 @@
+--debug
+--library ecso
+--main bench.Main
