@@ -18,9 +18,13 @@ abstract class Bench {
 
 	abstract function update():Void;
 
+	function warmup():Void {
+		for (_ in 0...warmupCount) update();
+	}
+
 	public function run():Void {
 		setup();
-		for (_ in 0...warmupCount) update();
+		warmup();
 		final startTime = Sys.time();
 		for (_ in 0...updateCount) update();
 		final duration = Sys.time() - startTime;

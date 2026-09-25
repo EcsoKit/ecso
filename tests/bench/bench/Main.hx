@@ -1,6 +1,7 @@
 package bench;
 
 import bench.benchmarks.FullArchetype;
+import bench.benchmarks.Initialisation;
 import bench.benchmarks.OptionalComponents;
 import bench.benchmarks.PartialArchetype;
 
@@ -14,6 +15,7 @@ class Main {
 			new PartialArchetype("big chunks", 2000000, 3),
 			new OptionalComponents("small chunks", 10000, 1000),
 			new OptionalComponents("big chunks", 2000000, 3),
+			new Initialisation(),
 		];
 		for (bench in benches)
 			bench.run();
