@@ -23,7 +23,7 @@ class Initialisation extends Bench {
 	final entities = new Group();
 
 	public function new() {
-		super('foreach with a heavy one-time initialisation', 1000000, 20);
+		super('foreach with one-time initialisation', 2000000, 20);
 	}
 
 	function setup() {
@@ -42,7 +42,6 @@ class Initialisation extends Bench {
 
 	static function initialise(entity:Position & Initialised) {
 		if (!entity.initialised) {
-			Sys.sleep(0.000001);
 			entity.initialised = true;
 		}
 	}
