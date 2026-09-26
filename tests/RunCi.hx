@@ -57,9 +57,23 @@ function main() {
 		if (!testUnits)
 			return;
 		changeDirectory(unitsDir);
-		runCommand("haxe", ['compile-$target.hxml'].concat(args));
-		if (run != null)
-			run("units");
+		final cases = getCases();
+		infoMsg('Going to test cases $cases');
+		final timeout = switch target {
+			case Cpp | Cs: 0xFFFFFF;
+			case _: 5.0;
+		}
+		for (caseId in cases) {
+			final extraArgs = ['-D', 'case=$caseId'];
+			switch caseId.extraParams() {
+				case "":
+				case extraParams: 
+					extraArgs.push(extraParams);
+			}
+			runCommand("haxe", ['compile-$target.hxml'].concat(args.concat(extraArgs)), timeout);
+			if (run != null)
+				run("units");
+		}
 	}
 
 	function runBench(target:TestTarget, args:Array<String>, ?run:String->Void) {

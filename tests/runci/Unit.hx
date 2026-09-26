@@ -1,6 +1,6 @@
 package runci;
 
-final class Issue {
+class Unit {
 	final id:String;
 	final project:Null<String>;
 

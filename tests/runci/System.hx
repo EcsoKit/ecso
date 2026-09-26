@@ -210,53 +210,86 @@ macro function getTests() {
 	}
 }
 
-macro function getIssues() {
-	final issues = switch haxe.macro.Context.definedValue("issues") {
+function getCases() {
+	return getUnits('cases', { definedLists: ['units', 'unit'] });
+}
+
+function getIssues() {
+	return getUnits('issues', { definedLists: ['issues', 'issue'] });
+}
+
+function getDefinedList(define:String, ?out:Array<String>):Array<String> {
+	return switch haxe.macro.Context.definedValue(define) {
 		case null | "" | "1" | "0" | "true" | "false":
-			[];
-		case issues:
-			[for (v in issues.split(",")) v.trim()];
+			out ?? [];
+		case list:
+			out ??= [];
+			for (v in list.split(",")) out.push(v.trim());
+			out;
 	}
-	switch haxe.macro.Context.definedValue("issue") {
-		case null | "" | "1" | "0" | "true" | "false":
-		case issue:
-			for (v in issue.split(",")) {
-				final v = v.trim();
-				issues.remove(v);
-				issues.push(v);
-			}
+}
+
+macro function getUnits(category:String, request:{ definedLists:Array<String> }, ?individual:String) {
+	individual = individual ?? category.substr(0, category.length - 1);
+	final units = [];
+	for(define in request.definedLists) {
+		getDefinedList(define, units);
 	}
-	final ignoredIssues = [for(issue in issues) if(issue.startsWith('-')) {
-		issues.remove(issue);
-		final id = issue.substr(1);
-		infoMsg("Ignore issue " + id);
+	final ignoredUnits = [for(unit in units) if(unit.startsWith('-')) {
+		units.remove(unit);
+		final id = unit.substr(1);
+		infoMsg('Ignore $individual $id');
 		macro $v{id};
 	}];
 	
-	final dir = macro (unitsDir + "units/issues");
-	if (issues.length == 0) {
+	final dir = macro (unitsDir + $v{'units/$category'});
+	final individualPascalCased = individual.substr(0,1).toUpperCase() + individual.substr(1);
+	if (units.length == 0) {
 		return macro [for (file in sys.FileSystem.readDirectory($dir)) {
-			final issue = if (file.startsWith("issue") && sys.FileSystem.isDirectory($dir + "/" + file)) {
-				final id = file.substr(5);
-				new runci.Issue(id, $dir + "/" + file);
-			} else if (file.startsWith("Issue") && file.endsWith(".hx")) {
-				final id = file.substring(5, file.length - 3);
-				new runci.Issue(id);
+			final unit = if (file.startsWith($v{individual}) && sys.FileSystem.isDirectory($dir + "/" + file)) {
+				// unitX/*
+				final id = file.substr($v{individual.length});
+				new runci.Unit(id, $dir + "/" + file);
+			} else if (file.startsWith($v{individualPascalCased}) && file.endsWith(".hx")) {
+				// UnitX.hx
+				final id = file.substring($v{individual.length}, file.length - 3);
+				new runci.Unit(id);
+			} else if (sys.FileSystem.isDirectory($dir + "/" + file)) {
+				// X/*
+				final id = file;
+				new runci.Unit(id, $dir + "/" + file);
+			} else if (file.endsWith(".hx")) {
+				// X.hx
+				final id = file.substring(0, file.length - 3);
+				new runci.Unit(id);
 			} else continue;
-			// Filter ignored issues
-			if($a{ignoredIssues}.contains(@:privateAccess issue.id)) {
+			// Filter ignored units
+			if($a{ignoredUnits}.contains(@:privateAccess unit.id)) {
 				continue;
 			} else {
-				issue;
+				unit;
 			}
 		}];
 	} else {
-		return macro [for (id in $v{issues}) {
-			final project = $dir + "/issue" + id;
-			if (sys.FileSystem.isDirectory(project))
-				new runci.Issue(id, project);
-			else
-				new runci.Issue(id);
+		return macro [for (id in $v{units}) {
+			var unit:Null<runci.Unit> = null;
+			for(projectCandidate in [id, $v{individual} + id, $v{individualPascalCased} + id]) {
+				final project = $dir + "/" + projectCandidate;
+				if(sys.FileSystem.exists(project) || sys.FileSystem.exists(project + '.hx')) {
+					unit = if (sys.FileSystem.isDirectory(project)) {	
+						new runci.Unit(id, project);
+					} else {
+						new runci.Unit(id);
+					}
+					break;
+				}
+			}
+			if(unit == null) {
+				failMsg('Unit test $id doesn\'t exists');
+				continue;
+			} else {
+				unit;
+			}
 		}];
 	}
 }
